@@ -1,4 +1,10 @@
+from Akuga.ArenaCreator import CreateArena
+
+
 DEBUG = True
 BOARD_WIDTH = 6
 BOARD_HEIGHT = 6
 SCREEN_DIMENSION = (640, 480)
+MAX_PLAYERS = 2
+CURRENT_PLAYER = 0
+ARENA = CreateArena(BOARD_WIDTH, BOARD_HEIGHT, 0, 250)

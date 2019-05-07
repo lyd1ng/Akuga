@@ -1,5 +1,4 @@
 import pygame
-
 """
 This file contains every user defined events
 """

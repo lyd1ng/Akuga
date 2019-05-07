@@ -38,26 +38,39 @@ class Arena:
     This represents the arena, which is made of BOARD_WIDTH * BOARD_HEIGHT
     many ArenaTiles
     """
-    def __init__(self, tiles):
+    def __init__(self, tiles, board_width, board_height):
         """
         tiles is a 2d list of ArenaTiles
         """
         self.tiles = tiles
+        self.board_width = board_width
+        self.board_height = board_height
 
     def IsBlockedAt(self, position):
         """
         Return whether the tile at position is blocked or not
         """
-        return self.tiles[position[0], position[1]].IsBlocked()
+        return self.tiles[position[0]][position[1]].IsBlocked()
 
     def GetUnitAt(self, position):
         """
         Get the Unit aka Jumon, Equipment or Trap at position
         """
-        return self.tiles[position[0], position[1]].OccupiedBy()
+        return self.tiles[position[0]][position[1]].OccupiedBy()
 
     def PlaceUnitAt(self, unit, position):
         """
         Places unit at position
         """
-        self.tiles[position[0], position[1]].PlaceUnit(unit)
+        self.tiles[position[0]][position[1]].PlaceUnit(unit)
+
+    def PrintOut(self):
+        for y in range(0, self.board_height):
+            for x in range(0, self.board_width):
+                print("|", end="")
+                if self.GetUnitAt((x, y)) is not None:
+                    print(self.GetUnitAt((x, y)).name, end=" ")
+                    print(self.GetUnitAt((x, y)).owned_by, end="")
+                print("\t", end="")
+            print("")
+

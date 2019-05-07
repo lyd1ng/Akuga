@@ -1,5 +1,5 @@
 import random
-from Akuga.global_definitions import (BOARD_WIDTH, BOARD_HEIGHT)
+import Akuga.global_definitions as global_definitions
 from Akuga.StateMachieneState import StateMachieneState as State
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
@@ -77,8 +77,8 @@ class SummonState(State):
         summon_check_state with the position and the summon as
         summon_check_state_variables
         """
-        x_position = random.randint(0, BOARD_WIDTH)
-        y_position = random.randint(0, BOARD_HEIGHT)
+        x_position = random.randint(0, global_definitions.BOARD_WIDTH - 1)
+        y_position = random.randint(0, global_definitions.BOARD_HEIGHT - 1)
         summon_check_state_variables = {
             "jumon_to_summon": self.state_variables["jumon_to_summon"],
             "summon_position": (x_position, y_position)}
@@ -109,16 +109,16 @@ class SummonCheckState(State):
         If the ArenaTile is free the invocation is complete and the
         turn ends
         """
-        if ARENA.GetUnitAt(summon_position) is None:
-            ARENA.PlaceUnitAt(jumon, summon_position)
+        if global_definitions.ARENA.GetUnitAt(summon_position) is None:
+            global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
             """
             Now the turn is over and the player has to change
             so jump to the ChangePlayerState
             """
             change_player_state_variables = {}
             return (change_player_state, change_player_state_variables)
-        elif ARENA.GetUnitAt(summon_position).owned_by == CURRENT_PLAYER\
-                or ARENA.IsBlockedAt(summon_position):
+        elif global_definitions.ARENA.GetUnitAt(summon_position).owned_by == global_definitions.CURRENT_PLAYER\
+                or global_definitions.ARENA.IsBlockedAt(summon_position):
             """
             If the jumon at this tile is owned  by the current player
             the jumon has to be replaced, so jump back to the summon state
@@ -139,7 +139,7 @@ class SummonCheckState(State):
             one_tile_battle_state_variables = {
                 "battle_position": summon_position,
                 "summoned_jumon": jumon,
-                "occupying_jumon": ARENA.GetUnitAt(summon_position)}
+                "occupying_jumon": global_definitions.ARENA.GetUnitAt(summon_position)}
             return (one_tile_battle_state, one_tile_battle_state_variables)
 
 
@@ -158,8 +158,9 @@ class ChangePlayerState(State):
         interval [0, MAX_PLAYERS[
         Than instantly jump to the idle state
         """
-        CURRENT_PLAYER = CURRENT_PLAYER + 1
-        CURRENT_PLAYER = CURRENT_PLAYER % MAX_PLAYERS
+        global_definitions.CURRENT_PLAYER = global_definitions.CURRENT_PLAYER + 1
+        global_definitions.CURRENT_PLAYER = global_definitions.CURRENT_PLAYER % global_definitions.MAX_PLAYERS
+        print("Changed Player to: " + str(global_definitions.CURRENT_PLAYER))
         return (idle_state, {})
 
 
@@ -178,21 +179,22 @@ class CheckMoveState(State):
         # Get the distance to check if a move is valid or not
         manhatte_distance = abs(current_position[0] - target_position[0]) + \
             abs(current_position[1] - target_position[1])
-        if manhatte_distance > jumon.movement and manhatte_distance != 0:
+        if manhatte_distance > jumon.movement and manhatte_distance != 0 or\
+                target_position[0] < 0 or target_position[1] < 0:
             """
             If the target move is invalid in length just jump back to the
             idle state.
             """
             return (idle_state, {})
-        if ARENA.GetUnitAt(target_position) is None:
+        if global_definitions.ARENA.GetUnitAt(target_position) is None:
             """
             If the tile at target position is free just do the move
             and end the turn by jumping to the ChangePlayerState
             """
-            ARENA.PlaceUnitAt(None, current_position)
-            ARENA.PlaceUnitAt(jumon, target_position)
+            global_definitions.ARENA.PlaceUnitAt(None, current_position)
+            global_definitions.ARENA.PlaceUnitAt(jumon, target_position)
             return (change_player_state, {})
-        elif ARENA.GetUnitAt(target_position).owned_by == CURRENT_PLAYER:
+        elif global_definitions.ARENA.GetUnitAt(target_position).owned_by == global_definitions.CURRENT_PLAYER:
             """
             If the target position is owned by a jumon of the current player
             the move is illegal and the a new move has to be defined,
@@ -207,7 +209,7 @@ class CheckMoveState(State):
             """
             two_tile_battle_state_variable = {
                 "jumon_to_move": jumon,
-                "occupying_jumon": ARENA.GetUnitAt(target_position),
+                "occupying_jumon": global_definitions.ARENA.GetUnitAt(target_position),
                 "attack_position": current_position,
                 "defense_position": target_position}
             return (two_tile_battle_state, two_tile_battle_state_variable)
