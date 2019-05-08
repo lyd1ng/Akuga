@@ -19,14 +19,25 @@ class IdleState(State):
         """
         Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT
         """
-        if event.type == SUMMON_JUMON_EVENT:
+        if event.type == SUMMON_JUMON_EVENT\
+                and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+                InSummonPhase():
+            """
+            The event is only valid if the current player is in the move
+            phase, the jumon within the event is inside the
+            jumons_to_summon list.
+            """
             # Get the jumon to summon and create the state variables dict
             jumon = event.jumon_to_summon
             summon_state_variables = {"jumon_to_summon": jumon}
-            # Jump to the summon_state with the jumon as state variables
-            return (summon_state, summon_state_variables)
+            # Only summon the jumon if the player owns the jumon
+            if global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+                    CanSummon(jumon):
+                # Jump to the summon_state with the jumon as state variables
+                return (summon_state, summon_state_variables)
 
-        if event.type == SELECT_JUMON_TO_MOVE_EVENT:
+        if event.type == SELECT_JUMON_TO_MOVE_EVENT\
+                and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().InMovePhase():
             """
             Get the jumon to move, its position and the target position
             from the event. The CheckDrawState will check if the move is
@@ -35,13 +46,16 @@ class IdleState(State):
             jumon = event.jumon_to_move
             current_position = event.current_position
             target_position = event.target_position
-            check_move_state_variables = {
-                "jumon_to_move": jumon,
-                "current_position": current_position,
-                "target_position": target_position}
-            return (check_move_state, check_move_state_variables)
+            # Only move the jumon if the current player controls the jumon
+            if global_definitions.PLAYER_CHAIN.GetCurrentPlayer().ControlsJumon(jumon):
+                check_move_state_variables = {
+                    "jumon_to_move": jumon,
+                    "current_position": current_position,
+                    "target_position": target_position}
+                return (check_move_state, check_move_state_variables)
 
-        if event.type == SELECT_JUMON_TO_SPECIAL_MOVE_EVENT:
+        if event.type == SELECT_JUMON_TO_SPECIAL_MOVE_EVENT\
+                and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().InMovePhase():
             """
             Get the jumon to move, its position and the target position
             from the event. The CheckSpecialMoveState will check if the
@@ -105,19 +119,19 @@ class SummonCheckState(State):
         # Get the jumon to summon and where to summon it
         jumon = self.state_variables["jumon_to_summon"]
         summon_position = self.state_variables["summon_position"]
-        """
-        If the ArenaTile is free the invocation is complete and the
-        turn ends
-        """
         if global_definitions.ARENA.GetUnitAt(summon_position) is None:
-            global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
             """
-            Now the turn is over and the player has to change
-            so jump to the ChangePlayerState
+            If the ArenaTile is free the invocation is complete and the
+            turn ends
             """
+            # Let the current player handle the summoning
+            global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+                HandleSummoning(jumon, summon_position)
+            # Jump to the change player state to end the turn
             change_player_state_variables = {}
             return (change_player_state, change_player_state_variables)
-        elif global_definitions.ARENA.GetUnitAt(summon_position).owned_by == global_definitions.CURRENT_PLAYER\
+        elif global_definitions.PLAYER_CHAIN.\
+                GetCurrentPlayer().OwnsTile(summon_position)\
                 or global_definitions.ARENA.IsBlockedAt(summon_position):
             """
             If the jumon at this tile is owned  by the current player
@@ -146,21 +160,14 @@ class SummonCheckState(State):
 class ChangePlayerState(State):
     """
     This represents the moment between the turns.
-    The CURRENT_PLAYER variable (an integer) is incremented by
-    one and wrapped to the interval [0, MAX_PLAYERS[
     """
     def __init__(self):
         super().__init__("CHANGE_PLAYER_STATE")
 
     def run(self, event):
-        """
-        Increment the CURRENT_PLAYER variable and wrapp it within the
-        interval [0, MAX_PLAYERS[
-        Than instantly jump to the idle state
-        """
-        global_definitions.CURRENT_PLAYER = global_definitions.CURRENT_PLAYER + 1
-        global_definitions.CURRENT_PLAYER = global_definitions.CURRENT_PLAYER % global_definitions.MAX_PLAYERS
-        print("Changed Player to: " + str(global_definitions.CURRENT_PLAYER))
+        global_definitions.PLAYER_CHAIN.NextPlayersTurn()
+        print("Changed Player to: ", end="")
+        print(global_definitions.PLAYER_CHAIN.GetCurrentPlayer().name)
         return (idle_state, {})
 
 
@@ -194,7 +201,8 @@ class CheckMoveState(State):
             global_definitions.ARENA.PlaceUnitAt(None, current_position)
             global_definitions.ARENA.PlaceUnitAt(jumon, target_position)
             return (change_player_state, {})
-        elif global_definitions.ARENA.GetUnitAt(target_position).owned_by == global_definitions.CURRENT_PLAYER:
+        elif global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+                OwnsTile(target_position):
             """
             If the target position is owned by a jumon of the current player
             the move is illegal and the a new move has to be defined,

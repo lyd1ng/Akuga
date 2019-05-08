@@ -1,6 +1,7 @@
 import pygame
-from copy import copy
 from Akuga.Jumon import Jumon
+from Akuga.Player import Player
+from Akuga.PlayerChain import PlayerChain
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT, SELECT_JUMON_TO_MOVE_EVENT)
 import Akuga.global_definitions as global_definitions
 from Akuga import AkugaStates
@@ -13,19 +14,24 @@ def main():
     # pygame.display.set_mode(SCREEN_DIMENSION)
     running = True
 
-    jumon = Jumon("1", 400, 1, None, global_definitions.CURRENT_PLAYER, None)
+    jumon1 = Jumon("1", 400, 2, None, None)
+    jumon2 = Jumon("2", 450, 2, None, None)
+    jumon3 = Jumon("3", 400, 2, None, None)
+    jumon4 = Jumon("4", 450, 2, None, None)
+
+    player1 = Player("Thomas", [jumon1, jumon2])
+    player2 = Player("Lukas", [jumon3, jumon4])
+    global_definitions.PLAYER_CHAIN = PlayerChain(player1, player2)
 
     while running:
         pygame.event.pump()
         event = pygame.event.poll()
-        command = input("Command [summon, move, quit]: ")
+        command = input("Command [[Thomas/Lukas] summon, move, quit]: ")
         if command == "quit":
             running = False
         if command == "summon":
-            jumon_to_summon = copy(jumon)
-            jumon_to_summon.owned_by = global_definitions.CURRENT_PLAYER
-            print("owned by: " + str(global_definitions.CURRENT_PLAYER))
-            event = pygame.event.Event(SUMMON_JUMON_EVENT, jumon_to_summon=jumon_to_summon)
+            jumon = global_definitions.PLAYER_CHAIN.GetCurrentPlayer().jumons_to_summon[0]
+            event = pygame.event.Event(SUMMON_JUMON_EVENT, jumon_to_summon=jumon)
             pygame.event.post(event)
         if command == "move":
             cx = int(input("Current X: "))
@@ -33,7 +39,7 @@ def main():
             tx = int(input("Target X: "))
             ty = int(input("Target Y: "))
             jumon_to_move = global_definitions.ARENA.GetUnitAt((cx, cy))
-            if jumon_to_move is None or jumon_to_move.owned_by != global_definitions.CURRENT_PLAYER:
+            if global_definitions.PLAYER_CHAIN.GetCurrentPlayer().OwnsTile((cx, cy)) is False:
                 print("Invalid, no Jumon you control found at this position")
                 continue
             event = pygame.event.Event(SELECT_JUMON_TO_MOVE_EVENT,
@@ -42,7 +48,7 @@ def main():
                 target_position=(tx, ty))
             pygame.event.post(event)
         state_machiene.run(event)
-        print("The current player is: " + str(global_definitions.CURRENT_PLAYER))
+        print("The current player is: " + global_definitions.PLAYER_CHAIN.GetCurrentPlayer().name)
         global_definitions.ARENA.PrintOut()
 
 

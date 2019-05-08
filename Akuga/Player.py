@@ -1,3 +1,6 @@
+from Akuga import global_definitions
+
+
 class Player:
     """
     Represents the player of the Akuga game
@@ -27,12 +30,38 @@ class Player:
     def SetToMovePhase(self):
         self.phase = 1
 
-    def HandleSummoning(self, jumon):
+    def OwnsTile(self, tile_position):
         """
-        This function changes the internal representation of the player
-        when a jumon is summoned. That means the jumon is moved from
+        Returns if the tile of the arena is already owmed by
+        """
+        jumon = global_definitions.ARENA.GetUnitAt(tile_position)
+        if jumon is None:
+            return False
+        if jumon in self.summoned_jumons:
+            return True
+        return False
+
+    def CanSummon(self, jumon):
+        """
+        Returns if a player can summon a jumon
+        aka if the jumon is within the jumons_to_summon list
+        """
+        return jumon in self.jumons_to_summon
+
+    def ControlsJumon(self, jumon):
+        """
+        Returns wheter a player controls a jumon or not
+        aka if the jumon is within the summoned_jumons list
+        """
+        return jumon in self.summoned_jumons
+
+    def HandleSummoning(self, jumon, summon_position):
+        """
+        This function is invoked from the state machiene and summons
+        a jumon. That means the jumon is moved from
         the jumon_to_summon list to the summone_jumons list and switches
         the phase this player is in if there are no jummons to summon left
+        Also the jumon is placed on the target arena tile
         """
         if self.InSummonPhase() is False:
             """
@@ -52,12 +81,20 @@ class Player:
         # Change the jumon from jumons_to_summon to summoned_jumons
         self.summoned_jumons.append(jumon)
         self.jumons_to_summon.remove(jumon)
+        # Add the jumon to the arena at the given position
+        global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
         """
         If there are no more jumons to summon left the player changes into
         the move phase
         """
         if len(self.jumons_to_summon) < 1:
             self.SetToMovePhase()
+        print("To summon ", end="")
+        print(self.jumons_to_summon if global_definitions.DEBUG else "")
+        print("Summoned summon ", end="")
+        print(self.summoned_jumons if global_definitions.DEBUG else "")
+        print("Current Phase: ", end="")
+        print(self.phase if global_definitions.DEBUG else "")
 
     def UpdatePlayer(self):
         """

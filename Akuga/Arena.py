@@ -70,7 +70,6 @@ class Arena:
                 print("|", end="")
                 if self.GetUnitAt((x, y)) is not None:
                     print(self.GetUnitAt((x, y)).name, end=" ")
-                    print(self.GetUnitAt((x, y)).owned_by, end="")
                 print("\t", end="")
             print("")
 
