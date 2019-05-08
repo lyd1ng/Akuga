@@ -11,6 +11,7 @@ class Player:
         self.jumons_to_summon = jumons
         self.summoned_jumons = []
         self.is_dead = False
+        self.has_won = False
     """
     Set and get the phases to avoid dealing with the actual integer number
     """
@@ -74,5 +75,12 @@ class Player:
     def IsDead(self):
         return self.is_dead
 
+    def HasWon(self):
+        return self.has_won
+
     def Kill(self):
         self.is_dead = True
+        self.has_won = False
+
+    def InstaWin(self):
+        self.has_won = True
