@@ -326,7 +326,7 @@ class OneTileBattleFlipState(State):
     and attached to the state informations. Then the state machiene
     immediatly jumps to the OneTileBattleBoniEvaluationStep
     """
-    def __init__():
+    def __init__(self):
         super().__init__("ONE_TILE_BATTLE_FLIP_STATE")
 
     def run(self, event):
