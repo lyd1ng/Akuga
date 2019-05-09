@@ -26,6 +26,16 @@ class ArenaTile:
             return self.occupied_by.blocking
         return False
 
+    def GetBonusForJumon(self, jumon):
+        """
+        Just returns the bonus value for the color of the jumon
+        or 0 if ther jumon has an unknown color
+        """
+        try:
+            return self.boni[jumon.color]
+        except(KeyError):
+            return 0
+
     def PlaceUnit(self, unit):
         """
         Places a unit on this tile
@@ -72,4 +82,3 @@ class Arena:
                     print(self.GetUnitAt((x, y)).name, end=" ")
                 print("\t", end="")
             print("")
-

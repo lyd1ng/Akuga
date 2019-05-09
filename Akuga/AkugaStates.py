@@ -157,7 +157,7 @@ class SummonCheckState(State):
                 "battle_position": summon_position,
                 "summoned_jumon": jumon,
                 "occupying_jumon": global_definitions.ARENA.GetUnitAt(summon_position)}
-            return (one_tile_battle_state, one_tile_battle_state_variables)
+            return (one_tile_battle_begin_state, one_tile_battle_state_variables)
 
 
 class ChangePlayerState(State):
@@ -168,7 +168,18 @@ class ChangePlayerState(State):
         super().__init__("CHANGE_PLAYER_STATE")
 
     def run(self, event):
-        # Check if a player has won or its drawn
+        # Remove dead players from the player chain
+        global_definitions.PLAYER_CHAIN.Update()
+        # Check if the match is drawn
+        is_drawn = global_definitions.PLAYER_CHAIN.CheckForDrawn()
+        if is_drawn is True:
+            """
+            After this event has been handeld the state machiene should
+            not be updated anymore
+            """
+            drawn_event = pygame.event.Event(MATCH_IS_DRAWN)
+            pygame.event.post(drawn_event)
+        # Check if a player has won
         victor = global_definitions.PLAYER_CHAIN.CheckForVictory()
         if victor is not None:
             """
@@ -177,15 +188,6 @@ class ChangePlayerState(State):
             """
             won_event = pygame.event.Event(PLAYER_HAS_WON, victor=victor)
             pygame.event.post(won_event)
-        # Check if the match is drawn
-        is_drawn = global_definitions.PLAYER_CHAIN.CheckForDrawn()
-        if is_drawn:
-            """
-            After this event has been handeld the state machiene should
-            not be updated anymore
-            """
-            drawn_event = pygame.event.Event(MATCH_IS_DRAWN)
-            pygame.event.post(drawn_event)
         """
         If no one has won and its not drawn change the player and
         jump to the idle state again so its the next players turn
@@ -243,7 +245,7 @@ class CheckMoveState(State):
                 "occupying_jumon": global_definitions.ARENA.GetUnitAt(target_position),
                 "attack_position": current_position,
                 "defense_position": target_position}
-            return (two_tile_battle_state, two_tile_battle_state_variable)
+            return (two_tile_battle_begin_state, two_tile_battle_state_variable)
 
 
 class CheckSpecialMoveState(State):
@@ -292,11 +294,98 @@ class CheckSpecialMoveState(State):
                 return (idle_state, {})
 
 
+class OneTileBattleBeginState(State):
+    """
+    The start of a battle on one tile
+    This state does nothing on its own, its just an entry point
+    for special ability scripts of the fighting jumon
+    """
+    def __init__(self):
+        super().__init__("ONE_TILE_BATTLE_STATE")
+
+    def run(self, event):
+        """
+        Invoke the ability scripts of the fighting jumons and jump
+        to the OneTileBattleFlipState
+        """
+        summoned_jumon = event.summoned_jumon
+        occupying_jumon = event.occupying_jumon
+        # The attacking jumon triggers its ability script first
+        if summoned_jumon.ability_script is not None:
+            exec(summoned_jumon.ability_script)
+        # Then the occupying jumon triggers its ability script
+        if occupying_jumon.ability_script is not None:
+            exec(occupying_jumon.ability_script)
+        # Jump to the OneTileBattleFlipState with the same variables
+        return (one_tile_battle_flip_state, self.state_variables)
+
+
+class OneTileBattleFlipState(State):
+    """
+    In this state the arena tile at battle position is turned around
+    and attached to the state informations. Then the state machiene
+    immediatly jumps to the OneTileBattleBoniEvaluationStep
+    """
+    def __init__():
+        super().__init__("ONE_TILE_BATTLE_FLIP_STATE")
+
+    def run(self, event):
+        """
+        Get the arena tile at the battle position and add it to the state
+        variables. Then jump to the OneTileBattleBoniEvaluationState
+        """
+        summoned_jumon = event.summoned_jumon
+        occupying_jumon = event.occupying_jumon
+        battle_position = event.battle_position
+        battle_arena_tile = global_definitions.ARENA.GetTileAt(battle_position)
+        one_tile_battle_boni_evaluation_state_variables = {
+            "summoned_jumon": summoned_jumon,
+            "occupying_jumon": occupying_jumon,
+            "battle_position": battle_position,
+            "battle_arena_tile": battle_arena_tile}
+        # Now jump to the OneTileBattleBoniEvaluationState
+        return (one_tile_battle_boni_evaluation_state,
+                one_tile_battle_boni_evaluation_state_variables)
+
+
+class OneTileBattleBoniEvaluationState(State):
+    """
+    In this State the bonus of the arena is evaluated and a bonus value
+    for both jumons are added to the state variables. Then the state
+    machiene jumps to the OneTileBattleFightState
+    """
+    def __init__(self):
+        super().__init__("ONE_TILE_BATTLE_BONI_EVALUATION_STATE")
+
+    def run(self, event):
+        """
+        Add the boni of the arena tile to the state variables and jump
+        to the OneTileBattleFightState
+        """
+        summoned_jumon = event.summoned_jumon
+        occupying_jumon = event.occupying_jumon
+        battle_position = event.battle_position
+        battle_arena_tile = event.battle_arena_tile
+        summoned_jumon_bonus = battle_arena_tile.GetBonusForJumon(summoned_jumon)
+        occupying_jumon_bonus = battle_arena_tile.GetBonusForJumon(occupying_jumon)
+        one_tile_battle_figh_state_variables = {
+            "summoned_jumon": summoned_jumon,
+            "occupying_jumon": occupying_jumon,
+            "battle_position": battle_position,
+            "summoned_jumon_bonus": summoned_jumon_bonus,
+            "occupying_jumon_bonus": occupying_jumon_bonus}
+        return (one_tile_battle_fight_state,
+                one_tile_battle_figh_state_variables)
+
+
 idle_state = IdleState()
 summon_state = SummonState()
 check_move_state = CheckMoveState()
 check_special_move_state = CheckSpecialMoveState()
 summon_check_state = SummonCheckState()
 change_player_state = ChangePlayerState()
-one_tile_battle_state = None
-two_tile_battle_state = None
+one_tile_battle_begin_state = OneTileBattleBeginState()
+one_tile_battle_flip_state = OneTileBattleFlipState()
+one_tile_battle_boni_evaluation_state = None
+one_tile_battle_fight_state = None
+two_tile_battle_begin_state = None

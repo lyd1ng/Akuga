@@ -2,7 +2,10 @@ import pygame
 from Akuga.Jumon import Jumon
 from Akuga.Player import Player
 from Akuga.PlayerChain import PlayerChain
-from Akuga.event_definitions import (SUMMON_JUMON_EVENT, SELECT_JUMON_TO_MOVE_EVENT)
+from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
+                                     SELECT_JUMON_TO_MOVE_EVENT,
+                                     PLAYER_HAS_WON,
+                                     MATCH_IS_DRAWN)
 import Akuga.global_definitions as global_definitions
 from Akuga import AkugaStates
 from Akuga.StateMachiene import StateMachiene
@@ -26,9 +29,18 @@ def main():
     while running:
         pygame.event.pump()
         event = pygame.event.poll()
-        command = input("Command [[Thomas/Lukas] summon, move, quit]: ")
+
+        if event.type == PLAYER_HAS_WON:
+            print(event.victor.name + " has won!")
+            exit()
+        if event.type == MATCH_IS_DRAWN:
+            print("Match is drawn")
+            exit()
+        command = input("Command [[Thomas/Lukas] summon, move, surrender, quit]: ")
         if command == "quit":
-            running = False
+            player1.Kill()
+            player2.Kill()
+            print(global_definitions.PLAYER_CHAIN.len)
         if command == "summon":
             jumon = global_definitions.PLAYER_CHAIN.GetCurrentPlayer().jumons_to_summon[0]
             event = pygame.event.Event(SUMMON_JUMON_EVENT, jumon_to_summon=jumon)
@@ -47,6 +59,8 @@ def main():
                 current_position=(cx, cy),
                 target_position=(tx, ty))
             pygame.event.post(event)
+        if command == "surrender":
+            global_definitions.PLAYER_CHAIN.GetCurrentPlayer().Kill()
         state_machiene.run(event)
         print("The current player is: " + global_definitions.PLAYER_CHAIN.GetCurrentPlayer().name)
         global_definitions.ARENA.PrintOut()

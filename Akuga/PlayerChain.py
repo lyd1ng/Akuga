@@ -65,6 +65,7 @@ class PlayerChain:
         self.startNode.SetNext(self.endNode)
         self.startNode.SetPrev(self.endNode)
         self.currentNode = self.startNode
+        self.len = 2
 
     def InsertPlayer(self, player):
         """
@@ -75,6 +76,7 @@ class PlayerChain:
         self.endNode.SetNext(newNode)
         self.endNode = newNode
         self.startNode.SetPrev(self.endNode)
+        self.len += 1
 
     def RemovePlayer(self, player):
         """
@@ -97,6 +99,8 @@ class PlayerChain:
                 node_pointer.GetPrev().SetNext(node_pointer.GetNext())
                 # Set the prev of the next to the prev of the current node
                 node_pointer.GetNext().SetPrev(node_pointer.GetPrev())
+                # Decrement the length of the chain
+                self.len -= 1
                 return
             # Jump to the next node to walk through the chain
             node_pointer = node_pointer.GetNext()
@@ -125,6 +129,8 @@ class PlayerChain:
         node.GetPrev().SetNext(node.GetNext())
         # Set the prev of the next to the prev of the current node
         node.GetNext().SetPrev(node.GetPrev())
+        # Decrement the length of the chain by 1
+        self.len -= 1
 
     def Update(self):
         """
@@ -132,16 +138,14 @@ class PlayerChain:
         """
         node_pointer = self.startNode
         while True:
+            print(node_pointer.GetPlayer().name)
             if node_pointer.GetPlayer().IsDead():
                 self.RemoveNode(node_pointer)
+            # Leave the loop if every node has been walked through
+            if node_pointer is self.endNode:
+                break
             # Walk through the list of players
             node_pointer = node_pointer.GetNext()
-            """
-            If node_pointer now is the start node it jumped from the end node
-            to the start node which means all nodes has been walked through
-            """
-            if node_pointer is self.startNode:
-                break
 
     def CheckForVictory(self):
         """
@@ -166,23 +170,9 @@ class PlayerChain:
 
     def CheckForDrawn(self):
         """
-        Checks for a drawn between the players
-        aka if all players are dead at once
+        Returns if all players are dead aka the length of the chain is 0
         """
-        node_pointer = self.startNode
-        while True:
-            # If a player is not dead or has won it cant be drawn
-            if node_pointer.GetPlayer().IsDead() is False or node_pointer.HasWon() is True:
-                return False
-            # Walk through the chain
-            node_pointer = node_pointer.GetNext()
-            """
-            If node_pointer now is the start node it jumped from the end node
-            to the start node which means all nodes has been walked through
-            """
-            if node_pointer is self.startNode:
-                break
-        return True
+        return self.len == 0
 
     def NextPlayersTurn(self):
         """
@@ -209,28 +199,13 @@ if __name__ == "__main__":
     """
     player1 = Player("Thomas", [])
     player2 = Player("Lukas", [])
-    player3 = Player("Randy", [])
     player_chain = PlayerChain(player1, player2)
-    player_chain.InsertPlayer(player3)
 
-    for i in range(0, 6):
-        print(player_chain.GetCurrentPlayer().name)
-        player_chain.NextPlayersTurn()
-
-    print()
+    print(player_chain.len)
     player1.Kill()
     player_chain.Update()
-    for i in range(0, 6):
-        print(player_chain.GetCurrentPlayer().name)
-        player_chain.NextPlayersTurn()
-
-    print()
+    print(player_chain.len)
     player2.Kill()
     player_chain.Update()
-    for i in range(0, 6):
-        print(player_chain.GetCurrentPlayer().name)
-        player_chain.NextPlayersTurn()
-    
-    print(player_chain.startNode is player_chain.endNode)
-    victor = player_chain.CheckForVictory()
-    print("Victory: " + victor.name)
+    print(player_chain.len)
+    print(player_chain.CheckForDrawn())

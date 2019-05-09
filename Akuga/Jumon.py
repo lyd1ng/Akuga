@@ -3,9 +3,10 @@ class Jumon():
     The abstraction class around the Jumon,
     which is the unit to summon by a player
     """
-    def __init__(self, name, base_level, movement, equipments, ability_script):
+    def __init__(self, name, color, base_level, movement, equipments, ability_script):
         super().__init__()
         self.name = name
+        self.color = color
         self.base_level = base_level
         self.base_level_offset = 0
         self.movement = movement
