@@ -17,10 +17,10 @@ def main():
     # pygame.display.set_mode(SCREEN_DIMENSION)
     running = True
 
-    jumon1 = Jumon("1", 400, 2, None, None)
-    jumon2 = Jumon("2", 450, 2, None, None)
-    jumon3 = Jumon("3", 400, 2, None, None)
-    jumon4 = Jumon("4", 450, 2, None, None)
+    jumon1 = Jumon("1", "red", 400, 2, None, None)
+    jumon2 = Jumon("2", "red", 450, 2, None, None)
+    jumon3 = Jumon("3", "red", 400, 2, None, None)
+    jumon4 = Jumon("4", "red", 450, 2, None, None)
 
     player1 = Player("Thomas", [jumon1, jumon2])
     player2 = Player("Lukas", [jumon3, jumon4])
