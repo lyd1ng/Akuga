@@ -8,13 +8,20 @@ class Player:
     a Jumon. If every jumon is set the player goes into move phase
     where per is allowed to move one of the jumons
     """
-    def __init__(self, name, jumons):
+    def __init__(self, name):
         self.name = name
         self.phase = 0
-        self.jumons_to_summon = jumons
+        self.jumons_to_summon = []
         self.summoned_jumons = []
         self.is_dead = False
         self.has_won = False
+
+    def SetJumonsToSummon(self, jumons):
+        """
+        Set the jumons to summon
+        """
+        self.jumons_to_summon = jumons
+
     """
     Set and get the phases to avoid dealing with the actual integer number
     """
@@ -55,13 +62,12 @@ class Player:
         """
         return jumon in self.summoned_jumons
 
-    def HandleSummoning(self, jumon, summon_position):
+    def HandleSummoning(self, jumon):
         """
         This function is invoked from the state machiene and summons
         a jumon. That means the jumon is moved from
         the jumon_to_summon list to the summone_jumons list and switches
         the phase this player is in if there are no jummons to summon left
-        Also the jumon is placed on the target arena tile
         """
         if self.InSummonPhase() is False:
             """
@@ -81,8 +87,6 @@ class Player:
         # Change the jumon from jumons_to_summon to summoned_jumons
         self.summoned_jumons.append(jumon)
         self.jumons_to_summon.remove(jumon)
-        # Add the jumon to the arena at the given position
-        global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
         """
         If there are no more jumons to summon left the player changes into
         the move phase
@@ -95,6 +99,14 @@ class Player:
         print(self.summoned_jumons if global_definitions.DEBUG else "")
         print("Current Phase: ", end="")
         print(self.phase if global_definitions.DEBUG else "")
+
+    def HandleJumonDeath(self, jumon):
+        """
+        Handles the death of a jumon, aka removes it from the summoned_jumons
+        list an invoke UpdatePlayer
+        """
+        self.summoned_jumons.remove(jumon)
+        self.UpdatePlayer()
 
     def UpdatePlayer(self):
         """

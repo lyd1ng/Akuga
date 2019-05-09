@@ -42,6 +42,12 @@ class ArenaTile:
         """
         self.occupied_by = unit
 
+    def RemoveUnit(self):
+        """
+        Removes the unit from the tile if there is one
+        """
+        self.occupied_by = None
+
 
 class Arena:
     """
@@ -55,6 +61,12 @@ class Arena:
         self.tiles = tiles
         self.board_width = board_width
         self.board_height = board_height
+
+    def GetTileAt(self, position):
+        """
+        Returns the arena tile at the given position
+        """
+        return self.tiles[position[0]][position[1]]
 
     def IsBlockedAt(self, position):
         """
