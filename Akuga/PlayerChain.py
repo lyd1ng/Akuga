@@ -1,3 +1,6 @@
+from Akuga.Player import Player
+
+
 class PlayerNode:
     """
     Represents a node in a chain of players.
@@ -81,14 +84,11 @@ class PlayerChain:
         node_pointer = self.startNode
         while True:
             if node_pointer.GetPlayer() is player:
-                print("Found player:" + node_pointer.GetPlayer())
                 # If the current player dies instantly jump to the next player
                 if node_pointer is self.currentNode:
-                    print(node_pointer.GetPlayer() + " is the current_player")
                     self.currentNode = self.currentNode.GetNext()
                 # If the matching node is the start node update it
                 if node_pointer is self.startNode:
-                    print("Node is the start node")
                     self.startNode = self.startNode.GetNext()
                 # If the matching node is the end node update it
                 if node_pointer is self.endNode:
@@ -107,6 +107,82 @@ class PlayerChain:
             """
             if node_pointer is self.startNode:
                 break
+
+    def RemoveNode(self, node):
+        """
+        Removes a node from the chain
+        """
+        # If the current player dies instantly jump to the next player
+        if node is self.currentNode:
+            self.currentNode = self.currentNode.GetNext()
+        # If the matching node is the start node update it
+        if node is self.startNode:
+            self.startNode = self.startNode.GetNext()
+        # If the matching node is the end node update it
+        if node is self.endNode:
+            self.endNode = self.endNode.GetPrev()
+        # Set the next of the prev to the next of the current node
+        node.GetPrev().SetNext(node.GetNext())
+        # Set the prev of the next to the prev of the current node
+        node.GetNext().SetPrev(node.GetPrev())
+
+    def Update(self):
+        """
+        Removes dead player from the player chain
+        """
+        node_pointer = self.startNode
+        while True:
+            if node_pointer.GetPlayer().IsDead():
+                self.RemoveNode(node_pointer)
+            # Walk through the list of players
+            node_pointer = node_pointer.GetNext()
+            """
+            If node_pointer now is the start node it jumped from the end node
+            to the start node which means all nodes has been walked through
+            """
+            if node_pointer is self.startNode:
+                break
+
+    def CheckForVictory(self):
+        """
+        Checks if a player has won and return per
+        """
+        # If only one player is left this player has won
+        if self.startNode is self.endNode:
+            return self.startNode.GetPlayer()
+        node_pointer = self.startNode
+        while True:
+            if node_pointer.GetPlayer().HasWon():
+                return node_pointer.GetPlayer()
+            # Walk through the list of players
+            node_pointer = node_pointer.GetNext()
+            """
+            If node_pointer now is the start node it jumped from the end node
+            to the start node which means all nodes has been walked through
+            """
+            if node_pointer is self.startNode:
+                break
+        return None
+
+    def CheckForDrawn(self):
+        """
+        Checks for a drawn between the players
+        aka if all players are dead at once
+        """
+        node_pointer = self.startNode
+        while True:
+            # If a player is not dead or has won it cant be drawn
+            if node_pointer.GetPlayer().IsDead() is False or node_pointer.HasWon() is True:
+                return False
+            # Walk through the chain
+            node_pointer = node_pointer.GetNext()
+            """
+            If node_pointer now is the start node it jumped from the end node
+            to the start node which means all nodes has been walked through
+            """
+            if node_pointer is self.startNode:
+                break
+        return True
 
     def NextPlayersTurn(self):
         """
@@ -131,13 +207,30 @@ if __name__ == "__main__":
     """
     A small testprogramm using strings as players
     """
-    player_chain = PlayerChain("Player1", "Player2")
-    player_chain.InsertPlayer("Player3")
-    for i in range(0, 5):
-        print(player_chain.GetCurrentPlayer())
+    player1 = Player("Thomas", [])
+    player2 = Player("Lukas", [])
+    player3 = Player("Randy", [])
+    player_chain = PlayerChain(player1, player2)
+    player_chain.InsertPlayer(player3)
+
+    for i in range(0, 6):
+        print(player_chain.GetCurrentPlayer().name)
         player_chain.NextPlayersTurn()
-    print("Player 3 dies...")
-    player_chain.RemovePlayer("Player3")
-    for i in range(0, 10):
-        print(player_chain.GetCurrentPlayer())
+
+    print()
+    player1.Kill()
+    player_chain.Update()
+    for i in range(0, 6):
+        print(player_chain.GetCurrentPlayer().name)
         player_chain.NextPlayersTurn()
+
+    print()
+    player2.Kill()
+    player_chain.Update()
+    for i in range(0, 6):
+        print(player_chain.GetCurrentPlayer().name)
+        player_chain.NextPlayersTurn()
+    
+    print(player_chain.startNode is player_chain.endNode)
+    victor = player_chain.CheckForVictory()
+    print("Victory: " + victor.name)

@@ -1,9 +1,12 @@
 import random
+import pygame
 import Akuga.global_definitions as global_definitions
 from Akuga.StateMachieneState import StateMachieneState as State
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
-                                     SELECT_JUMON_TO_SPECIAL_MOVE_EVENT)
+                                     SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
+                                     PLAYER_HAS_WON,
+                                     MATCH_IS_DRAWN)
 
 
 class IdleState(State):
@@ -165,9 +168,29 @@ class ChangePlayerState(State):
         super().__init__("CHANGE_PLAYER_STATE")
 
     def run(self, event):
+        # Check if a player has won or its drawn
+        victor = global_definitions.PLAYER_CHAIN.CheckForVictory()
+        if victor is not None:
+            """
+            After this event has been handeld the state machiene should
+            not be updated anymore
+            """
+            won_event = pygame.event.Event(PLAYER_HAS_WON, victor=victor)
+            pygame.event.post(won_event)
+        # Check if the match is drawn
+        is_drawn = global_definitions.PLAYER_CHAIN.CheckForDrawn()
+        if is_drawn:
+            """
+            After this event has been handeld the state machiene should
+            not be updated anymore
+            """
+            drawn_event = pygame.event.Event(MATCH_IS_DRAWN)
+            pygame.event.post(drawn_event)
+        """
+        If no one has won and its not drawn change the player and
+        jump to the idle state again so its the next players turn
+        """
         global_definitions.PLAYER_CHAIN.NextPlayersTurn()
-        print("Changed Player to: ", end="")
-        print(global_definitions.PLAYER_CHAIN.GetCurrentPlayer().name)
         return (idle_state, {})
 
 

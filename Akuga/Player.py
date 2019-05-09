@@ -120,4 +120,5 @@ class Player:
         self.has_won = False
 
     def InstaWin(self):
+        self.is_dead = False
         self.has_won = True
