@@ -474,15 +474,218 @@ class OneTileBattleAftermathState(State):
         return (change_player_state, {})
 
 
+class TwoTileBattleBeginState(State):
+    """
+    The start of a battle on two tiles
+    This state does nothing on its own, its just an entry point
+    for special ability scripts of the fighting jumon
+    """
+    def __init__(self):
+        super().__init__("TWO_TILE_BATTLE_STATE")
+
+    def run(self, event):
+        """
+        Invoke the ability scripts of the fighting jumons and jump
+        to the TwoTileBattleFlipState
+        """
+        jumon_to_move = self.state_variables["jumon_to_move"]
+        occupying_jumon = self.state_variables["occupying_jumon"]
+        # The attacking jumon triggers its ability script first
+        if jumon_to_move.ability_script is not None:
+            exec(jumon_to_move.ability_script)
+        # Then the occupying jumon triggers its ability script
+        if occupying_jumon.ability_script is not None:
+            exec(occupying_jumon.ability_script)
+        # Jump to the TwoTileBattleFlipState with the same variables
+        return (two_tile_battle_flip_state, self.state_variables)
+
+
+class TwoTileBattleFlipState(State):
+    """
+    In this state the arena tiles at the battle positions are turned around
+    and attached to the state informations. Then the state machiene
+    immediatly jumps to the TwoTileBattleBoniEvaluationStep
+    """
+    def __init__(self):
+        super().__init__("TWO_TILE_BATTLE_FLIP_STATE")
+
+    def run(self, event):
+        """
+        Get the arena tiles at the battle positions and add them to the state
+        variables. Then jump to the TwoTileBattleBoniEvaluationState
+        """
+        jumon_to_move = self.state_variables["jumon_to_move"]
+        occupying_jumon = self.state_variables["occupying_jumon"]
+        attack_position = self.state_variables["attack_position"]
+        defense_position = self.state_variables["defense_position"]
+        attack_tile = global_definitions.ARENA.GetTileAt(attack_position)
+        defense_tile = global_definitions.ARENA.GetTileAt(defense_position)
+        two_tile_battle_boni_evaluation_state_variables = {
+            "jumon_to_move": jumon_to_move,
+            "occupying_jumon": occupying_jumon,
+            "attack_position": attack_position,
+            "defense_position": defense_position,
+            "attack_tile": attack_tile,
+            "defense_tile": defense_tile}
+        # Now jump to the TwoTileBattleBoniEvaluationState
+        return (two_tile_battle_boni_evaluation_state,
+                two_tile_battle_boni_evaluation_state_variables)
+
+
+class TwoTileBattleBoniEvaluationState(State):
+    """
+    In this State the bonus of the arena is evaluated and a bonus value
+    for both jumons are added to the state variables. Then the state
+    machiene jumps to the TwoTileBattleFightState
+    """
+    def __init__(self):
+        super().__init__("TWO_TILE_BATTLE_BONI_EVALUATION_STATE")
+
+    def run(self, event):
+        """
+        Add the boni of the arena tiles to the state variables and jump
+        to the TwoTileBattleFightState
+        """
+        jumon_to_move = self.state_variables["jumon_to_move"]
+        occupying_jumon = self.state_variables["occupying_jumon"]
+        attack_position = self.state_variables["attack_position"]
+        defense_position = self.state_variables["defense_position"]
+        attack_tile = self.state_variables["attack_tile"]
+        defense_tile = self.state_variables["defense_tile"]
+
+        # Get the bonus of the attack or defense tile
+        jumon_to_move_bonus = attack_tile.GetBonusForJumon(jumon_to_move)
+        occupying_jumon_bonus = defense_tile.GetBonusForJumon(occupying_jumon)
+        two_tile_battle_figh_state_variables = {
+            "jumon_to_move": jumon_to_move,
+            "occupying_jumon": occupying_jumon,
+            "attack_position": attack_position,
+            "defense_position": defense_position,
+            "attack_tile": attack_tile,
+            "defense_tile": defense_tile,
+            "jumon_to_move_bonus": jumon_to_move_bonus,
+            "occupying_jumon_bonus": occupying_jumon_bonus}
+        return (two_tile_battle_fight_state,
+                two_tile_battle_figh_state_variables)
+
+
+class TwoTileBattleFightState(State):
+    """
+    In this state both jumons fight the victor and the looser are determined
+    Then the state machiene jumps to the TwoTileBattleAfterMathState
+    """
+    def __init__(self):
+        super().__init__("TWO_TILE_BATTLE_FIGHT_STATE")
+
+    def run(self, event):
+        """
+        Fighting is pretty simple, the jumon with less power looses.
+        If both jumons have the same power both jumon looses.
+        Than the state machiene jumps to TwoTileBattleAftermathState
+        """
+        jumon_to_move = self.state_variables["jumon_to_move"]
+        occupying_jumon = self.state_variables["occupying_jumon"]
+        attack_position = self.state_variables["attack_position"]
+        defense_position = self.state_variables["defense_position"]
+        attack_tile = self.state_variables["attack_tile"]
+        defense_tile = self.state_variables["defense_tile"]
+        jumon_to_move_bonus = self.state_variables["jumon_to_move_bonus"]
+        occupying_jumon_bonus = self.state_variables["occupying_jumon_bonus"]
+        # If no one wins victor and looser are none
+        victor = None
+        looser = None
+        # Check if the summoned jumon looses
+        if jumon_to_move.base_level + jumon_to_move.level_offset +\
+                jumon_to_move_bonus < occupying_jumon.base_level +\
+                occupying_jumon.level_offset + occupying_jumon_bonus:
+            victor = occupying_jumon
+            looser = jumon_to_move
+        # Check if the summoned jumon wins
+        if jumon_to_move.base_level + jumon_to_move.level_offset +\
+                jumon_to_move_bonus > occupying_jumon.base_level +\
+                occupying_jumon.level_offset + occupying_jumon_bonus:
+            victor = jumon_to_move
+            looser = occupying_jumon
+        """
+        The summoned jumon and the occupying_jumon has to be in the variables
+        as well to destroy both if victor and looser are None.
+        """
+        two_tile_battle_aftermath_state_variables = {
+            "jumon_to_move": jumon_to_move,
+            "occupying_jumon": occupying_jumon,
+            "attack_position": attack_position,
+            "defense_position": defense_position,
+            "attack_tile": attack_tile,
+            "defense_tile": defense_tile,
+            "jumon_to_move_bonus": jumon_to_move_bonus,
+            "occupying_jumon_bonus": occupying_jumon_bonus,
+            "victor": victor,
+            "looser": looser}
+        # Jump to the TwoTileBattleAftermathState
+        return (two_tile_battle_aftermath_state,
+                two_tile_battle_aftermath_state_variables)
+
+
+class TwoTileBattleAftermathState(State):
+    """
+    In this state the jumon which loosed the fight is removed from the
+    arena and the summoned jumon list of the player.
+    The jumon which won the fight will be placed on the arena tile
+    """
+    def __init__(self):
+        super().__init__("TWO_TILE_BATTLE_AFTERMATH_STATE")
+
+    def run(self, event):
+        jumon_to_move = self.state_variables["jumon_to_move"]
+        occupying_jumon = self.state_variables["occupying_jumon"]
+        attack_tile = self.state_variables["attack_tile"]
+        defense_tile = self.state_variables["defense_tile"]
+        victor = self.state_variables["victor"]
+        looser = self.state_variables["looser"]
+        if victor is None and looser is None:
+            """
+            If no victor and no looser is assigned both jumons had the same
+            power level and both have to be destroyed
+            """
+            jumon_to_move.owned_by.HandleJumonDeath(jumon_to_move)
+            occupying_jumon.owned_by.HandleJumonDeath(occupying_jumon)
+            # Remove both units from the arena tile
+            attack_tile.RemoveUnit()
+            defense_tile.RemoveUnit()
+        elif victor is jumon_to_move:
+            """
+            If the jumon to move has won move it to the defense tile
+            """
+            # Just kill the looser
+            occupying_jumon.owned_by.HandleJumonDeath(occupying_jumon)
+            # Move the victor from the attack tile to the defense tile
+            attack_tile.RemoveUnit()
+            defense_tile.PlaceUnit(victor)
+        elif victor is occupying_jumon:
+            """
+            If the occupying_jumon has lost remove the attacking jumon
+            """
+            jumon_to_move.owned_by.HandleJumonDeath(jumon_to_move)
+            attack_tile.RemoveUnit()
+        # Now the turn ends so jump to the change player state
+        return (change_player_state, {})
+
+
 idle_state = IdleState()
 summon_state = SummonState()
 check_move_state = CheckMoveState()
 check_special_move_state = CheckSpecialMoveState()
 summon_check_state = SummonCheckState()
 change_player_state = ChangePlayerState()
+# All the one tile battle states
 one_tile_battle_begin_state = OneTileBattleBeginState()
 one_tile_battle_flip_state = OneTileBattleFlipState()
 one_tile_battle_boni_evaluation_state = OneTileBattleBoniEvaluationState()
 one_tile_battle_fight_state = OneTileBattleFightState()
 one_tile_battle_aftermath_state = OneTileBattleAftermathState()
-two_tile_battle_begin_state = None
+# All the two tille battle states
+two_tile_battle_begin_state = TwoTileBattleBeginState()
+two_tile_battle_flip_state = TwoTileBattleFlipState()
+two_tile_battle_boni_evaluation_state = TwoTileBattleBoniEvaluationState()
+two_tile_battle_fight_state = TwoTileBattleFightState()
+two_tile_battle_aftermath_state = TwoTileBattleAftermathState()
