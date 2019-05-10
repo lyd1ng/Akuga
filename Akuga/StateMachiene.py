@@ -8,12 +8,10 @@ class StateMachiene():
     state and jump to the state the run function of the current
     state has provided
     """
-    def __init__(self, states, start_state):
+    def __init__(self, start_state):
         """
-        Just set the list of states within the state machiene
-        and set the current state
+        Just set the current state
         """
-        self.states = states
         self.current_state = start_state
 
     def run(self, event):
