@@ -13,7 +13,7 @@ from Akuga.StateMachiene import StateMachiene
 
 def main():
     pygame.init()
-    state_machiene = StateMachiene([AkugaStates.idle_state, AkugaStates.summon_state], AkugaStates.idle_state)
+    state_machiene = StateMachiene(AkugaStates.idle_state)
     # pygame.display.set_mode(SCREEN_DIMENSION)
     running = True
 
@@ -22,12 +22,10 @@ def main():
     global_definitions.PLAYER_CHAIN = PlayerChain(player1, player2)
 
     jumon1 = Jumon("1", "red", 400, 2, None, None, player1)
-    jumon2 = Jumon("2", "blue", 450, 2, None, None, player1)
-    jumon3 = Jumon("3", "green", 400, 2, None, None, player2)
-    jumon4 = Jumon("4", "black", 450, 2, None, None, player2)
+    jumon3 = Jumon("3", "red", 400, 2, None, None, player2)
 
-    player1.SetJumonsToSummon([jumon1, jumon2])
-    player2.SetJumonsToSummon([jumon3, jumon4])
+    player1.SetJumonsToSummon([jumon1])
+    player2.SetJumonsToSummon([jumon3])
 
     while running:
         pygame.event.pump()
