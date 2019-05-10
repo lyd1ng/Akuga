@@ -8,9 +8,13 @@ def CreateArena(width, height, min_bonus, max_bonus):
     without any ArenaTile special ability
     """
     tiles = []
-    for y in range(0, height):
+    """
+    Go through x and then y, this way you address a tile with the more
+    convenient way [x][y] instead of [y][x]
+    """
+    for x in range(0, width):
         row = []
-        for x in range(0, width):
+        for y in range(0, height):
             color_boni = {}
             color_boni["red"] = randint(min_bonus, max_bonus)
             color_boni["blue"] = randint(min_bonus, max_bonus)
