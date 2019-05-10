@@ -20,7 +20,8 @@ class IdleState(State):
 
     def run(self, event):
         """
-        Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT
+        Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
+        as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
         """
         if event.type == SUMMON_JUMON_EVENT\
                 and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
