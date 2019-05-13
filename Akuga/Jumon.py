@@ -1,3 +1,6 @@
+from Akuga import AkugaStates
+
+
 class Artifact():
     """
     The abstraction around an equipment or artifact
@@ -40,3 +43,17 @@ class Jumon():
         state_and_variables: [next_state_to_jump_to, variables_to_pass]
         """
         return next_state_and_variables
+
+    def is_special_move_lega(self, current_position, target_position):
+        """
+        Returns whether a special move is legal or not
+        """
+        return False
+
+    def do_special_move(self, current_position, target_position):
+        """
+        Do the special move and return the state change made by the fsm
+        after finishing the check_special_move state
+        Normaly the turn ends after a special move
+        """
+        return (AkugaStates.change_player_state, {})
