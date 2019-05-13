@@ -74,3 +74,20 @@ class TestJumon(Jumon):
         if current_state is AkugaStates.summon_state:
             next_state_and_variables[1]["summon_position"] = Position(0, 0)
         return next_state_and_variables
+
+
+class Test2Jumon(Jumon):
+    def __init__(self, color, base_level, movement,
+                 equipment, owned_by):
+        super().__init__("Test2Jumon", color, base_level, movement, equipment, owned_by)
+
+    def special_ability(self, current_state, next_state_and_variables):
+        """
+        Try a state change if this jumon is summoned so the player has
+        a second turn
+        """
+        if current_state is AkugaStates.summon_check_state\
+                or current_state is AkugaStates.one_tile_battle_aftermath_state:
+            print("Jump to idle state for an extra turn")
+            return (AkugaStates.idle_state, {})
+        return next_state_and_variables
