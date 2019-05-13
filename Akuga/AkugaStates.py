@@ -98,16 +98,17 @@ class SummonState(State):
         x_position = random.randint(0, global_definitions.BOARD_WIDTH - 1)
         y_position = random.randint(0, global_definitions.BOARD_HEIGHT - 1)
         jumon_to_summon = self.state_variables["jumon_to_summon"]
-        """
-        Invoke the ability script of the jumon to summon cause this happens
-        after the random position is choosen the ability script can override
-        this positions
-        """
-        jumon_to_summon.run_ability_script()
+        # Build the summon_check_variables
         summon_check_state_variables = {
             "jumon_to_summon": self.state_variables["jumon_to_summon"],
             "summon_position": (x_position, y_position)}
-        return (summon_check_state, summon_check_state_variables)
+        """"
+        Invoke the special ability function of the current jumon
+        and use its return for the state change of the fsm
+        """
+        state_change = jumon_to_summon.special_ability(self,
+                (summon_check_state, summon_check_state_variables))
+        return state_change
 
 
 class SummonCheckState(State):
@@ -144,14 +145,13 @@ class SummonCheckState(State):
             # Place the jumon at the arena
             global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
             """
-            Invoke the jumon ability script after the jumon has been
-            placed. This way enter the battlefield effects can be
-            implemented
+            Invoke the jumon special ability with the same state variables
+            as no new state variables occured. This way enter the battlefield
+            effects can be implemented.
             """
-            # Jump to the change player state to end the turn
-            change_player_state_variables = {}
-            jumon.run_ability_script()
-            return (change_player_state, change_player_state_variables)
+            state_change = jumon.special_ability(self,
+                    (change_player_state, self.state_variables))
+            return state_change
         elif global_definitions.PLAYER_CHAIN.\
                 GetCurrentPlayer().OwnsTile(summon_position)\
                 or global_definitions.ARENA.IsBlockedAt(summon_position):
@@ -284,37 +284,22 @@ class CheckSpecialMoveState(State):
         jumon = self.state_variables["jumon_to_move"]
         current_position = self.state_variables["current_position"]
         target_position = self.state_variables["target_position"]
-        if jumon.ability_script is not None:
+        if jumon.is_special_move_legal(current_position, target_position):
             """
-            If the ability script is not None define a local
-            is_special_move_legal function which has to be overwritten
-            if the jumon should be allowed to make a special move.
-            This way not every jumon with an other special ability
-            has to define the is_special_move_legal function.
+            If the special move is legal invoke the special move function
+            of the current jumon
             """
-            def is_special_move_legal(current_position, target_position):
-                return False
-            # Now evaluate the ability script
-            exec(jumon.ability_script)
-            # Now the is_special_move_legal might be overwritten
-            if is_special_move_legal(current_position, target_position):
-                """
-                If the special move is legal invoke the special move function
-                which HAS TO BE DEFINED within the ability_script of the
-                jumon
-                """
-                do_special_move(current_position, target_position)
-                """
-                After the special move is done end the turn by jumping to the
-                ChangePlayerState
-                """
-                return (change_player_state, {})
-            else:
-                """
-                If there is no special ability script at all the special
-                move is illegal by default, so just jump to the idle_state
-                """
-                return (idle_state, {})
+            state_change = jumon.do_special_move(current_position,
+                    target_position)
+            return state_change
+        else:
+            """
+            If there is no special ability script at all the special
+            move is illegal by default, so just jump to the idle_state
+            """
+            return (idle_state, {})
+        # Is never hit but nonetheless
+        return None
 
 
 class OneTileBattleBeginState(State):
@@ -333,14 +318,12 @@ class OneTileBattleBeginState(State):
         """
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
-        # The attacking jumon triggers its ability script first
-        if attacking_jumon.ability_script is not None:
-            exec(attacking_jumon.ability_script)
-        # Then the occupying jumon triggers its ability script
-        if defending_jumon.ability_script is not None:
-            exec(defending_jumon.ability_script)
-        # Jump to the OneTileBattleFlipState with the same variables
-        return (one_tile_battle_flip_state, self.state_variables)
+        state_change = attacking_jumon.special_ability(self,
+                (one_tile_battle_flip_state,
+                self.state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
+        # Do the state change
+        return state_change
 
 
 class OneTileBattleFlipState(State):
@@ -361,22 +344,26 @@ class OneTileBattleFlipState(State):
         defending_jumon = self.state_variables["defending_jumon"]
         battle_position = self.state_variables["battle_position"]
         battle_arena_tile = global_definitions.ARENA.GetTileAt(battle_position)
-        """
-        After the aren tile has flipped invoke the ability script of the
-        jumons. This way an interaction of the arena tile like the one
-        of the nameless jumon or red robot can be implemented.
-        The attacking jumons triggers first!
-        """
-        attacking_jumon.run_ability_script()
-        defending_jumon.run_ability_script()
         # Now jump to the OneTileBattleBoniEvaluationState
         one_tile_battle_boni_evaluation_state_variables = {
             "attacking_jumon": attacking_jumon,
             "defending_jumon": defending_jumon,
             "battle_position": battle_position,
             "battle_arena_tile": battle_arena_tile}
-        return (one_tile_battle_boni_evaluation_state,
-                one_tile_battle_boni_evaluation_state_variables)
+        """
+        After the aren tile has flipped invoke the ability script of the
+        jumons. This way an interaction of the arena tile like the one
+        of the nameless jumon or red robot can be implemented.
+        The attacking jumons triggers first!
+        That means the state change of the attacking jumon has to be passed
+        to the defending jumon!
+        """
+        state_change = attacking_jumon.special_ability(self,
+                (one_tile_battle_boni_evaluation_state,
+                 one_tile_battle_boni_evaluation_state_variables))
+        state_change = defending_jumon.special_ability(self,
+                (state_change[0], state_change[1]))
+        return state_change
 
 
 class OneTileBattleBoniEvaluationState(State):
@@ -399,12 +386,7 @@ class OneTileBattleBoniEvaluationState(State):
         battle_arena_tile = self.state_variables["battle_arena_tile"]
         attacking_jumon_bonus = battle_arena_tile.GetBonusForJumon(attacking_jumon)
         defending_jumon_bonus = battle_arena_tile.GetBonusForJumon(defending_jumon)
-        """
-        After the bonus values are evaluated invoke the ability scripts
-        """
-        attacking_jumon.run_ability_script()
-        defending_jumon.run_ability_script()
-        # Now jump to the one_tile_battle_fight_state
+        # Create the state_variables
         one_tile_battle_figh_state_variables = {
             "attacking_jumon": attacking_jumon,
             "defending_jumon": defending_jumon,
@@ -412,8 +394,15 @@ class OneTileBattleBoniEvaluationState(State):
             "battle_arena_tile": battle_arena_tile,
             "attacking_jumon_bonus": attacking_jumon_bonus,
             "defending_jumon_bonus": defending_jumon_bonus}
-        return (one_tile_battle_fight_state,
-                one_tile_battle_figh_state_variables)
+        """
+        After the bonus values are evaluated invoke the ability scripts
+        """
+        state_change = attacking_jumon.special_ability(self,
+                (one_tile_battle_fight_state,
+                one_tile_battle_figh_state_variables))
+        state_change = defending_jumon.special_ability(self,
+                (state_change[0], state_change[1]))
+        return state_change
 
 
 class OneTileBattleFightState(State):
@@ -452,12 +441,6 @@ class OneTileBattleFightState(State):
             victor = attacking_jumon
             looser = defending_jumon
         """
-        Run the ability scripts after victor and looser are determined,
-        this way ability scripts can trigger if the bakugan wins or looses
-        """
-        attacking_jumon.run_ability_script()
-        defending_jumon.run_ability_script()
-        """
         The summoned jumon and the defending_jumon has to be in the variables
         as well to destroy both if victor and looser are None.
         Jump to the one_tile_battle_aftermath_state
@@ -471,8 +454,15 @@ class OneTileBattleFightState(State):
             "defending_jumon_bonus": defending_jumon_bonus,
             "victor": victor,
             "looser": looser}
-        return (one_tile_battle_aftermath_state,
-                one_tile_battle_aftermath_state_variables)
+        """
+        Run the ability scripts after victor and looser are determined,
+        this way ability scripts can trigger if the bakugan wins or looses
+        """
+        state_change = attacking_jumon.special_ability(self,
+                (one_tile_battle_aftermath_state,
+                one_tile_battle_aftermath_state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
+        return state_change
 
 
 class OneTileBattleAftermathState(State):
@@ -487,19 +477,22 @@ class OneTileBattleAftermathState(State):
     def run(self, event):
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
-        # battle_position = self.state_variables["battle_position"]
         battle_arena_tile = self.state_variables["battle_arena_tile"]
-        # attacking_jumon_bonus = self.state_variables["attacking_jumon_bonus"]
-        # defending_jumon_bonus = self.state_variables["defending_jumon_bonus"]
         victor = self.state_variables["victor"]
         looser = self.state_variables["looser"]
+        # battle_position = self.state_variables["battle_position"]
+        # attacking_jumon_bonus = self.state_variables["attacking_jumon_bonus"]
+        # defending_jumon_bonus = self.state_variables["defending_jumon_bonus"]
+
         """
         Run the ability scripts before the jumons are killed.
         This way the destruction of both jumons could be prohibited
         and death rattle effects can be implemented
         """
-        attacking_jumon.run_ability_script()
-        defending_jumon.run_ability_script()
+        state_change = attacking_jumon.special_ability(self,
+                (change_player_state,
+                self.state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
         if victor is None and looser is None:
             """
             If no victor and no looser is assigned both jumons had the same
@@ -514,8 +507,8 @@ class OneTileBattleAftermathState(State):
             looser.owned_by.HandleJumonDeath(looser)
             # Place the victor on the arena tile
             battle_arena_tile.PlaceUnit(victor)
-        # Now the turn ends so jump to the change player state
-        return (change_player_state, {})
+        # Now do the state_change (mostly jump to change_player_state)
+        return state_change
 
 
 class TwoTileBattleBeginState(State):
@@ -534,14 +527,11 @@ class TwoTileBattleBeginState(State):
         """
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
-        # The attacking jumon triggers its ability script first
-        if attacking_jumon.ability_script is not None:
-            exec(attacking_jumon.ability_script)
-        # Then the occupying jumon triggers its ability script
-        if defending_jumon.ability_script is not None:
-            exec(defending_jumon.ability_script)
-        # Jump to the TwoTileBattleFlipState with the same variables
-        return (two_tile_battle_flip_state, self.state_variables)
+        state_change = attacking_jumon.special_ability(self,
+                (two_tile_battle_flip_state,
+                self.state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
+        return state_change
 
 
 class TwoTileBattleFlipState(State):
@@ -564,14 +554,6 @@ class TwoTileBattleFlipState(State):
         defense_position = self.state_variables["defense_position"]
         attack_tile = global_definitions.ARENA.GetTileAt(attack_position)
         defense_tile = global_definitions.ARENA.GetTileAt(defense_position)
-        """
-        After the aren tile has flipped invoke the ability script of the
-        jumons. This way an interaction of the arena tile like the one
-        of the nameless jumon or red robot can be implemented.
-        The attacking jumons triggers first!
-        """
-        attacking_jumon.run_ability_script()
-        defending_jumon.run_ability_script()
         # Now jump to the TwoTileBattleBoniEvaluationState
         two_tile_battle_boni_evaluation_state_variables = {
             "attacking_jumon": attacking_jumon,
@@ -580,8 +562,18 @@ class TwoTileBattleFlipState(State):
             "defense_position": defense_position,
             "attack_tile": attack_tile,
             "defense_tile": defense_tile}
-        return (two_tile_battle_boni_evaluation_state,
-                two_tile_battle_boni_evaluation_state_variables)
+        """
+        After the aren tile has flipped invoke the ability script of the
+        jumons. This way an interaction of the arena tile like the one
+        of the nameless jumon or red robot can be implemented.
+        The attacking jumons triggers first!
+        """
+        state_change = attacking_jumon.special_ability(self,
+                (two_tile_battle_boni_evaluation_state_variables,
+                two_tile_battle_boni_evaluation_state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
+        # Do the state change
+        return state_change
 
 
 class TwoTileBattleBoniEvaluationState(State):
@@ -608,11 +600,6 @@ class TwoTileBattleBoniEvaluationState(State):
         # Get the bonus of the attack or defense tile
         attacking_jumon_bonus = attack_tile.GetBonusForJumon(attacking_jumon)
         defending_jumon_bonus = defense_tile.GetBonusForJumon(defending_jumon)
-        """
-        After the bonus values are evaluated invoke the ability scripts
-        """
-        attacking_jumon.run_ability_script()
-        defending_jumon.run_ability_script()
         # Now jump to the two_tile_battle_fight_state
         two_tile_battle_figh_state_variables = {
             "attacking_jumon": attacking_jumon,
@@ -623,8 +610,15 @@ class TwoTileBattleBoniEvaluationState(State):
             "defense_tile": defense_tile,
             "attacking_jumon_bonus": attacking_jumon_bonus,
             "defending_jumon_bonus": defending_jumon_bonus}
-        return (two_tile_battle_fight_state,
-                two_tile_battle_figh_state_variables)
+        """
+        After the bonus values are evaluated invoke the ability scripts
+        """
+        state_change = attacking_jumon.special_ability(self,
+                (two_tile_battle_fight_state,
+                two_tile_battle_figh_state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
+        # Do the state change
+        return state_change
 
 
 class TwoTileBattleFightState(State):
@@ -665,12 +659,6 @@ class TwoTileBattleFightState(State):
             victor = attacking_jumon
             looser = defending_jumon
         """
-        Run the ability scripts after victor and looser are determined,
-        this way ability scripts can trigger if the bakugan wins or looses
-        """
-        attacking_jumon.run_ability_script()
-        defending_jumon.run_ability_script()
-        """
         The summoned jumon and the defending_jumon has to be in the variables
         as well to destroy both if victor and looser are None.
         """
@@ -685,9 +673,16 @@ class TwoTileBattleFightState(State):
             "defending_jumon_bonus": defending_jumon_bonus,
             "victor": victor,
             "looser": looser}
-        # Jump to the TwoTileBattleAftermathState
-        return (two_tile_battle_aftermath_state,
-                two_tile_battle_aftermath_state_variables)
+        """
+        Run the ability scripts after victor and looser are determined,
+        this way ability scripts can trigger if the bakugan wins or looses
+        """
+        state_change = attacking_jumon.special_ability(self,
+                (two_tile_battle_aftermath_state,
+                two_tile_battle_aftermath_state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
+        # Do the state change
+        return state_change
 
 
 class TwoTileBattleAftermathState(State):
@@ -711,8 +706,10 @@ class TwoTileBattleAftermathState(State):
         This way the destruction of both jumons could be prohibited
         and death rattle effects can be implemented
         """
-        attacking_jumon.run_ability_script()
-        defending_jumon.run_ability_script()
+        state_change = attacking_jumon.special_ability(self,
+                (change_player_state,
+                self.state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
         if victor is None and looser is None:
             """
             If no victor and no looser is assigned both jumons had the same
@@ -738,8 +735,8 @@ class TwoTileBattleAftermathState(State):
             """
             attacking_jumon.owned_by.HandleJumonDeath(attacking_jumon)
             attack_tile.RemoveUnit()
-        # Now the turn ends so jump to the change player state
-        return (change_player_state, {})
+        # Now the turn ends so do the change
+        return state_change
 
 
 idle_state = IdleState()
