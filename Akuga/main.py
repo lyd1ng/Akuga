@@ -1,6 +1,6 @@
 import pygame
 from Akuga.Position import Position
-from Akuga.Jumon import (Jumon, TestJumon)
+from Akuga.Jumon import (Jumon, TestJumon, Test2Jumon)
 from Akuga.Player import Player
 from Akuga.PlayerChain import PlayerChain
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
@@ -23,7 +23,7 @@ def main():
     global_definitions.PLAYER_CHAIN = PlayerChain(player1, player2)
 
     jumon1 = Jumon("1", "red", 400, 1, None, player1)
-    jumon3 = TestJumon("red", 400, 1, None, player2)
+    jumon3 = Test2Jumon("red", 400, 1, None, player2)
 
     player1.SetJumonsToSummon([jumon1])
     player2.SetJumonsToSummon([jumon3])
