@@ -23,11 +23,6 @@ class IdleState(State):
         Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
         as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
         """
-        # Invoke the ability script of all summoned jumons of the current player
-        for jumon in global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
-                summoned_jumons:
-            jumon.run_ability_script()
-
         if event.type == SUMMON_JUMON_EVENT\
                 and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
                 InSummonPhase():
