@@ -33,11 +33,11 @@ class IdleState(State):
             """
             # Get the jumon to summon and create the state variables dict
             jumon = event.jumon_to_summon
-            summon_state_variables = {"jumon_to_summon": jumon}
             # Only summon the jumon if the player owns the jumon
             if global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
                     CanSummon(jumon):
-                # Jump to the summon_state with the jumon as state variables
+                # Jump to the summon state
+                summon_state_variables = {"jumon_to_summon": jumon}
                 return (summon_state, summon_state_variables)
 
         if event.type == SELECT_JUMON_TO_MOVE_EVENT\
@@ -56,6 +56,7 @@ class IdleState(State):
                     "jumon_to_move": jumon,
                     "current_position": current_position,
                     "target_position": target_position}
+                # Jump to the check move state
                 return (check_move_state, check_move_state_variables)
 
         if event.type == SELECT_JUMON_TO_SPECIAL_MOVE_EVENT\
@@ -72,9 +73,8 @@ class IdleState(State):
                 "jumon_to_move": jumon,
                 "current_position": current_position,
                 "target_position": target_position}
+            # Jump to the check_special_move_state
             return (check_special_move_state, check_move_state_variables)
-
-            pass
         # If no event was caught return None, so the state machiene
         # remains in the idle state
         return None
