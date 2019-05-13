@@ -569,7 +569,7 @@ class TwoTileBattleFlipState(State):
         The attacking jumons triggers first!
         """
         state_change = attacking_jumon.special_ability(self,
-                (two_tile_battle_boni_evaluation_state_variables,
+                (two_tile_battle_boni_evaluation_state,
                 two_tile_battle_boni_evaluation_state_variables))
         state_change = defending_jumon.special_ability(self, state_change)
         # Do the state change
