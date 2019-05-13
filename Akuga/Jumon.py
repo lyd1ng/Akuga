@@ -57,3 +57,21 @@ class Jumon():
         Normaly the turn ends after a special move
         """
         return (AkugaStates.change_player_state, {})
+
+
+class TestJumon(Jumon):
+    def __init__(self, color, base_level, movement,
+                 equipment, owned_by):
+        super().__init__("TestJumon", color, base_level, movement, equipment, owned_by)
+
+    def special_ability(self, current_state, next_state_and_variables):
+        """
+        The very basic ability script which doesnt do anything
+        just returns the next_state_and_variables tuple
+        state_and_variables: [next_state_to_jump_to, variables_to_pass]
+        """
+        if current_state is AkugaStates.summon_state:
+            variable_dict = next_state_and_variables[1]
+            variable_dict["summon_position"] = (0, 0)
+            return (next_state_and_variables[0], variable_dict)
+        return next_state_and_variables
