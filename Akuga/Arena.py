@@ -1,3 +1,6 @@
+from Akuga.Position import Position
+
+
 class ArenaTile:
     """
     This represents one tile of an arena.
@@ -66,31 +69,31 @@ class Arena:
         """
         Returns the arena tile at the given position
         """
-        return self.tiles[position[0]][position[1]]
+        return self.tiles[position.x][position.y]
 
     def IsBlockedAt(self, position):
         """
         Return whether the tile at position is blocked or not
         """
-        return self.tiles[position[0]][position[1]].IsBlocked()
+        return self.tiles[position.x][position.y].IsBlocked()
 
     def GetUnitAt(self, position):
         """
         Get the Unit aka Jumon, Equipment or Trap at position
         """
-        return self.tiles[position[0]][position[1]].OccupiedBy()
+        return self.tiles[position.x][position.y].OccupiedBy()
 
     def PlaceUnitAt(self, unit, position):
         """
         Places unit at position
         """
-        self.tiles[position[0]][position[1]].PlaceUnit(unit)
+        self.tiles[position.x][position.y].PlaceUnit(unit)
 
     def PrintOut(self):
         for y in range(0, self.board_height):
             for x in range(0, self.board_width):
                 print("|", end="")
-                if self.GetUnitAt((x, y)) is not None:
-                    print(self.GetUnitAt((x, y)).name, end=" ")
+                if self.GetUnitAt(Position(x, y)) is not None:
+                    print(self.GetUnitAt(Position(x, y)).name, end=" ")
                 print("\t", end="")
             print("")

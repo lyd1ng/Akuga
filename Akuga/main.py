@@ -1,4 +1,5 @@
 import pygame
+from Akuga.Position import Position
 from Akuga.Jumon import (Jumon, TestJumon)
 from Akuga.Player import Player
 from Akuga.PlayerChain import PlayerChain
@@ -51,14 +52,14 @@ def main():
             cy = int(input("Current Y: "))
             tx = int(input("Target X: "))
             ty = int(input("Target Y: "))
-            jumon_to_move = global_definitions.ARENA.GetUnitAt((cx, cy))
-            if global_definitions.PLAYER_CHAIN.GetCurrentPlayer().OwnsTile((cx, cy)) is False:
+            jumon_to_move = global_definitions.ARENA.GetUnitAt(Position(cx, cy))
+            if global_definitions.PLAYER_CHAIN.GetCurrentPlayer().OwnsTile(Position(cx, cy)) is False:
                 print("Invalid, no Jumon you control found at this position")
                 continue
             event = pygame.event.Event(SELECT_JUMON_TO_MOVE_EVENT,
                 jumon_to_move=jumon_to_move,
-                current_position=(cx, cy),
-                target_position=(tx, ty))
+                current_position=Position(cx, cy),
+                target_position=Position(tx, ty))
             pygame.event.post(event)
         if command == "surrender":
             global_definitions.PLAYER_CHAIN.GetCurrentPlayer().Kill()

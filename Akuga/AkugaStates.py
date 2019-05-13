@@ -1,6 +1,7 @@
 import random
 import pygame
 import Akuga.global_definitions as global_definitions
+from Akuga.Position import Position
 from Akuga.StateMachieneState import StateMachieneState as State
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
@@ -101,7 +102,7 @@ class SummonState(State):
         # Build the summon_check_variables
         summon_check_state_variables = {
             "jumon_to_summon": self.state_variables["jumon_to_summon"],
-            "summon_position": (x_position, y_position)}
+            "summon_position": Position(x_position, y_position)}
         """"
         Invoke the special ability function of the current jumon
         and use its return for the state change of the fsm
@@ -232,10 +233,10 @@ class CheckMoveState(State):
         current_position = self.state_variables["current_position"]
         target_position = self.state_variables["target_position"]
         # Get the distance to check if a move is valid or not
-        manhatte_distance = abs(current_position[0] - target_position[0]) + \
-            abs(current_position[1] - target_position[1])
+        manhatte_distance = abs(current_position.x - target_position.x) + \
+            abs(current_position.y - target_position.y)
         if manhatte_distance > jumon.movement and manhatte_distance != 0 or\
-                target_position[0] < 0 or target_position[1] < 0:
+                target_position.x < 0 or target_position.y < 0:
             """
             If the target move is invalid in length just jump back to the
             idle state.

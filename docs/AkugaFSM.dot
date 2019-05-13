@@ -1,0 +1,60 @@
+digraph AkugaFSM {
+	size="8.5"
+	node [shape = circle]
+	// Declare every existing state within the fsm
+	idle_state
+	summon_state
+	check_move_state
+	check_special_move_state
+	summon_check_state
+	change_player_state
+	one_tile_battle_begin_state
+	one_tile_battle_flip_state
+	one_tile_batttle_boni_evaluation_state
+	one_tile_battle_fight_state
+	one_tile_battle_aftermath_state
+	two_tile_battle_begin_state
+	two_tile_battle_flip_state
+	two_tile_batttle_boni_evaluation_state
+	two_tile_battle_fight_state
+	two_tile_battle_aftermath_state
+
+	// Change player state
+	change_player_state -> idle_state
+
+	// Idle state
+	idle_state -> summon_state [label="summon event"];
+	idle_state -> check_move_state [label="move event"];
+	idle_state -> check_special_move_state [label="special move event"];
+
+	// Summon State
+	summon_state -> summon_check_state
+	
+	// Summon check state
+	summon_check_state -> change_player_state[label="Arena tile is free"]
+	summon_check_state -> summon_state[label="Arena tile is blocked"]
+	summon_check_state -> one_tile_battle_begin_state[label="Arena tile is occupied"]
+
+	// Check move state
+	check_move_state -> idle_state[label="Invalid move"]
+	check_move_state -> change_player_state[label="Valid move and target tile is free"]
+	check_move_state -> two_tile_battle_begin_state[label="Target tile is occupied"]
+
+	// Check special move state
+	check_special_move_state -> change_player_state[label="is_special_move_legal(..)"]
+	check_special_move_state -> idle_state[label="Move is illegal"]
+
+	// One tile battle states
+	one_tile_battle_begin_state -> one_tile_battle_flip_state
+	one_tile_battle_flip_state -> one_tile_batttle_boni_evaluation_state
+	one_tile_batttle_boni_evaluation_state -> one_tile_battle_fight_state
+	one_tile_battle_fight_state -> one_tile_battle_aftermath_state
+	one_tile_battle_aftermath_state -> change_player_state
+
+	// One tile battle states
+	two_tile_battle_begin_state -> two_tile_battle_flip_state
+	two_tile_battle_flip_state -> two_tile_batttle_boni_evaluation_state
+	two_tile_batttle_boni_evaluation_state -> two_tile_battle_fight_state
+	two_tile_battle_fight_state -> two_tile_battle_aftermath_state
+	two_tile_battle_aftermath_state -> change_player_state
+}
