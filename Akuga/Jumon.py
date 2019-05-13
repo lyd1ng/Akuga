@@ -7,13 +7,13 @@ class Artifact():
         self.color = color
         self.blocking = blocking
 
-    def special_ability(self, state_and_variables):
+    def special_ability(self, next_state_and_variables):
         """
         The very basic ability script which doesnt do anything
-        just returns the state_and_variables tuple
-        state_and_variables: [state_to_jump_to, variables_to_pass]
+        just returns the next_state_and_variables tuple
+        state_and_variables: [next_state_to_jump_to, variables_to_pass]
         """
-        return state_and_variables
+        return next_state_and_variables
 
 
 class Jumon():
@@ -33,10 +33,10 @@ class Jumon():
         self.owned_by = owned_by
         self.blocking = False
 
-    def special_ability(self, state_and_variables):
+    def special_ability(self, next_state_and_variables):
         """
         The very basic ability script which doesnt do anything
-        just returns the state_and_variables tuple
-        state_and_variables: [state_to_jump_to, variables_to_pass]
+        just returns the next_state_and_variables tuple
+        state_and_variables: [next_state_to_jump_to, variables_to_pass]
         """
-        return state_and_variables
+        return next_state_and_variables
