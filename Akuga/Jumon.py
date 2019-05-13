@@ -72,7 +72,5 @@ class TestJumon(Jumon):
         state_and_variables: [next_state_to_jump_to, variables_to_pass]
         """
         if current_state is AkugaStates.summon_state:
-            variable_dict = next_state_and_variables[1]
-            variable_dict["summon_position"] = Position(0, 0)
-            return (next_state_and_variables[0], variable_dict)
+            next_state_and_variables[1]["summon_position"] = Position(0, 0)
         return next_state_and_variables
