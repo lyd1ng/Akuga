@@ -45,7 +45,7 @@ class Jumon():
         """
         return next_state_and_variables
 
-    def is_special_move_lega(self, current_position, target_position):
+    def is_special_move_legal(self, current_position, target_position):
         """
         Returns whether a special move is legal or not
         """
