@@ -23,13 +23,17 @@ def main():
     global_definitions.PLAYER_CHAIN = PlayerChain(player1, player2)
 
     jumon1 = Jumon("1", "red", 400, 2, None, player1)
-    jumon3 = Jumon("2", "red", 500, 2, None, player2)
+    jumon3 = Jumon("2", "red", 400, 2, None, player2)
 
     player1.SetJumonsToSummon([jumon1])
     player2.SetJumonsToSummon([jumon3])
 
     test_artefact = TestArtefact()
-    global_definitions.ARENA.PlaceUnitAt(test_artefact, Position(0, 0))
+    test2_artefact = TestArtefact()
+    test_artefact.attach_to(jumon1)
+    test2_artefact.attach_to(jumon3)
+
+    # global_definitions.ARENA.PlaceUnitAt(test_artefact, Position(0, 0))
 
     while running:
         pygame.event.pump()
