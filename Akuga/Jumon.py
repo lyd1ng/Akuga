@@ -11,7 +11,7 @@ class Artifact():
         self.color = color
         self.blocking = blocking
 
-    def special_ability(self, current_state, next_state_and_variables):
+    def special_ability(self, jumon, current_state, next_state_and_variables):
         """
         The very basic ability script which doesnt do anything
         just returns the next_state_and_variables tuple
@@ -43,7 +43,12 @@ class Jumon():
         just returns the next_state_and_variables tuple
         state_and_variables: [next_state_to_jump_to, variables_to_pass]
         """
-        return next_state_and_variables
+        state_change = next_state_and_variables
+        # If the jumon has an equipment invoke its ability script also
+        if self.equipment is not None:
+            state_change = self.equipment.special_ability(self,
+                    current_state, next_state_and_variables)
+        return state_change
 
     def is_special_move_legal(self, current_position, target_position):
         """
