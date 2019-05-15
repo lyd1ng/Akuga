@@ -1,6 +1,7 @@
 import random
 import pygame
 import Akuga.global_definitions as global_definitions
+import Akuga.Jumon
 from Akuga.Position import Position
 from Akuga.StateMachieneState import StateMachieneState as State
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
@@ -153,6 +154,27 @@ class SummonCheckState(State):
             state_change = jumon.special_ability(self,
                     (change_player_state, self.state_variables))
             return state_change
+        elif issubclass(type(global_definitions.ARENA.GetUnitAt(summon_position)), Akuga.Jumon.Artefact):
+            """
+            If the jumon is summoned on an artefact place it on this tile
+            and jump to the equip artefact to jumon state
+            """
+            # Let the current player summon this jumon
+            global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+                HandleSummoning(jumon)
+            # Get the artefact at this point
+            artefact = global_definitions.ARENA.GetUnitAt(summon_position)
+            # Place the jumon at the arena
+            global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
+            """
+            Create the state variables with the last state as None
+            as there is no last position and do the state change
+            """
+            return (equip_artefact_to_jumon_state, {
+                "jumon": jumon,
+                "artefact": artefact,
+                "last_position": None})
+
         elif global_definitions.PLAYER_CHAIN.\
                 GetCurrentPlayer().OwnsTile(summon_position)\
                 or global_definitions.ARENA.IsBlockedAt(summon_position):
@@ -258,6 +280,21 @@ class CheckMoveState(State):
             so jump back to the idle state
             """
             return (idle_state, {})
+        elif issubclass(type(global_definitions.ARENA.GetUnitAt(target_position)), Akuga.Jumon.Artefact):
+            """
+            If the target position is occupied by an artefact jump to the
+            equip artefact to jumon state
+            """
+            # Get the artefact at the target position
+            artefact = global_definitions.ARENA.GetUnitAt(target_position)
+            # Move the jumon
+            global_definitions.ARENA.PlaceUnitAt(None, current_position)
+            global_definitions.ARENA.PlaceUnitAt(jumon, target_position)
+            # Jump to the equip artefact to jumon state
+            return (equip_artefact_to_jumon_state, {
+                "jumon": jumon,
+                "artefact": artefact,
+                "last_position": current_position})  # Its right think about it
         else:
             """
             If the target position is not empty and the jumon on target
@@ -310,7 +347,7 @@ class OneTileBattleBeginState(State):
     for special ability scripts of the fighting jumon
     """
     def __init__(self):
-        super().__init__("ONE_TILE_BATTLE_STATE")
+        super().__init__("ONE_TILE_BATTLE_BEGIN_STATE")
 
     def run(self, event):
         """
@@ -498,13 +535,39 @@ class OneTileBattleAftermathState(State):
             """
             If no victor and no looser is assigned both jumons had the same
             power level and both have to be destroyed
+            If the attacker has an equipment attached to it detach it
+            and place it on the arena tile
             """
+            if attacking_jumon.equipment is not None:
+                artefact = attacking_jumon.equipment
+                artefact.detach_from(attacking_jumon)
+                battle_arena_tile.PlaceUnit(artefact)
+            """
+            If the defender has an equipment attached to it detach it
+            and place it on the arena tile. Cause this is handeld
+            after the attacker the equipment of the defender overwrites
+            the equipment of the attacker. This way the equipment of
+            the attacker vanishes.
+            """
+            if defending_jumon.equipment is not None:
+                artefact = defending_jumon.equipment
+                artefact.detach_from(defending_jumon)
+                battle_arena_tile.PlaceUnit(artefact)
+            # Kill the jumons
             attacking_jumon.owned_by.HandleJumonDeath(attacking_jumon)
             defending_jumon.owned_by.HandleJumonDeath(defending_jumon)
             # Remove the occupying unit from the arena tile
             battle_arena_tile.RemoveUnit()
         else:
-            # Just kill the looser
+            if looser.equipment is not None:
+                """
+                If the looser had an artifact attached to it attach it to the
+                winner instead
+                """
+                artifact = looser.equipment
+                looser.equipment.detach_from(looser)
+                artifact.attach_to(victor)
+            # Now kill the looser
             looser.owned_by.HandleJumonDeath(looser)
             # Place the victor on the arena tile
             battle_arena_tile.PlaceUnit(victor)
@@ -716,11 +779,21 @@ class TwoTileBattleAftermathState(State):
             If no victor and no looser is assigned both jumons had the same
             power level and both have to be destroyed
             """
+            # Kill both jumons
             attacking_jumon.owned_by.HandleJumonDeath(attacking_jumon)
             defending_jumon.owned_by.HandleJumonDeath(defending_jumon)
             # Remove both units from the arena tile
             attack_tile.RemoveUnit()
             defense_tile.RemoveUnit()
+            if attacking_jumon.equipment is not None:
+                artefact = attacking_jumon.equipment
+                artefact.detach_from(attacking_jumon)
+                attack_tile.PlaceUnit(artefact)
+            if defending_jumon.equipment is not None:
+                artefact = defending_jumon.equipment
+                artefact.detach_from(defending_jumon)
+                defense_tile.PlaceUnit(artefact)
+
         elif victor is attacking_jumon:
             """
             If the jumon to move has won move it to the defense tile
@@ -730,13 +803,88 @@ class TwoTileBattleAftermathState(State):
             # Move the victor from the attack tile to the defense tile
             attack_tile.RemoveUnit()
             defense_tile.PlaceUnit(victor)
+            if looser.equipment is not None:
+                """
+                If the defender had an equipment it has to be detached
+                from it and attached to the attacker
+                """
+                looser_artefact = looser.equipment
+                looser_artefact.detach_from(looser)
+                if victor.equipment is not None:
+                    """
+                    If the victor jumon has an equipment on its own it dropps
+                    its artefact on the attack tile and attaches the
+                    artefact of the defender jumon
+                    """
+                    victor_artefact = victor.equipment
+                    victor_artefact.detach_from(victor)
+                    attack_tile.PlaceUnit(victor_artefact)
+                # Attach the artefact of the defender to the attacker
+                looser_artefact.attach_to(victor)
         elif victor is defending_jumon:
             """
-            If the defending_jumon has lost remove the attacking jumon
+            If the defending_jumon has won remove the attacking jumon
             """
+            # Just kill the looser
             attacking_jumon.owned_by.HandleJumonDeath(attacking_jumon)
             attack_tile.RemoveUnit()
+            if attacking_jumon.equipment is not None:
+                """
+                If the attacking jumon had an equipment it drops it on the
+                attack tile
+                """
+                # Detach the artefact from the jumon
+                attack_artefact = attacking_jumon.equipment
+                attack_artefact.detach_from(attacking_jumon)
+                # Place it on the attack tile
+                attack_tile.PlaceUnit(attack_artefact)
         # Now the turn ends so do the change
+        return state_change
+
+
+class EquipArtefactToJumonState(State):
+    """
+    Equips an artefact to a jumon
+    """
+    def __init__(self):
+        super().__init__("EQUIP_ARTEFACT_TO_JUMON_STATE")
+
+    def run(self, event):
+        """
+        Attaches an equipment to a jumon
+        """
+        jumon = self.state_variables["jumon"]
+        artefact = self.state_variables["artefact"]
+        last_position = self.state_variables["last_position"]
+
+        if jumon.equipment is None:
+            """
+            If the jumon has no equipment yet just attach it
+            """
+            artefact.attach_to(jumon)
+        else:
+            """
+            If the jumon has an equipment attached it has to be detached
+            and placed at the old position. In the very special case
+            a jumon is summoned with an equipment attached to it
+            aka last_position is None discard it
+            """
+            # Get the artefact to detach and detach it from the jumon
+            detached_artefact = jumon.equipment
+            detached_artefact.detach_from(jumon)
+            # Attach the current artefact to the jumon
+            artefact.attach_to(jumon)
+            """
+            Just place the detached artefact on the arena again if the
+            last position is not None like it would be if the jumon
+            was just summoned. This presupposes there is a jumon
+            which is summoned with an artefact attached to it
+            """
+            if last_position is not None:
+                global_definitions.ARENA.PlaceUnitAt(detached_artefact, last_position)
+        # Invoke the special ability of the jumon and do the state change
+        state_change = (change_player_state, {})
+        state_change = jumon.special_ability(self, state_change)
         return state_change
 
 
@@ -746,6 +894,7 @@ check_move_state = CheckMoveState()
 check_special_move_state = CheckSpecialMoveState()
 summon_check_state = SummonCheckState()
 change_player_state = ChangePlayerState()
+equip_artefact_to_jumon_state = EquipArtefactToJumonState()
 # All the one tile battle states
 one_tile_battle_begin_state = OneTileBattleBeginState()
 one_tile_battle_flip_state = OneTileBattleFlipState()

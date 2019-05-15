@@ -1,15 +1,46 @@
+"""
+from Akuga.AkugaStates import (
+        idle_state,
+        summon_state,
+        check_move_state,
+        check_special_move_state,
+        summon_check_state,
+        change_player_state,
+        equip_artefact_to_jumon_state,
+        one_tile_battle_begin_state,
+        one_tile_battle_flip_state,
+        one_tile_battle_boni_evaluation_state,
+        one_tile_battle_fight_state,
+        one_tile_battle_aftermath_state,
+        two_tile_battle_begin_state,
+        two_tile_battle_flip_state,
+        two_tile_battle_boni_evaluation_state,
+        two_tile_battle_fight_state,
+        two_tile_battle_aftermath_state)
+"""
 from Akuga import AkugaStates
 from Akuga.Position import Position
 
 
-class Artifact():
+class Artefact():
     """
     The abstraction around an equipment or artifact
     """
-    def __init__(self, name, color, blocking):
+    def __init__(self, name, blocking):
         self.name = name
-        self.color = color
         self.blocking = blocking
+
+    def attach_to(self, jumon):
+        """
+        Attach the artefact to jumon
+        """
+        jumon.equipment = self
+
+    def detach_from(self, jumon):
+        """
+        Detach the artefact from jumon
+        """
+        jumon.equipment = None
 
     def special_ability(self, jumon, current_state, next_state_and_variables):
         """
@@ -63,6 +94,41 @@ class Jumon():
         Normaly the turn ends after a special move
         """
         return (AkugaStates.change_player_state, {})
+
+
+class TestArtefact(Artefact):
+    """
+    Change the name of the jumon
+    """
+    def __init__(self):
+        super().__init__("A1", False)
+        self.saved_jumon_name = ""
+
+    def attach_to(self, jumon):
+        self.saved_jumon_name = jumon.name
+        jumon.name += " equiped1"
+        super().attach_to(jumon)
+
+    def detach_from(self, jumon):
+        jumon.name = self.saved_jumon_name
+        super().detach_from(jumon)
+
+class Test2Artefact(Artefact):
+    """
+    Change the name of the jumon
+    """
+    def __init__(self):
+        super().__init__("A2", False)
+        self.saved_jumon_name = ""
+
+    def attach_to(self, jumon):
+        self.saved_jumon_name = jumon.name
+        jumon.name += " equiped2"
+        super().attach_to(jumon)
+
+    def detach_from(self, jumon):
+        jumon.name = self.saved_jumon_name
+        super().detach_from(jumon)
 
 
 class TestJumon(Jumon):
