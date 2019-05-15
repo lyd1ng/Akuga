@@ -106,12 +106,19 @@ class TestArtefact(Artefact):
 
     def attach_to(self, jumon):
         self.saved_jumon_name = jumon.name
-        jumon.name += " equiped1"
+        jumon.name += " A1"
+        jumon.level_offset += 150
         super().attach_to(jumon)
 
     def detach_from(self, jumon):
         jumon.name = self.saved_jumon_name
+        jumon.level_offset -= 150
         super().detach_from(jumon)
+
+    def special_ability(self, jumon, current_state, next_state_and_variables):
+        print(jumon.name + " is active in state " + current_state.name)
+        return next_state_and_variables
+
 
 class Test2Artefact(Artefact):
     """
