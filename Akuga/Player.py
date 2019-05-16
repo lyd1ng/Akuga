@@ -145,16 +145,32 @@ class Player:
             self.SetToMovePhase()
 
     def IsDead(self):
+        """
+        Returns if the player is dead or not, dead players are removed
+        from the player chain.
+        """
         return self.is_dead
 
     def HasWon(self):
+        """
+        Returns if a player has won. If a player has won the match ends
+        immediatly
+        """
         return self.has_won
 
     def Kill(self):
+        """
+        Kill the player, a player is killed if per doesnt own a single jumon
+        anymore
+        """
         self.is_dead = True
         self.has_won = False
 
     def InstaWin(self):
+        """
+        Makes the player the winner, this might be usefull for alternative
+        win conditions
+        """
         self.is_dead = False
         self.has_won = True
 
@@ -162,6 +178,10 @@ class Player:
 class NeutralPlayer(Player):
     """
     Represents a neutral player which can never win nor loose.
+    The neutral player is used to control neutral jumons which agains brings
+    a random element to the game. Furthermore neutral jumons can be equiped
+    with artefacts which can be stolen by the player bakugans by killing
+    the neutral ones.
     """
     def __init__(self):
         super().__init__("neutral player", True)
@@ -170,7 +190,9 @@ class NeutralPlayer(Player):
         """
         This function has to be invoked before artefacts are placed on
         the arena, this way the summoning can be handeld without the akuga fsm
+        THIS IS MAYBE HANDELD WITHIN AN EXTRA INIT STATE IN THE FUTURE
         """
+        # Make sure is no summoning on an occupyied tile
         summon_positions = []
         width = global_definitions.BOARD_WIDTH - 1
         height = global_definitions.BOARD_HEIGHT - 1
@@ -183,7 +205,7 @@ class NeutralPlayer(Player):
                 self.HandleSummoning(jumon)
                 global_definitions.ARENA.PlaceUnitAt(jumon, position)
                 jumon.SetPosition(position)
-                # Now add the position to positions
+                # Now add the position to positions to make this tile occupied
                 summon_positions.append(position)
 
     def DoAMove(self, current_state, next_state_and_variables):
