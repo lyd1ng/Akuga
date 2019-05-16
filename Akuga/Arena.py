@@ -6,7 +6,7 @@ class ArenaTile:
     This represents one tile of an arena.
     It contains six values for six different
     colors and reference on the jumon or equipment
-    or trap which is placed on the tile.
+    which is placed on the tile.
     It also has a script which may add special effects on the tile.
     A tile is blocked if the unit occupying the tile is blocking
     """
@@ -17,7 +17,7 @@ class ArenaTile:
 
     def OccupiedBy(self):
         """
-        Returns the unit aka jumon, equipment or trap ocuppying this tile
+        Returns the unit aka jumon, equipment ocuppying this tile
         """
         return self.occupied_by
 
