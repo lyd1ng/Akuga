@@ -89,10 +89,10 @@ class PlayerChain:
                 # If the current player dies instantly jump to the next player
                 if node_pointer is self.currentNode:
                     self.currentNode = self.currentNode.GetNext()
-                # If the matching node is the start node update it
+                # If the matching node is the start node Update it
                 if node_pointer is self.startNode:
                     self.startNode = self.startNode.GetNext()
-                # If the matching node is the end node update it
+                # If the matching node is the end node Update it
                 if node_pointer is self.endNode:
                     self.endNode = self.endNode.GetPrev()
                 # Set the next of the prev to the next of the current node
@@ -119,10 +119,10 @@ class PlayerChain:
         # If the current player dies instantly jump to the next player
         if node is self.currentNode:
             self.currentNode = self.currentNode.GetNext()
-        # If the matching node is the start node update it
+        # If the matching node is the start node Update it
         if node is self.startNode:
             self.startNode = self.startNode.GetNext()
-        # If the matching node is the end node update it
+        # If the matching node is the end node Update it
         if node is self.endNode:
             self.endNode = self.endNode.GetPrev()
         # Set the next of the prev to the next of the current node

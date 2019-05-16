@@ -2,7 +2,7 @@ import pygame
 from Akuga import button
 
 
-class sub_menu(pygame.sprite.Group):
+class SubMenu(pygame.sprite.Group):
     """
     A sub_menu is just an extended sprite group, transparent specifies
     if the next sub_menu should also be rendered
@@ -11,41 +11,41 @@ class sub_menu(pygame.sprite.Group):
         super().__init__(sprites)
         self.transparent = transparent
 
-    def draw(self, screen):
+    def Draw(self, screen):
         """
         This extension is needed as many gui elements will inherite
         von pygame.Sprite but contain more than one image to render
         """
         for sprite in self.sprites():
-            sprite.draw(screen)
+            sprite.Draw(screen)
 
 
-class menu_list(list):
+class MenuList(list):
     """
-    A menu_list is an extendet list including an update and a draw
-    function. Every element menu_list hast to provide an update and a
-    draw function.
+    A menu_list is an extendet list including an Update and a Draw
+    function. Every element menu_list hast to provide an Update and a
+    Draw function.
     """
     def __init__(self):
         pass
 
-    def update(self, args=None):
+    def Update(self, args=None):
         # As a menu_list will only contain menus (sprite groups)
-        # or game scenes a update function will be provided
-        self[-1].update(args)
+        # or game scenes a Update function will be provided
+        self[-1].Update(args)
 
-    def draw(self, screen):
-        # A stack is a fifo structure so it will be drawn from the end
+    def Draw(self, screen):
+        # A stack is a fifo structure so it will be Drawn from the end
         # in decreasing order till the first non transparent menu.
-        # This sublist has to be drawn in increasing order to assure
-        # that the lastmost menu wont be overdrawn
+        # This sublist has to be Drawn in increasing order to assure
+        # that the lastmost menu wont be overDrawn
         index = len(self) - 1
         while self[index].transparent and index > 0:
             index = index - 1
         # As a menu_list will only contain menus (sprite groups)
-        # a draw function is provided
+        # a Draw function is provided
         for m in self[index:]:
-            m.draw(screen)
+            m.Draw(screen)
 
 
 def cb(args):
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     # pygame init
     pygame.init()
     screen = pygame.display.set_mode((512, 512))
-    running = True
+    Running = True
 
     sub_menu1 = sub_menu([], True)
     sub_menu2 = sub_menu([], True)
@@ -70,13 +70,13 @@ if __name__ == "__main__":
     menu.append(sub_menu1)
     menu.append(sub_menu2)
 
-    while running:
+    while Running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                Running = False
 
-        menu.update()
+        menu.Update()
 
         screen.fill((0, 0, 0))
-        menu.draw(screen)
+        menu.Draw(screen)
         pygame.display.flip()

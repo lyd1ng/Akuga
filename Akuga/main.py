@@ -16,7 +16,7 @@ def main():
     pygame.init()
     state_machiene = StateMachiene(AkugaStates.idle_state)
     # pygame.display.set_mode(SCREEN_DIMENSION)
-    running = True
+    Running = True
 
     player1 = Player("Spieler1")
     player2 = Player("Spieler2")
@@ -37,7 +37,7 @@ def main():
 
     neutral_player.SummonJumons()
 
-    while running:
+    while Running:
         pygame.event.pump()
         event = pygame.event.poll()
 
@@ -45,7 +45,7 @@ def main():
             print(event.victor.name + " has won!")
             exit()
         if event.type == MATCH_IS_DRAWN:
-            print("Match is drawn")
+            print("Match is Drawn")
             exit()
         command = input("Command [[Thomas/Lukas] summon, move, surrender, quit]: ")
         if command == "quit":
@@ -72,7 +72,7 @@ def main():
             pygame.event.post(event)
         if command == "surrender":
             global_definitions.PLAYER_CHAIN.GetCurrentPlayer().Kill()
-        state_machiene.run(event)
+        state_machiene.Run(event)
         print("The current player is: " + global_definitions.PLAYER_CHAIN.GetCurrentPlayer().name)
         global_definitions.ARENA.PrintOut()
 

@@ -4,8 +4,8 @@ from Akuga.global_definitions import DEBUG
 class StateMachiene():
     """
     Represents the state machiene which will handle most of the
-    game logic. It will invoke the the run function of the current
-    state and jump to the state the run function of the current
+    game logic. It will invoke the the Run function of the current
+    state and jump to the state the Run function of the current
     state has provided
     """
     def __init__(self, start_state):
@@ -14,13 +14,13 @@ class StateMachiene():
         """
         self.current_state = start_state
 
-    def run(self, event):
+    def Run(self, event):
         """
-        Invoke the run function of the current state
+        Invoke the Run function of the current state
         and eventually set change the state
         """
         print("Run: " + self.current_state.name if DEBUG else "")
-        result = self.current_state.run(event)
+        result = self.current_state.Run(event)
         if result is not None:
             """
             If the result of the new state is not None

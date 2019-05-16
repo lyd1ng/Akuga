@@ -21,7 +21,7 @@ class IdleState(State):
     def __init__(self):
         super().__init__("IDLE_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
         as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
@@ -108,7 +108,7 @@ class SummonState(State):
     def __init__(self):
         super().__init__("SUMMON_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Just create a random position and jump to the
         summon_check_state with the position and the summon as
@@ -139,7 +139,7 @@ class SummonCheckState(State):
     def __init__(self):
         super().__init__("SUMMON_CHECK_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Check if the summon position is free, which makes the summonation
         complete and ends the turn, the summon position is blocked which
@@ -234,7 +234,7 @@ class ChangePlayerState(State):
     def __init__(self):
         super().__init__("CHANGE_PLAYER_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Update the current player, check for victors or if the match
         is drawn and handle the end of a match with throwing the right
@@ -250,7 +250,7 @@ class ChangePlayerState(State):
         if is_drawn is True:
             """
             After this event has been handeld the state machiene should
-            not be updated anymore
+            not be Updated anymore
             """
             drawn_event = pygame.event.Event(MATCH_IS_DRAWN)
             pygame.event.post(drawn_event)
@@ -259,7 +259,7 @@ class ChangePlayerState(State):
         if victor is not None:
             """
             After this event has been handeld the state machiene should
-            not be updated anymore
+            not be Updated anymore
             """
             won_event = pygame.event.Event(PLAYER_HAS_WON, victor=victor)
             pygame.event.post(won_event)
@@ -278,7 +278,7 @@ class CheckMoveState(State):
     def __init__(self):
         super().__init__("CHECK_MOVE_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         # Get the jumon, its current position and the target position
         jumon = self.state_variables["jumon_to_move"]
         current_position = self.state_variables["current_position"]
@@ -348,7 +348,7 @@ class CheckSpecialMoveState(State):
     def __init__(self):
         super().__init__("CHECK_SPECIAL_MOVE_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         # Get the jumon, its current position and the target position
         jumon = self.state_variables["jumon_to_move"]
         current_position = self.state_variables["current_position"]
@@ -380,7 +380,7 @@ class OneTileBattleBeginState(State):
     def __init__(self):
         super().__init__("ONE_TILE_BATTLE_BEGIN_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Invoke the ability scripts of the fighting jumons and jump
         to the OneTileBattleFlipState
@@ -404,7 +404,7 @@ class OneTileBattleFlipState(State):
     def __init__(self):
         super().__init__("ONE_TILE_BATTLE_FLIP_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Get the arena tile at the battle position and add it to the state
         variables. Then jump to the OneTileBattleBoniEvaluationState
@@ -444,7 +444,7 @@ class OneTileBattleBoniEvaluationState(State):
     def __init__(self):
         super().__init__("ONE_TILE_BATTLE_BONI_EVALUATION_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Add the boni of the arena tile to the state variables and jump
         to the OneTileBattleFightState
@@ -482,7 +482,7 @@ class OneTileBattleFightState(State):
     def __init__(self):
         super().__init__("ONE_TILE_BATTLE_FIGHT_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Fighting is pretty simple, the jumon with less power looses.
         If both jumons have the same power both jumon looses.
@@ -543,7 +543,7 @@ class OneTileBattleAftermathState(State):
     def __init__(self):
         super().__init__("ONE_TILE_BATTLE_AFTERMATH_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
         battle_arena_tile = self.state_variables["battle_arena_tile"]
@@ -615,7 +615,7 @@ class TwoTileBattleBeginState(State):
     def __init__(self):
         super().__init__("TWO_TILE_BATTLE_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Invoke the ability scripts of the fighting jumons and jump
         to the TwoTileBattleFlipState
@@ -638,7 +638,7 @@ class TwoTileBattleFlipState(State):
     def __init__(self):
         super().__init__("TWO_TILE_BATTLE_FLIP_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Get the arena tiles at the battle positions and add them to the state
         variables. Then jump to the TwoTileBattleBoniEvaluationState
@@ -680,7 +680,7 @@ class TwoTileBattleBoniEvaluationState(State):
     def __init__(self):
         super().__init__("TWO_TILE_BATTLE_BONI_EVALUATION_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Add the boni of the arena tiles to the state variables and jump
         to the TwoTileBattleFightState
@@ -724,7 +724,7 @@ class TwoTileBattleFightState(State):
     def __init__(self):
         super().__init__("TWO_TILE_BATTLE_FIGHT_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Fighting is pretty simple, the jumon with less power looses.
         If both jumons have the same power both jumon looses.
@@ -789,7 +789,7 @@ class TwoTileBattleAftermathState(State):
     def __init__(self):
         super().__init__("TWO_TILE_BATTLE_AFTERMATH_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
         attack_tile = self.state_variables["attack_tile"]
@@ -886,7 +886,7 @@ class EquipArtefactToJumonState(State):
     def __init__(self):
         super().__init__("EQUIP_ARTEFACT_TO_JUMON_STATE")
 
-    def run(self, event):
+    def Run(self, event):
         """
         Attaches an equipment to a jumon
         """

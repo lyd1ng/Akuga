@@ -12,7 +12,7 @@ class StateMachieneState:
         self.name = name
         self.state_variables = {}
 
-    def run(self, event):
+    def Run(self, event):
         """
         The function invoked by the state machiene if the current
         state is active.

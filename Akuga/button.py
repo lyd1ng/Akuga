@@ -1,7 +1,7 @@
 import pygame
 
 
-class button(pygame.sprite.Sprite):
+class Button(pygame.sprite.Sprite):
     """
     The button class is a not animated gui element and invokes
     a callback function when clicked with the left mouse
@@ -17,9 +17,9 @@ class button(pygame.sprite.Sprite):
         self.toggle = False
         self.on_release = on_release
 
-    def update(self, args):
+    def Update(self, args):
         """
-        The update function accepts the args tupel as parameter
+        The Update function accepts the args tupel as parameter
         and uses the mouse_pos and mouse_keys to determine if this button
         is clicked.
         The callback function is invoked with a reference to this instance
@@ -43,8 +43,8 @@ class button(pygame.sprite.Sprite):
                 self.callback((self, args[5:]))
             self.toggle = False
 
-    def draw(self, screen):
+    def Draw(self, screen):
         """
-        Just draw the button
+        Just Draw the button
         """
         screen.blit(self.image, self.rect)
