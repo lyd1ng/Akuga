@@ -138,7 +138,6 @@ class PlayerChain:
         """
         node_pointer = self.startNode
         while True:
-            print(node_pointer.GetPlayer().name)
             if node_pointer.GetPlayer().IsDead():
                 self.RemoveNode(node_pointer)
             # Leave the loop if every node has been walked through
