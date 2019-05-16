@@ -1,3 +1,5 @@
+from random import randint
+from Akuga.Position import Position
 from Akuga import global_definitions
 
 
@@ -8,7 +10,7 @@ class Player:
     a Jumon. If every jumon is set the player goes into move phase
     where per is allowed to move one of the jumons
     """
-    def __init__(self, name):
+    def __init__(self, name, is_neutral=False):
         self.name = name
         self.phase = 0
         self.jumons_to_summon = []
@@ -134,3 +136,44 @@ class Player:
     def InstaWin(self):
         self.is_dead = False
         self.has_won = True
+
+
+class NeutralPlayer(Player):
+    """
+    Represents a neutral player which can never win nor loose.
+    """
+    def __init__(self):
+        super().__init__("neutral player", True)
+
+    def SummonJumons(self):
+        """
+        This function has to be invoked before artefacts are placed on
+        the arena, this way the summoning can be handeld without the akuga fsm
+        """
+        summon_positions = []
+        width = global_definitions.BOARD_WIDTH - 1
+        height = global_definitions.BOARD_HEIGHT - 1
+        for jumon in self.jumons_to_summon:
+            position = Position(randint(0, width), randint(0, height))
+            if position not in summon_positions:
+                """
+                If there is no jumon at this position yet summon it there
+                """
+                self.HandleSummoning(jumon)
+                global_definitions.ARENA.PlaceUnitAt(jumon, position)
+                jumon.SetPosition(position)
+                # Now add the position to positions
+                summon_positions.append(position)
+
+    def DoAMove(self, current_state, next_state_and_variables):
+        """
+        Do a move by selecting a random jumon and invoke its special
+        ability. The special ability has to do the move by creating a state
+        change. This way the fsm handels the move correctly and will end
+        the turn of the neutral player.
+        """
+        random_index = randint(0, len(self.summoned_jumons) - 1)
+        state_change = next_state_and_variables
+        state_change = self.summoned_jumons[random_index].\
+            special_ability(current_state, next_state_and_variables)
+        return state_change

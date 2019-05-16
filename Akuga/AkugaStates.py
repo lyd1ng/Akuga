@@ -3,6 +3,7 @@ import pygame
 import Akuga.global_definitions as global_definitions
 import Akuga.Jumon
 from Akuga.Position import Position
+from Akuga.Player import NeutralPlayer
 from Akuga.StateMachieneState import StateMachieneState as State
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
@@ -25,6 +26,21 @@ class IdleState(State):
         Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
         as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
         """
+        if type(global_definitions.PLAYER_CHAIN.GetCurrentPlayer()) is\
+                NeutralPlayer and global_definitions.PLAYER_CHAIN.\
+                GetCurrentPlayer().InMovePhase():
+            """
+            If the current player is a neutral player invoke its DoAMove
+            Function and use its return to archieve a state change.
+            """
+            state_change = global_definitions.PLAYER_CHAIN.\
+                GetCurrentPlayer().DoAMove(self, (None, {}))
+            """
+            Do the state change created by the special ability
+            of the jumon moved
+            """
+            if state_change[0] is not None:
+                return state_change
         if event.type == SUMMON_JUMON_EVENT\
                 and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
                 InSummonPhase():
@@ -146,6 +162,7 @@ class SummonCheckState(State):
                 HandleSummoning(jumon)
             # Place the jumon at the arena
             global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
+            jumon.SetPosition(summon_position)
             """
             Invoke the jumon special ability with the same state variables
             as no new state variables occured. This way enter the battlefield
@@ -168,6 +185,7 @@ class SummonCheckState(State):
             artefact = global_definitions.ARENA.GetUnitAt(summon_position)
             # Place the jumon at the arena
             global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
+            jumon.SetPosition(summon_position)
             """
             Create the state variables with the last state as None
             as there is no last position and do the state change
@@ -216,6 +234,14 @@ class ChangePlayerState(State):
         super().__init__("CHANGE_PLAYER_STATE")
 
     def run(self, event):
+        """
+        Update the current player, check for victors or if the match
+        is drawn and handle the end of a match with throwing the right
+        events.
+        Update the inner respresentation of the player
+        aka check if per is dead or not.
+        """
+        global_definitions.PLAYER_CHAIN.GetCurrentPlayer().UpdatePlayer()
         # Remove dead players from the player chain
         global_definitions.PLAYER_CHAIN.Update()
         # Check if the match is drawn
@@ -273,6 +299,7 @@ class CheckMoveState(State):
             """
             global_definitions.ARENA.PlaceUnitAt(None, current_position)
             global_definitions.ARENA.PlaceUnitAt(jumon, target_position)
+            jumon.SetPosition(target_position)
             return (change_player_state, {})
         elif global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
                 OwnsTile(target_position):
@@ -292,6 +319,7 @@ class CheckMoveState(State):
             # Move the jumon
             global_definitions.ARENA.PlaceUnitAt(None, current_position)
             global_definitions.ARENA.PlaceUnitAt(jumon, target_position)
+            jumon.SetPosition(target_position)
             # Jump to the equip artefact to jumon state
             return (equip_artefact_to_jumon_state, {
                 "jumon": jumon,

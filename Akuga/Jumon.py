@@ -1,25 +1,7 @@
-"""
-from Akuga.AkugaStates import (
-        idle_state,
-        summon_state,
-        check_move_state,
-        check_special_move_state,
-        summon_check_state,
-        change_player_state,
-        equip_artefact_to_jumon_state,
-        one_tile_battle_begin_state,
-        one_tile_battle_flip_state,
-        one_tile_battle_boni_evaluation_state,
-        one_tile_battle_fight_state,
-        one_tile_battle_aftermath_state,
-        two_tile_battle_begin_state,
-        two_tile_battle_flip_state,
-        two_tile_battle_boni_evaluation_state,
-        two_tile_battle_fight_state,
-        two_tile_battle_aftermath_state)
-"""
+from random import randint
 from Akuga import AkugaStates
 from Akuga.Position import Position
+from Akuga import global_definitions
 
 
 class Artefact():
@@ -67,6 +49,13 @@ class Jumon():
         self.equipment = equipment
         self.owned_by = owned_by
         self.blocking = False
+        self.position = None
+
+    def SetPosition(self, position):
+        """
+        Just set the position of the jumon
+        """
+        self.position = position
 
     def special_ability(self, current_state, next_state_and_variables):
         """
@@ -168,4 +157,36 @@ class Test2Jumon(Jumon):
                 or current_state is AkugaStates.one_tile_battle_aftermath_state:
             print("Jump to idle state for an extra turn")
             return (AkugaStates.idle_state, {})
+        return next_state_and_variables
+
+
+class TestNeutralJumon(Jumon):
+    def __init__(self, owned_by):
+        super().__init__("N1", "red", 300, 2, None, owned_by)
+
+    def wrap(self, x, min_value, max_value):
+        """
+        Wraps x to [min_value, max_value]
+        """
+        if x < min_value:
+            x = min_value
+        if x > max_value:
+            x = max_value
+        return x
+
+    def special_ability(self, current_state, next_state_and_variables):
+        """
+        Archieve a state change to the check move state
+        """
+        if current_state is AkugaStates.idle_state:
+            width = global_definitions.BOARD_WIDTH - 1
+            height = global_definitions.BOARD_HEIGHT - 1
+            random_target = self.position +\
+                Position(randint(-1, 1), randint(-1, 1))
+            random_target.x = self.wrap(random_target.x, 0, width)
+            random_target.y = self.wrap(random_target.y, 0, height)
+            return (AkugaStates.check_move_state, {
+                "jumon_to_move": self,
+                "current_position": self.position,
+                "target_position": random_target})
         return next_state_and_variables

@@ -1,4 +1,4 @@
-from Akuga.Player import Player
+from Akuga.Player import (Player, NeutralPlayer)
 
 
 class PlayerNode:
@@ -151,12 +151,14 @@ class PlayerChain:
         """
         Checks if a player has won and return per
         """
-        # If only one player is left this player has won
-        if self.startNode is self.endNode:
+        # If only one player is left and per is not neutral this player has won
+        if self.startNode is self.endNode and\
+                type(self.startNode.GetPlayer()) is not NeutralPlayer:
             return self.startNode.GetPlayer()
         node_pointer = self.startNode
         while True:
-            if node_pointer.GetPlayer().HasWon():
+            if node_pointer.GetPlayer().HasWon() and\
+                    type(self.startNode.GetPlayer()) is not NeutralPlayer:
                 return node_pointer.GetPlayer()
             # Walk through the list of players
             node_pointer = node_pointer.GetNext()
@@ -170,9 +172,10 @@ class PlayerChain:
 
     def CheckForDrawn(self):
         """
-        Returns if all players are dead aka the length of the chain is 0
+        Returns if all not neutral players are dead
         """
-        return self.len == 0
+        return self.len == 0 or (self.len == 1 and type(self.startNode.
+            GetPlayer()) is NeutralPlayer)
 
     def NextPlayersTurn(self):
         """

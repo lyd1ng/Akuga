@@ -1,7 +1,7 @@
 import pygame
 from Akuga.Position import Position
-from Akuga.Jumon import (Jumon, TestArtefact)
-from Akuga.Player import Player
+from Akuga.Jumon import (Jumon, Test2Artefact, TestNeutralJumon)
+from Akuga.Player import (Player, NeutralPlayer)
 from Akuga.PlayerChain import PlayerChain
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
@@ -20,16 +20,22 @@ def main():
 
     player1 = Player("Spieler1")
     player2 = Player("Spieler2")
+    neutral_player = NeutralPlayer()
     global_definitions.PLAYER_CHAIN = PlayerChain(player1, player2)
+    global_definitions.PLAYER_CHAIN.InsertPlayer(neutral_player)
 
     jumon1 = Jumon("1", "red", 400, 2, None, player1)
     jumon3 = Jumon("2", "red", 400, 2, None, player2)
+    jumon4 = TestNeutralJumon(neutral_player)
 
     player1.SetJumonsToSummon([jumon1])
     player2.SetJumonsToSummon([jumon3])
+    neutral_player.SetJumonsToSummon([jumon4])
 
-    test_artefact = TestArtefact()
-    global_definitions.ARENA.PlaceUnitAt(test_artefact, Position(0, 0))
+    test_artefact = Test2Artefact()
+    test_artefact.attach_to(jumon4)
+
+    neutral_player.SummonJumons()
 
     while running:
         pygame.event.pump()
