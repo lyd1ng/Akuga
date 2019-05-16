@@ -24,30 +24,51 @@ class Player:
         """
         self.jumons_to_summon = jumons
 
-    """
-    Set and get the phases to avoid dealing with the actual integer number
-    """
     def InSummonPhase(self):
+        """
+        Returns if the player is in the summon phase
+        """
         return self.phase == 0
 
     def InMovePhase(self):
+        """
+        Represent if the player is in the move phase
+        """
         return self.phase == 1
 
     def SetToSummonPhase(self):
+        """
+        Set the player in the summon phase
+        """
         self.phase = 0
 
     def SetToMovePhase(self):
+        """
+        Set the player in the move phase
+        """
         self.phase = 1
 
     def OwnsTile(self, tile_position):
         """
-        Returns if the tile of the arena is already owmed by
+        Returns if the tile of the arena is already owmed by the player
+        Used to check if a move or a summoning is legal for instance
         """
         jumon = global_definitions.ARENA.GetUnitAt(tile_position)
         if jumon is None:
+            """
+            If the tile is free it cant be owned by the player
+            """
             return False
         if jumon in self.summoned_jumons:
+            """
+            If the jumon at this tile is within the list of summoned jumons
+            the player controls a jumon at this tile which means per owns it
+            """
             return True
+        """
+        If the tile is neither empty nor the jumon at this tile is a jumon
+        of the current player an other player has to own this field
+        """
         return False
 
     def CanSummon(self, jumon):
