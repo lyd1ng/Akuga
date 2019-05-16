@@ -154,7 +154,9 @@ class SummonCheckState(State):
             state_change = jumon.special_ability(self,
                     (change_player_state, self.state_variables))
             return state_change
-        elif issubclass(type(global_definitions.ARENA.GetUnitAt(summon_position)), Akuga.Jumon.Artefact):
+        elif issubclass(type(global_definitions.ARENA.GetUnitAt(
+                summon_position)), Akuga.Jumon.Artefact) and\
+                global_definitions.ARENA.IsBlockedAt(summon_position) is False:
             """
             If the jumon is summoned on an artefact place it on this tile
             and jump to the equip artefact to jumon state

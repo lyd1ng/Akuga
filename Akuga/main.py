@@ -29,11 +29,7 @@ def main():
     player2.SetJumonsToSummon([jumon3])
 
     test_artefact = TestArtefact()
-    test2_artefact = TestArtefact()
-    test_artefact.attach_to(jumon1)
-    test2_artefact.attach_to(jumon3)
-
-    # global_definitions.ARENA.PlaceUnitAt(test_artefact, Position(0, 0))
+    global_definitions.ARENA.PlaceUnitAt(test_artefact, Position(0, 0))
 
     while running:
         pygame.event.pump()
