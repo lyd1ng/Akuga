@@ -41,6 +41,7 @@ class IdleState(State):
             """
             if state_change[0] is not None:
                 return state_change
+
         if event.type == SUMMON_JUMON_EVENT\
                 and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
                 InSummonPhase():
@@ -816,10 +817,16 @@ class TwoTileBattleAftermathState(State):
             attack_tile.RemoveUnit()
             defense_tile.RemoveUnit()
             if attacking_jumon.equipment is not None:
+                """
+                If the attacking_jumon had an artefact equiped drop it
+                """
                 artefact = attacking_jumon.equipment
                 artefact.DetachFrom(attacking_jumon)
                 attack_tile.PlaceUnit(artefact)
             if defending_jumon.equipment is not None:
+                """
+                If the defending_jumon had an artefact equiped drop it
+                """
                 artefact = defending_jumon.equipment
                 artefact.DetachFrom(defending_jumon)
                 defense_tile.PlaceUnit(artefact)
@@ -918,6 +925,7 @@ class EquipArtefactToJumonState(State):
         return state_change
 
 
+# Define an instance of every state
 idle_state = IdleState()
 summon_state = SummonState()
 check_move_state = CheckMoveState()
