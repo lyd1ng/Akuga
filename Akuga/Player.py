@@ -218,5 +218,5 @@ class NeutralPlayer(Player):
         random_index = randint(0, len(self.summoned_jumons) - 1)
         state_change = next_state_and_variables
         state_change = self.summoned_jumons[random_index].\
-            special_ability(current_state, next_state_and_variables)
+            SpecialAbility(current_state, next_state_and_variables)
         return state_change

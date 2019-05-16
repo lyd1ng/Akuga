@@ -33,7 +33,7 @@ def main():
     neutral_player.SetJumonsToSummon([jumon4])
 
     test_artefact = Test2Artefact()
-    test_artefact.attach_to(jumon4)
+    test_artefact.AttachTo(jumon4)
 
     neutral_player.SummonJumons()
 
