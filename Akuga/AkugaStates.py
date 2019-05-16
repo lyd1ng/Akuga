@@ -62,7 +62,7 @@ class IdleState(State):
                 and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().InMovePhase():
             """
             Get the jumon to move, its position and the target position
-            from the event. The CheckDrawState will check if the move is
+            from the event. The CheckMoveState will check if the move is
             legal or not and handles the move
             """
             jumon = event.jumon_to_move
