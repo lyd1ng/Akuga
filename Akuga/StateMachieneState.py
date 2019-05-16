@@ -11,7 +11,6 @@ class StateMachieneState:
         """
         self.name = name
         self.state_variables = {}
-        pass
 
     def run(self, event):
         """
