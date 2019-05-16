@@ -1,6 +1,6 @@
 import pygame
 from Akuga.Position import Position
-from Akuga.Jumon import (Jumon, Test2Artefact, TestNeutralJumon)
+from Akuga.Meeple import (Jumon, Test2Artefact, TestNeutralJumon)
 from Akuga.Player import (Player, NeutralPlayer)
 from Akuga.PlayerChain import PlayerChain
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,

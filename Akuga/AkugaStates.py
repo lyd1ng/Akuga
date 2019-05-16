@@ -1,7 +1,7 @@
 import random
 import pygame
 import Akuga.global_definitions as global_definitions
-import Akuga.Jumon
+import Akuga.Meeple
 from Akuga.Position import Position
 from Akuga.Player import NeutralPlayer
 from Akuga.StateMachieneState import StateMachieneState as State
@@ -172,7 +172,7 @@ class SummonCheckState(State):
                     (change_player_state, self.state_variables))
             return state_change
         elif issubclass(type(global_definitions.ARENA.GetUnitAt(
-                summon_position)), Akuga.Jumon.Artefact) and\
+                summon_position)), Akuga.Meeple.Artefact) and\
                 global_definitions.ARENA.IsBlockedAt(summon_position) is False:
             """
             If the jumon is summoned on an artefact place it on this tile
@@ -309,7 +309,7 @@ class CheckMoveState(State):
             so jump back to the idle state
             """
             return (idle_state, {})
-        elif issubclass(type(global_definitions.ARENA.GetUnitAt(target_position)), Akuga.Jumon.Artefact):
+        elif issubclass(type(global_definitions.ARENA.GetUnitAt(target_position)), Akuga.Meeple.Artefact):
             """
             If the target position is occupied by an artefact jump to the
             equip artefact to jumon state
