@@ -149,12 +149,41 @@ class PlayerChain:
     def CheckForVictory(self):
         """
         Checks if a player has won and return per
+        There are two cases which have to be checked
+        1. There is only one not neutral player left
+        2. A player has won with an alternative win condition
+        
+        1:
+        Go throug the whole list and count the number of non neutral
+        players, safe the last not neutral player as this will be the
+        victor if the number of non neutral players is 1
         """
-        # If only one player is left and per is not neutral this player has won
-        if self.startNode is self.endNode and\
-                type(self.startNode.GetPlayer()) is not NeutralPlayer:
-            return self.startNode.GetPlayer()
+        not_neutral_player = None
+        not_neutral_player_count = 0
         node_pointer = self.startNode
+        while True:
+            if type(node_pointer.GetPlayer()) is not NeutralPlayer:
+                not_neutral_player_count += 1
+                # Save this player, if per is the only one per is the victor
+                not_neutral_player = node_pointer.GetPlayer()
+            if node_pointer is self.endNode:
+                """
+                If the whole chane has been walked through break the loop
+                """
+                break
+            # Jump to the next node
+            node_pointer = node_pointer.GetNext()
+        if not_neutral_player_count == 1:
+            # Check the result and return the victor if there is one
+            return not_neutral_player
+
+        node_pointer = self.startNode
+        """
+        2:
+        Go through the whole list and check if the current player is non
+        neutral and if the player has won regardless of still existing
+        opponents. This may occure with alternative win conditions
+        """
         while True:
             if node_pointer.GetPlayer().HasWon() and\
                     type(self.startNode.GetPlayer()) is not NeutralPlayer:
