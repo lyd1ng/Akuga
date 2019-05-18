@@ -19,6 +19,18 @@ class Position():
         """
         return Position(self.x + other.x, self.y + other.y)
 
+    def __sub__(self, other):
+        """
+        Just add both positions componentwise
+        """
+        return Position(self.x - other.x, self.y - other.y)
+
+    def __str__(self):
+        """
+        Turn to string
+        """
+        return "( " + str(self.x) + "| " + str(self.y) + " )"
+
 
 if __name__ == "__main__":
     result = Position(1, 1) + Position(1, 1)
