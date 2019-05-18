@@ -18,22 +18,22 @@ class IdleState(State):
     state a user idles in until he or she decides to summon a jumon
     or make a move
     """
-    def __init__(self):
-        super().__init__("IDLE_STATE")
+    def __init__(self, fsm):
+        super().__init__("idle_state", fsm)
 
     def Run(self, event):
         """
         Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
         as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
         """
-        if type(global_definitions.PLAYER_CHAIN.GetCurrentPlayer()) is\
-                NeutralPlayer and global_definitions.PLAYER_CHAIN.\
+        if type(self.fsm.player_chain.GetCurrentPlayer()) is\
+                NeutralPlayer and self.fsm.player_chain.\
                 GetCurrentPlayer().InMovePhase():
             """
             If the current player is a neutral player invoke its DoAMove
             Function and use its return to archieve a state change.
             """
-            state_change = global_definitions.PLAYER_CHAIN.\
+            state_change = self.fsm.player_chain.\
                 GetCurrentPlayer().DoAMove(self, (None, {}))
             """
             Do the state change created by the special ability
@@ -43,7 +43,7 @@ class IdleState(State):
                 return state_change
 
         if event.type == SUMMON_JUMON_EVENT\
-                and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+                and self.fsm.player_chain.GetCurrentPlayer().\
                 InSummonPhase():
             """
             The event is only valid if the current player is in the move
@@ -53,14 +53,14 @@ class IdleState(State):
             # Get the jumon to summon and create the state variables dict
             jumon = event.jumon_to_summon
             # Only summon the jumon if the player owns the jumon
-            if global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+            if self.fsm.player_chain.GetCurrentPlayer().\
                     CanSummon(jumon):
                 # Jump to the summon state
                 summon_state_variables = {"jumon_to_summon": jumon}
-                return (summon_state, summon_state_variables)
+                return (self.fsm.summon_state, summon_state_variables)
 
         if event.type == SELECT_JUMON_TO_MOVE_EVENT\
-                and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().InMovePhase():
+                and self.fsm.player_chain.GetCurrentPlayer().InMovePhase():
             """
             Get the jumon to move, its position and the target position
             from the event. The CheckMoveState will check if the move is
@@ -70,16 +70,16 @@ class IdleState(State):
             current_position = event.current_position
             target_position = event.target_position
             # Only move the jumon if the current player controls the jumon
-            if global_definitions.PLAYER_CHAIN.GetCurrentPlayer().ControlsJumon(jumon):
+            if self.fsm.player_chain.GetCurrentPlayer().ControlsJumon(jumon):
                 check_move_state_variables = {
                     "jumon_to_move": jumon,
                     "current_position": current_position,
                     "target_position": target_position}
                 # Jump to the check move state
-                return (check_move_state, check_move_state_variables)
+                return (self.fsm.check_move_state, check_move_state_variables)
 
         if event.type == SELECT_JUMON_TO_SPECIAL_MOVE_EVENT\
-                and global_definitions.PLAYER_CHAIN.GetCurrentPlayer().InMovePhase():
+                and self.fsm.player_chain.GetCurrentPlayer().InMovePhase():
             """
             Get the jumon to move, its position and the target position
             from the event. The CheckSpecialMoveState will check if the
@@ -93,7 +93,7 @@ class IdleState(State):
                 "current_position": current_position,
                 "target_position": target_position}
             # Jump to the check_special_move_state
-            return (check_special_move_state, check_move_state_variables)
+            return (self.fsm.check_special_move_state, check_move_state_variables)
         # If no event was caught return None, so the state machiene
         # remains in the idle state
         return None
@@ -105,8 +105,8 @@ class SummonState(State):
     In this state a random position if generated and its always jumped
     to the SummonCheckState
     """
-    def __init__(self):
-        super().__init__("SUMMON_STATE")
+    def __init__(self, fsm):
+        super().__init__("summon_state", fsm)
 
     def Run(self, event):
         """
@@ -126,7 +126,7 @@ class SummonState(State):
         and use its return for the state change of the fsm
         """
         state_change = jumon_to_summon.SpecialAbility(self,
-                (summon_check_state, summon_check_state_variables))
+                (self.fsm.summon_check_state, summon_check_state_variables))
         return state_change
 
 
@@ -136,8 +136,8 @@ class SummonCheckState(State):
     jummon was summond on a free position and the turn is over or
     a battle is triggererd
     """
-    def __init__(self):
-        super().__init__("SUMMON_CHECK_STATE")
+    def __init__(self, fsm):
+        super().__init__("summon_check_state", fsm)
 
     def Run(self, event):
         """
@@ -153,16 +153,16 @@ class SummonCheckState(State):
         # Get the jumon to summon and where to summon it
         jumon = self.state_variables["jumon_to_summon"]
         summon_position = self.state_variables["summon_position"]
-        if global_definitions.ARENA.GetUnitAt(summon_position) is None:
+        if self.fsm.arena.GetUnitAt(summon_position) is None:
             """
             If the ArenaTile is free the jumon can be placed, its ability
             script triggers and the turn ends
             """
             # Let the current player summon this jumon
-            global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+            self.fsm.player_chain.GetCurrentPlayer().\
                 HandleSummoning(jumon)
             # Place the jumon at the arena
-            global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
+            self.fsm.arena.PlaceUnitAt(jumon, summon_position)
             jumon.SetPosition(summon_position)
             """
             Invoke the jumon special ability with the same state variables
@@ -170,42 +170,42 @@ class SummonCheckState(State):
             effects can be implemented.
             """
             state_change = jumon.SpecialAbility(self,
-                    (change_player_state, self.state_variables))
+                    (self.fsm.change_player_state, self.state_variables))
             return state_change
-        elif issubclass(type(global_definitions.ARENA.GetUnitAt(
+        elif issubclass(type(self.fsm.arena.GetUnitAt(
                 summon_position)), Akuga.Meeple.Artefact) and\
-                global_definitions.ARENA.IsBlockedAt(summon_position) is False:
+                self.fsm.arena.IsBlockedAt(summon_position) is False:
             """
             If the jumon is summoned on an artefact place it on this tile
             and jump to the equip artefact to jumon state
             """
             # Let the current player summon this jumon
-            global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+            self.fsm.player_chain.GetCurrentPlayer().\
                 HandleSummoning(jumon)
             # Get the artefact at this point
-            artefact = global_definitions.ARENA.GetUnitAt(summon_position)
+            artefact = self.fsm.arena.GetUnitAt(summon_position)
             # Place the jumon at the arena
-            global_definitions.ARENA.PlaceUnitAt(jumon, summon_position)
+            self.fsm.arena.PlaceUnitAt(jumon, summon_position)
             jumon.SetPosition(summon_position)
             """
             Create the state variables with the last state as None
             as there is no last position and do the state change
             """
-            return (equip_artefact_to_jumon_state, {
+            return (self.fsm.equip_artefact_to_jumon_state, {
                 "jumon": jumon,
                 "artefact": artefact,
                 "last_position": None})
 
-        elif global_definitions.PLAYER_CHAIN.\
-                GetCurrentPlayer().OwnsTile(summon_position)\
-                or global_definitions.ARENA.IsBlockedAt(summon_position):
+        elif self.fsm.player_chain.\
+                GetCurrentPlayer().OwnsTile(self.fsm.arena, summon_position)\
+                or self.fsm.arena.IsBlockedAt(summon_position):
             """
             If the jumon at this tile is owned  by the current player
             the jumon has to be replaced, so jump back to the summon state
             """
             summon_state_variables = {
                 "jumon_to_summon": self.state_variables["jumon_to_summon"]}
-            return (summon_state, summon_state_variables)
+            return (self.fsm.summon_state, summon_state_variables)
         else:
             """
             If the tile is not empty and the jumon is not owned by
@@ -218,21 +218,21 @@ class SummonCheckState(State):
             If the jumon to summon is going to be placed on the arena or not
             the player summoned it, so HandleSummoning must be invoked
             """
-            global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
+            self.fsm.player_chain.GetCurrentPlayer().\
                 HandleSummoning(jumon)
             one_tile_battle_state_variables = {
                 "battle_position": summon_position,
                 "attacking_jumon": jumon,
-                "defending_jumon": global_definitions.ARENA.GetUnitAt(summon_position)}
-            return (one_tile_battle_begin_state, one_tile_battle_state_variables)
+                "defending_jumon": self.fsm.arena.GetUnitAt(summon_position)}
+            return (self.fsm.one_tile_battle_begin_state, one_tile_battle_state_variables)
 
 
 class ChangePlayerState(State):
     """
     This represents the moment between the turns.
     """
-    def __init__(self):
-        super().__init__("CHANGE_PLAYER_STATE")
+    def __init__(self, fsm):
+        super().__init__("change_player_state", fsm)
 
     def Run(self, event):
         """
@@ -242,11 +242,11 @@ class ChangePlayerState(State):
         Update the inner respresentation of the player
         aka check if per is dead or not.
         """
-        global_definitions.PLAYER_CHAIN.GetCurrentPlayer().UpdatePlayer()
+        self.fsm.player_chain.GetCurrentPlayer().UpdatePlayer()
         # Remove dead players from the player chain
-        global_definitions.PLAYER_CHAIN.Update()
+        self.fsm.player_chain.Update()
         # Check if the match is drawn
-        is_drawn = global_definitions.PLAYER_CHAIN.CheckForDrawn()
+        is_drawn = self.fsm.player_chain.CheckForDrawn()
         if is_drawn is True:
             """
             After this event has been handeld the state machiene should
@@ -255,7 +255,7 @@ class ChangePlayerState(State):
             drawn_event = pygame.event.Event(MATCH_IS_DRAWN)
             pygame.event.post(drawn_event)
         # Check if a player has won
-        victor = global_definitions.PLAYER_CHAIN.CheckForVictory()
+        victor = self.fsm.player_chain.CheckForVictory()
         if victor is not None:
             """
             After this event has been handeld the state machiene should
@@ -267,16 +267,16 @@ class ChangePlayerState(State):
         If no one has won and its not drawn change the player and
         jump to the idle state again so its the next players turn
         """
-        global_definitions.PLAYER_CHAIN.NextPlayersTurn()
-        return (idle_state, {})
+        self.fsm.player_chain.NextPlayersTurn()
+        return (self.fsm.idle_state, {})
 
 
 class CheckMoveState(State):
     """
     Checks wheter a draw of a jumon is legal or not
     """
-    def __init__(self):
-        super().__init__("CHECK_MOVE_STATE")
+    def __init__(self, fsm):
+        super().__init__("check_move_state", fsm)
 
     def Run(self, event):
         # Get the jumon, its current position and the target position
@@ -292,37 +292,37 @@ class CheckMoveState(State):
             If the target move is invalid in length just jump back to the
             idle state.
             """
-            return (idle_state, {})
-        if global_definitions.ARENA.GetUnitAt(target_position) is None:
+            return (self.fsm.idle_state, {})
+        if self.fsm.arena.GetUnitAt(target_position) is None:
             """
             If the tile at target position is free just do the move
             and end the turn by jumping to the ChangePlayerState
             """
-            global_definitions.ARENA.PlaceUnitAt(None, current_position)
-            global_definitions.ARENA.PlaceUnitAt(jumon, target_position)
+            self.fsm.arena.PlaceUnitAt(None, current_position)
+            self.fsm.arena.PlaceUnitAt(jumon, target_position)
             jumon.SetPosition(target_position)
-            return (change_player_state, {})
-        elif global_definitions.PLAYER_CHAIN.GetCurrentPlayer().\
-                OwnsTile(target_position):
+            return (self.fsm.change_player_state, {})
+        elif self.fsm.player_chain.GetCurrentPlayer().\
+                OwnsTile(self.fsm.arena, target_position):
             """
             If the target position is owned by a jumon of the current player
             the move is illegal and the a new move has to be defined,
             so jump back to the idle state
             """
-            return (idle_state, {})
-        elif issubclass(type(global_definitions.ARENA.GetUnitAt(target_position)), Akuga.Meeple.Artefact):
+            return (self.fsm.idle_state, {})
+        elif issubclass(type(self.fsm.arena.GetUnitAt(target_position)), Akuga.Meeple.Artefact):
             """
             If the target position is occupied by an artefact jump to the
             equip artefact to jumon state
             """
             # Get the artefact at the target position
-            artefact = global_definitions.ARENA.GetUnitAt(target_position)
+            artefact = self.fsm.arena.GetUnitAt(target_position)
             # Move the jumon
-            global_definitions.ARENA.PlaceUnitAt(None, current_position)
-            global_definitions.ARENA.PlaceUnitAt(jumon, target_position)
+            self.fsm.arena.PlaceUnitAt(None, current_position)
+            self.fsm.arena.PlaceUnitAt(jumon, target_position)
             jumon.SetPosition(target_position)
             # Jump to the equip artefact to jumon state
-            return (equip_artefact_to_jumon_state, {
+            return (self.fsm.equip_artefact_to_jumon_state, {
                 "jumon": jumon,
                 "artefact": artefact,
                 "last_position": current_position})  # Its right think about it
@@ -334,10 +334,10 @@ class CheckMoveState(State):
             """
             two_tile_battle_state_variable = {
                 "attacking_jumon": jumon,
-                "defending_jumon": global_definitions.ARENA.GetUnitAt(target_position),
+                "defending_jumon": self.fsm.arena.GetUnitAt(target_position),
                 "attack_position": current_position,
                 "defense_position": target_position}
-            return (two_tile_battle_begin_state, two_tile_battle_state_variable)
+            return (self.fsm.two_tile_battle_begin_state, two_tile_battle_state_variable)
 
 
 class CheckSpecialMoveState(State):
@@ -345,8 +345,8 @@ class CheckSpecialMoveState(State):
     Check if a special move is legal or not and invoke the special move
     function of the ability script of the current jumon.
     """
-    def __init__(self):
-        super().__init__("CHECK_SPECIAL_MOVE_STATE")
+    def __init__(self, fsm):
+        super().__init__("check_special_move_state", fsm)
 
     def Run(self, event):
         # Get the jumon, its current position and the target position
@@ -358,7 +358,7 @@ class CheckSpecialMoveState(State):
             If the special move is legal invoke the special move function
             of the current jumon
             """
-            state_change = jumon.DoSpecialMove(current_position,
+            state_change = jumon.DoSpecialMove(self.fsm, current_position,
                     target_position)
             return state_change
         else:
@@ -366,7 +366,7 @@ class CheckSpecialMoveState(State):
             If there is no special ability script at all the special
             move is illegal by default, so just jump to the idle_state
             """
-            return (idle_state, {})
+            return (self.fsm.idle_state, {})
         # Is never hit but nonetheless
         return None
 
@@ -377,8 +377,8 @@ class OneTileBattleBeginState(State):
     This state does nothing on its own, its just an entry point
     for special ability scripts of the fighting jumon
     """
-    def __init__(self):
-        super().__init__("ONE_TILE_BATTLE_BEGIN_STATE")
+    def __init__(self, fsm):
+        super().__init__("one_tile_battle_begin_state", fsm)
 
     def Run(self, event):
         """
@@ -388,7 +388,7 @@ class OneTileBattleBeginState(State):
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
         state_change = attacking_jumon.SpecialAbility(self,
-                (one_tile_battle_flip_state,
+                (self.fsm.one_tile_battle_flip_state,
                 self.state_variables))
         state_change = defending_jumon.SpecialAbility(self, state_change)
         # Do the state change
@@ -401,8 +401,8 @@ class OneTileBattleFlipState(State):
     and attached to the state informations. Then the state machiene
     immediatly jumps to the OneTileBattleBoniEvaluationStep
     """
-    def __init__(self):
-        super().__init__("ONE_TILE_BATTLE_FLIP_STATE")
+    def __init__(self, fsm):
+        super().__init__("one_tile_battle_flip_state", fsm)
 
     def Run(self, event):
         """
@@ -412,7 +412,7 @@ class OneTileBattleFlipState(State):
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
         battle_position = self.state_variables["battle_position"]
-        battle_arena_tile = global_definitions.ARENA.GetTileAt(battle_position)
+        battle_arena_tile = self.fsm.arena.GetTileAt(battle_position)
         # Now jump to the OneTileBattleBoniEvaluationState
         one_tile_battle_boni_evaluation_state_variables = {
             "attacking_jumon": attacking_jumon,
@@ -428,7 +428,7 @@ class OneTileBattleFlipState(State):
         to the defending jumon!
         """
         state_change = attacking_jumon.SpecialAbility(self,
-                (one_tile_battle_boni_evaluation_state,
+                (self.fsm.one_tile_battle_boni_evaluation_state,
                  one_tile_battle_boni_evaluation_state_variables))
         state_change = defending_jumon.SpecialAbility(self,
                 (state_change[0], state_change[1]))
@@ -441,8 +441,8 @@ class OneTileBattleBoniEvaluationState(State):
     for both jumons are added to the state variables. Then the state
     machiene jumps to the OneTileBattleFightState
     """
-    def __init__(self):
-        super().__init__("ONE_TILE_BATTLE_BONI_EVALUATION_STATE")
+    def __init__(self, fsm):
+        super().__init__("one_tile_battle_boni_evaluation_state", fsm)
 
     def Run(self, event):
         """
@@ -467,7 +467,7 @@ class OneTileBattleBoniEvaluationState(State):
         After the bonus values are evaluated invoke the ability scripts
         """
         state_change = attacking_jumon.SpecialAbility(self,
-                (one_tile_battle_fight_state,
+                (self.fsm.one_tile_battle_fight_state,
                 one_tile_battle_figh_state_variables))
         state_change = defending_jumon.SpecialAbility(self,
                 (state_change[0], state_change[1]))
@@ -479,8 +479,8 @@ class OneTileBattleFightState(State):
     In this state both jumons fight the victor and the looser are determined
     Then the state machiene jumps to the OneTileBattleAfterMathState
     """
-    def __init__(self):
-        super().__init__("ONE_TILE_BATTLE_FIGHT_STATE")
+    def __init__(self, fsm):
+        super().__init__("one_tile_battle_fight_state", fsm)
 
     def Run(self, event):
         """
@@ -528,7 +528,7 @@ class OneTileBattleFightState(State):
         this way ability scripts can trigger if the bakugan wins or looses
         """
         state_change = attacking_jumon.SpecialAbility(self,
-                (one_tile_battle_aftermath_state,
+                (self.fsm.one_tile_battle_aftermath_state,
                 one_tile_battle_aftermath_state_variables))
         state_change = defending_jumon.SpecialAbility(self, state_change)
         return state_change
@@ -540,8 +540,8 @@ class OneTileBattleAftermathState(State):
     arena and the summoned jumon list of the player.
     The jumon which won the fight will be placed on the arena tile
     """
-    def __init__(self):
-        super().__init__("ONE_TILE_BATTLE_AFTERMATH_STATE")
+    def __init__(self, fsm):
+        super().__init__("one_tile_battle_aftermath_state", fsm)
 
     def Run(self, event):
         attacking_jumon = self.state_variables["attacking_jumon"]
@@ -559,7 +559,7 @@ class OneTileBattleAftermathState(State):
         and death rattle effects can be implemented
         """
         state_change = attacking_jumon.SpecialAbility(self,
-                (change_player_state,
+                (self.fsm.change_player_state,
                 self.state_variables))
         state_change = defending_jumon.SpecialAbility(self, state_change)
         if victor is None and looser is None:
@@ -612,8 +612,8 @@ class TwoTileBattleBeginState(State):
     This state does nothing on its own, its just an entry point
     for special ability scripts of the fighting jumon
     """
-    def __init__(self):
-        super().__init__("TWO_TILE_BATTLE_STATE")
+    def __init__(self, fsm):
+        super().__init__("two_tile_battle_begin_state", fsm)
 
     def Run(self, event):
         """
@@ -623,7 +623,7 @@ class TwoTileBattleBeginState(State):
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
         state_change = attacking_jumon.SpecialAbility(self,
-                (two_tile_battle_flip_state,
+                (self.fsm.two_tile_battle_flip_state,
                 self.state_variables))
         state_change = defending_jumon.SpecialAbility(self, state_change)
         return state_change
@@ -635,8 +635,8 @@ class TwoTileBattleFlipState(State):
     and attached to the state informations. Then the state machiene
     immediatly jumps to the TwoTileBattleBoniEvaluationStep
     """
-    def __init__(self):
-        super().__init__("TWO_TILE_BATTLE_FLIP_STATE")
+    def __init__(self, fsm):
+        super().__init__("two_tile_battle_flip_state", fsm)
 
     def Run(self, event):
         """
@@ -647,8 +647,8 @@ class TwoTileBattleFlipState(State):
         defending_jumon = self.state_variables["defending_jumon"]
         attack_position = self.state_variables["attack_position"]
         defense_position = self.state_variables["defense_position"]
-        attack_tile = global_definitions.ARENA.GetTileAt(attack_position)
-        defense_tile = global_definitions.ARENA.GetTileAt(defense_position)
+        attack_tile = self.fsm.arena.GetTileAt(attack_position)
+        defense_tile = self.fsm.arena.GetTileAt(defense_position)
         # Now jump to the TwoTileBattleBoniEvaluationState
         two_tile_battle_boni_evaluation_state_variables = {
             "attacking_jumon": attacking_jumon,
@@ -664,7 +664,7 @@ class TwoTileBattleFlipState(State):
         The attacking jumons triggers first!
         """
         state_change = attacking_jumon.SpecialAbility(self,
-                (two_tile_battle_boni_evaluation_state,
+                (self.fsm.two_tile_battle_boni_evaluation_state,
                 two_tile_battle_boni_evaluation_state_variables))
         state_change = defending_jumon.SpecialAbility(self, state_change)
         # Do the state change
@@ -677,8 +677,8 @@ class TwoTileBattleBoniEvaluationState(State):
     for both jumons are added to the state variables. Then the state
     machiene jumps to the TwoTileBattleFightState
     """
-    def __init__(self):
-        super().__init__("TWO_TILE_BATTLE_BONI_EVALUATION_STATE")
+    def __init__(self, fsm):
+        super().__init__("two_tile_battle_boni_evaluation_state", fsm)
 
     def Run(self, event):
         """
@@ -709,7 +709,7 @@ class TwoTileBattleBoniEvaluationState(State):
         After the bonus values are evaluated invoke the ability scripts
         """
         state_change = attacking_jumon.SpecialAbility(self,
-                (two_tile_battle_fight_state,
+                (self.fsm.two_tile_battle_fight_state,
                 two_tile_battle_figh_state_variables))
         state_change = defending_jumon.SpecialAbility(self, state_change)
         # Do the state change
@@ -721,8 +721,8 @@ class TwoTileBattleFightState(State):
     In this state both jumons fight the victor and the looser are determined
     Then the state machiene jumps to the TwoTileBattleAfterMathState
     """
-    def __init__(self):
-        super().__init__("TWO_TILE_BATTLE_FIGHT_STATE")
+    def __init__(self, fsm):
+        super().__init__("two_tile_battle_fight_state", fsm)
 
     def Run(self, event):
         """
@@ -773,7 +773,7 @@ class TwoTileBattleFightState(State):
         this way ability scripts can trigger if the bakugan wins or looses
         """
         state_change = attacking_jumon.SpecialAbility(self,
-                (two_tile_battle_aftermath_state,
+                (self.fsm.two_tile_battle_aftermath_state,
                 two_tile_battle_aftermath_state_variables))
         state_change = defending_jumon.SpecialAbility(self, state_change)
         # Do the state change
@@ -786,8 +786,8 @@ class TwoTileBattleAftermathState(State):
     arena and the summoned jumon list of the player.
     The jumon which won the fight will be placed on the arena tile
     """
-    def __init__(self):
-        super().__init__("TWO_TILE_BATTLE_AFTERMATH_STATE")
+    def __init__(self, fsm):
+        super().__init__("two_tile_battle_aftermath_state", fsm)
 
     def Run(self, event):
         attacking_jumon = self.state_variables["attacking_jumon"]
@@ -802,7 +802,7 @@ class TwoTileBattleAftermathState(State):
         and death rattle effects can be implemented
         """
         state_change = attacking_jumon.SpecialAbility(self,
-                (change_player_state,
+                (self.fsm.change_player_state,
                 self.state_variables))
         state_change = defending_jumon.SpecialAbility(self, state_change)
         if victor is None and looser is None:
@@ -883,8 +883,8 @@ class EquipArtefactToJumonState(State):
     """
     Equips an artefact to a jumon
     """
-    def __init__(self):
-        super().__init__("EQUIP_ARTEFACT_TO_JUMON_STATE")
+    def __init__(self, fsm):
+        super().__init__("equip_artefact_to_jumon_state", fsm)
 
     def Run(self, event):
         """
@@ -918,30 +918,8 @@ class EquipArtefactToJumonState(State):
             which is summoned with an artefact attached to it
             """
             if last_position is not None:
-                global_definitions.ARENA.PlaceUnitAt(detached_artefact, last_position)
+                self.fsm.arena.PlaceUnitAt(detached_artefact, last_position)
         # Invoke the special ability of the jumon and do the state change
-        state_change = (change_player_state, {})
+        state_change = (self.fsm.change_player_state, {})
         state_change = jumon.SpecialAbility(self, state_change)
         return state_change
-
-
-# Define an instance of every state
-idle_state = IdleState()
-summon_state = SummonState()
-check_move_state = CheckMoveState()
-check_special_move_state = CheckSpecialMoveState()
-summon_check_state = SummonCheckState()
-change_player_state = ChangePlayerState()
-equip_artefact_to_jumon_state = EquipArtefactToJumonState()
-# All the one tile battle states
-one_tile_battle_begin_state = OneTileBattleBeginState()
-one_tile_battle_flip_state = OneTileBattleFlipState()
-one_tile_battle_boni_evaluation_state = OneTileBattleBoniEvaluationState()
-one_tile_battle_fight_state = OneTileBattleFightState()
-one_tile_battle_aftermath_state = OneTileBattleAftermathState()
-# All the two tille battle states
-two_tile_battle_begin_state = TwoTileBattleBeginState()
-two_tile_battle_flip_state = TwoTileBattleFlipState()
-two_tile_battle_boni_evaluation_state = TwoTileBattleBoniEvaluationState()
-two_tile_battle_fight_state = TwoTileBattleFightState()
-two_tile_battle_aftermath_state = TwoTileBattleAftermathState()

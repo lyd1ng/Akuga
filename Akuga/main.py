@@ -7,22 +7,31 @@ from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
                                      PLAYER_HAS_WON,
                                      MATCH_IS_DRAWN)
+from Akuga.ArenaCreator import CreateArena
 import Akuga.global_definitions as global_definitions
-from Akuga import AkugaStates
-from Akuga.StateMachiene import StateMachiene
+import Akuga.AkugaStateMachiene as AkugaStateMachiene
 
 
 def main():
     pygame.init()
-    state_machiene = StateMachiene(AkugaStates.idle_state)
     # pygame.display.set_mode(SCREEN_DIMENSION)
     Running = True
 
+    # Create the arena to play in
+    arena = CreateArena(global_definitions.BOARD_WIDTH,
+                        global_definitions.BOARD_HEIGHT,
+                        0, 255)
+    # Create the player chain
     player1 = Player("Spieler1")
     player2 = Player("Spieler2")
-    neutral_player = NeutralPlayer()
-    global_definitions.PLAYER_CHAIN = PlayerChain(player1, player2)
-    global_definitions.PLAYER_CHAIN.InsertPlayer(neutral_player)
+    neutral_player = NeutralPlayer(arena)
+    player_chain = PlayerChain(player1, player2)
+    player_chain.InsertPlayer(neutral_player)
+
+    # Create the fsm and add the 'globale' data to it
+    state_machiene = AkugaStateMachiene.CreateLastManStandingFSM()
+    state_machiene.AddData("arena", arena)
+    state_machiene.AddData("player_chain", player_chain)
 
     jumon1 = Jumon("1", "red", 400, 2, None, player1)
     jumon3 = Jumon("2", "red", 400, 2, None, player2)
@@ -51,9 +60,9 @@ def main():
         if command == "quit":
             player1.Kill()
             player2.Kill()
-            print(global_definitions.PLAYER_CHAIN.len)
+            print(player_chain.len)
         if command == "summon":
-            jumon = global_definitions.PLAYER_CHAIN.GetCurrentPlayer().jumons_to_summon[0]
+            jumon = player_chain.GetCurrentPlayer().jumons_to_summon[0]
             event = pygame.event.Event(SUMMON_JUMON_EVENT, jumon_to_summon=jumon)
             pygame.event.post(event)
         if command == "move":
@@ -61,8 +70,9 @@ def main():
             cy = int(input("Current Y: "))
             tx = int(input("Target X: "))
             ty = int(input("Target Y: "))
-            jumon_to_move = global_definitions.ARENA.GetUnitAt(Position(cx, cy))
-            if global_definitions.PLAYER_CHAIN.GetCurrentPlayer().OwnsTile(Position(cx, cy)) is False:
+            jumon_to_move = arena.GetUnitAt(Position(cx, cy))
+            if player_chain.GetCurrentPlayer().OwnsTile(arena,
+                    Position(cx, cy))is False:
                 print("Invalid, no Jumon you control found at this position")
                 continue
             event = pygame.event.Event(SELECT_JUMON_TO_MOVE_EVENT,
@@ -71,10 +81,10 @@ def main():
                 target_position=Position(tx, ty))
             pygame.event.post(event)
         if command == "surrender":
-            global_definitions.PLAYER_CHAIN.GetCurrentPlayer().Kill()
+            player_chain.GetCurrentPlayer().Kill()
         state_machiene.Run(event)
-        print("The current player is: " + global_definitions.PLAYER_CHAIN.GetCurrentPlayer().name)
-        global_definitions.ARENA.PrintOut()
+        print("The current player is: " + player_chain.GetCurrentPlayer().name)
+        arena.PrintOut()
 
 
 if __name__ == "__main__":

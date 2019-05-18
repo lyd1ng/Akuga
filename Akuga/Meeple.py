@@ -1,5 +1,4 @@
 from random import randint
-from Akuga import AkugaStates
 from Akuga.Position import Position
 from Akuga import global_definitions
 
@@ -76,13 +75,13 @@ class Jumon():
         """
         return False
 
-    def DoSpecialMove(self, current_position, target_position):
+    def DoSpecialMove(self, fsm, current_position, target_position):
         """
         Do the special move and return the state change made by the fsm
         after finishing the check_special_move state
         Normaly the turn ends after a special move
         """
-        return (AkugaStates.change_player_state, {})
+        return (fsm.change_player_state, {})
 
 
 class TestArtefact(Artefact):
@@ -138,7 +137,7 @@ class TestJumon(Jumon):
         just returns the next_state_and_variables tuple
         state_and_variables: [next_state_to_jump_to, variables_to_pass]
         """
-        if current_state is AkugaStates.summon_state:
+        if current_state is current_state.fsm.summon_state:
             next_state_and_variables[1]["summon_position"] = Position(0, 0)
         return next_state_and_variables
 
@@ -153,10 +152,10 @@ class Test2Jumon(Jumon):
         Try a state change if this jumon is summoned so the player has
         a second turn
         """
-        if current_state is AkugaStates.summon_check_state\
-                or current_state is AkugaStates.one_tile_battle_aftermath_state:
+        if current_state is current_state.fsm.summon_check_state\
+                or current_state is current_state.fsm.one_tile_battle_aftermath_state:
             print("Jump to idle state for an extra turn")
-            return (AkugaStates.idle_state, {})
+            return (current_state.fsm.idle_state, {})
         return next_state_and_variables
 
 
@@ -178,14 +177,14 @@ class TestNeutralJumon(Jumon):
         """
         Archieve a state change to the check move state
         """
-        if current_state is AkugaStates.idle_state:
+        if current_state is current_state.fsm.idle_state:
             width = global_definitions.BOARD_WIDTH - 1
             height = global_definitions.BOARD_HEIGHT - 1
             random_target = self.position +\
                 Position(randint(-1, 1), randint(-1, 1))
             random_target.x = self.wrap(random_target.x, 0, width)
             random_target.y = self.wrap(random_target.y, 0, height)
-            return (AkugaStates.check_move_state, {
+            return (current_state.fsm.check_move_state, {
                 "jumon_to_move": self,
                 "current_position": self.position,
                 "target_position": random_target})

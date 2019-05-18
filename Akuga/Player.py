@@ -48,12 +48,12 @@ class Player:
         """
         self.phase = 1
 
-    def OwnsTile(self, tile_position):
+    def OwnsTile(self, arena, tile_position):
         """
         Returns if the tile of the arena is already owmed by the player
         Used to check if a move or a summoning is legal for instance
         """
-        jumon = global_definitions.ARENA.GetUnitAt(tile_position)
+        jumon = arena.GetUnitAt(tile_position)
         if jumon is None:
             """
             If the tile is free it cant be owned by the player
@@ -183,7 +183,8 @@ class NeutralPlayer(Player):
     with artefacts which can be stolen by the player bakugans by killing
     the neutral ones.
     """
-    def __init__(self):
+    def __init__(self, arena):
+        self.arena = arena
         super().__init__("neutral player", True)
 
     def SummonJumons(self):
@@ -203,7 +204,7 @@ class NeutralPlayer(Player):
                 If there is no jumon at this position yet summon it there
                 """
                 self.HandleSummoning(jumon)
-                global_definitions.ARENA.PlaceUnitAt(jumon, position)
+                self.arena.PlaceUnitAt(jumon, position)
                 jumon.SetPosition(position)
                 # Now add the position to positions to make this tile occupied
                 summon_positions.append(position)
