@@ -2,6 +2,7 @@ import random
 import pygame
 import Akuga.global_definitions as global_definitions
 import Akuga.Meeple
+from Akuga.PathFinder import FindPath
 from Akuga.Position import Position
 from Akuga.Player import NeutralPlayer
 from Akuga.StateMachieneState import StateMachieneState as State
@@ -283,11 +284,16 @@ class CheckMoveState(State):
         jumon = self.state_variables["jumon_to_move"]
         current_position = self.state_variables["current_position"]
         target_position = self.state_variables["target_position"]
-        # Get the distance to check if a move is valid or not
-        manhatte_distance = abs(current_position.x - target_position.x) + \
-            abs(current_position.y - target_position.y)
-        if manhatte_distance > jumon.movement and manhatte_distance != 0 or\
-                target_position.x < 0 or target_position.y < 0:
+        """
+        Get the shortes distance between the current position and the
+        target position. Do the move only if the path is not none (aka a
+        path is found) and the pathlength is less then or equal to the
+        movements of the selected jumon. This way the jumons actually
+        move and can be blocked by other meeples. 
+        """
+        move_path = FindPath(current_position, target_position, self.fsm.arena)
+        if move_path is None or len(move_path) == 0\
+                or len(move_path) - 1 > jumon.movement:
             """
             If the target move is invalid in length just jump back to the
             idle state.
