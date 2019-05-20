@@ -2,6 +2,13 @@ from Akuga.ArenaCreator import CreateArena
 from Akuga.Position import Position
 
 
+def pos_in(position, nodes):
+    """
+    Checks if position exists within node_list
+    """
+    return next(filter(lambda x: x.position == position, nodes), None) is not None
+
+
 class PathNode:
     """
     A representation of a node within the path
@@ -10,7 +17,7 @@ class PathNode:
         self.position = position
         self.predecessor = predecessor
 
-    def ExpandNode(self, tiles, frontier, width, height):
+    def ExpandNode(self, tiles, end_pos, frontier, visited, width, height):
         """
         Checks all four direct neighbour tiles and add them to the
         expand list if their are free and not yet in the frontier list
@@ -18,24 +25,28 @@ class PathNode:
         expand_list = []
         if self.position.x > 0:
             new_pos = self.position - Position(1, 0)
-            if next(filter(lambda x: x.position == new_pos, frontier),
-                    None) is None and tiles[new_pos.x][new_pos.y]:
+            if (not pos_in(new_pos, frontier) and tiles[new_pos.x][new_pos.y])\
+                    or new_pos == end_pos:
                 expand_list.append(PathNode(new_pos, self))
-        if self.position.x < width:
+
+        if self.position.x < width - 1:
             new_pos = self.position + Position(1, 0)
-            if next(filter(lambda x: x.position == new_pos, frontier),
-                    None) is None and tiles[new_pos.x][new_pos.y]:
+            if (not pos_in(new_pos, frontier) and tiles[new_pos.x][new_pos.y])\
+                    or new_pos == end_pos:
                 expand_list.append(PathNode(new_pos, self))
+
         if self.position.y > 0:
             new_pos = self.position - Position(0, 1)
-            if next(filter(lambda x: x.position == new_pos, frontier),
-                    None) is None and tiles[new_pos.x][new_pos.y]:
+            if (not pos_in(new_pos, frontier) and tiles[new_pos.x][new_pos.y])\
+                    or new_pos == end_pos:
                 expand_list.append(PathNode(new_pos, self))
-        if self.position.y < height:
+
+        if self.position.y < height - 1:
             new_pos = self.position + Position(0, 1)
-            if next(filter(lambda x: x.position == new_pos, frontier),
-                    None) is None and tiles[new_pos.x][new_pos.y]:
+            if (not pos_in(new_pos, frontier) and tiles[new_pos.x][new_pos.y])\
+                    or new_pos == end_pos:
                 expand_list.append(PathNode(new_pos, self))
+
         return expand_list
 
 
@@ -71,11 +82,11 @@ def FindPath(start_position, end_position, arena):
         As long as there are nodes within the frontier list there is hope
         to find a path
         """
-        expand_list = frontier_nodes[0].ExpandNode(tiles, frontier_nodes, width, height)
+        expand_list = frontier_nodes[0].ExpandNode(tiles, end_position, frontier_nodes, visited_nodes, width, height)
         visited_nodes.append(frontier_nodes[0])
         frontier_nodes.remove(frontier_nodes[0])
         potentiel_end_node = next(filter(lambda x: x.position == end_position,
-            frontier_nodes), None)
+            visited_nodes), None)
         if potentiel_end_node:
             return BacktracePath(potentiel_end_node)
         frontier_nodes = frontier_nodes + expand_list
@@ -87,10 +98,15 @@ if __name__ == "__main__":
     height = 5
     arena = CreateArena(width, height, 0, 0)
     # block a tile
+    arena.PlaceUnitAt("A", Position(0, 0))
     arena.PlaceUnitAt("A", Position(1, 0))
+    arena.PlaceUnitAt("A", Position(0, 2))
 
-    path = FindPath(Position(0, 0), Position(2, 2), arena)
+    arena.PlaceUnitAt("A", Position(2, 2))
+
+    path = FindPath(Position(4, 4), Position(2, 2), arena)
     if path is None:
         exit(-1)
+    print(len(path))
     for p in path:
         print(str(p.position))
