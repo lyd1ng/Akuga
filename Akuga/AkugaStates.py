@@ -9,6 +9,7 @@ from Akuga.StateMachieneState import StateMachieneState as State
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
                                      SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
+                                     PICK_JUMON_EVENT,
                                      PLAYER_HAS_WON,
                                      MATCH_IS_DRAWN)
 
@@ -42,6 +43,24 @@ class IdleState(State):
             """
             if state_change[0] is not None:
                 return state_change
+
+        if event.type == PICK_JUMON_EVENT\
+                and self.fsm.player_chain.GetCurrentPlayer().\
+                InPickPhase():
+            """
+            The event is only valid if the current player is in the pick
+            phase, and the jumon within the event is inside the
+            jumon_pick_pool list
+            """
+            # Get the jumon to pick from the event
+            jumon = event.jumon_to_pick
+            if jumon in self.fsm.jumon_pick_pool:
+                """
+                Only jump to the pick state if the jumon is
+                within the pick pool
+                """
+                pick_state_variables = {"jumon_to_pick": jumon}
+                return (self.fsm.pick_state, pick_state_variables)
 
         if event.type == SUMMON_JUMON_EVENT\
                 and self.fsm.player_chain.GetCurrentPlayer().\
@@ -98,6 +117,36 @@ class IdleState(State):
         # If no event was caught return None, so the state machiene
         # remains in the idle state
         return None
+
+
+class PickState(State):
+    """
+    PickState is the representation of the moment a jumon is picked
+    from the jumon pick pool. A picked jumon is removed from the pick pool
+    and added to the jumon_to_summon list of the current player.
+    This way the player can summon the jumon later on.
+    """
+    def __init__(self, fsm):
+        super().__init__("pick_state", fsm)
+
+    def Run(self, event):
+        """
+        Remove the jumon to pick from the pick pool and add it to the jumons
+        the current player can summon. Then check if the player has to
+        switch to the summon phase.
+        """
+        jumon = self.state_variables["jumon_to_pick"]
+        self.fsm.jumon_pick_pool.remove(jumon)
+        self.fsm.player_chain.GetCurrentPlayer().AddJumonToSummon(jumon)
+        if len(self.fsm.jumon_pick_pool) < self.fsm.player_chain.GetNotNeutralLength():
+            """
+            If there are less jumons in the pick pool than not neutral
+            player in the playerchain the current player wont be able to
+            pick another jumon, so per must go into the summon phase
+            """
+            self.fsm.player_chain.GetCurrentPlayer().SetToSummonPhase()
+        # The turn ends, so jump to the change player state
+        return (self.fsm.change_player_state, {})
 
 
 class SummonState(State):
@@ -289,7 +338,7 @@ class CheckMoveState(State):
         target position. Do the move only if the path is not none (aka a
         path is found) and the pathlength is less then or equal to the
         movements of the selected jumon. This way the jumons actually
-        move and can be blocked by other meeples. 
+        move and can be blocked by other meeples.
         """
         move_path = FindPath(current_position, target_position, self.fsm.arena)
         if move_path is None or len(move_path) == 0\
