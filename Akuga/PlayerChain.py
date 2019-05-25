@@ -148,6 +148,8 @@ class PlayerChain:
         node.GetNext().SetPrev(node.GetPrev())
         # Decrement the length of the chain by 1
         self.len -= 1
+        if type(node.GetPlayer()) is not NeutralPlayer:
+            self.not_neutral_len -= 1
 
     def Update(self):
         """
