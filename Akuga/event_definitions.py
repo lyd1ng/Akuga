@@ -7,7 +7,8 @@ This file contains every user defined events
 SUMMON_JUMON_EVENT = pygame.USEREVENT + 1
 SELECT_JUMON_TO_MOVE_EVENT = pygame.USEREVENT + 2
 SELECT_JUMON_TO_SPECIAL_MOVE_EVENT = pygame.USEREVENT + 3
+PICK_JUMON_EVENT = pygame.USEREVENT + 4
 
 # Events thrown by the state machiene
-PLAYER_HAS_WON = pygame.USEREVENT + 4
-MATCH_IS_DRAWN = pygame.USEREVENT + 5
+PLAYER_HAS_WON = pygame.USEREVENT + 5
+MATCH_IS_DRAWN = pygame.USEREVENT + 6
