@@ -101,9 +101,14 @@ class PlayerChain:
         node_pointer = self.startNode
         while True:
             if node_pointer.GetPlayer() is player:
-                # If the current player dies instantly jump to the next player
+                """
+                If the current player dies jump to the prev player
+                cause of the end of turn NextPlayersTurn will be invoked
+                so the current player is going to be the player after
+                the one who died.
+                """
                 if node_pointer is self.currentNode:
-                    self.currentNode = self.currentNode.GetNext()
+                    self.currentNode = self.currentNode.GetPrev()
                 # If the matching node is the start node Update it
                 if node_pointer is self.startNode:
                     self.startNode = self.startNode.GetNext()
@@ -135,7 +140,7 @@ class PlayerChain:
         """
         # If the current player dies instantly jump to the next player
         if node is self.currentNode:
-            self.currentNode = self.currentNode.GetNext()
+            self.currentNode = self.currentNode.GetPrev()
         # If the matching node is the start node Update it
         if node is self.startNode:
             self.startNode = self.startNode.GetNext()
@@ -246,15 +251,18 @@ if __name__ == "__main__":
     """
     A small testprogramm using strings as players
     """
-    player1 = Player("Thomas", [])
-    player2 = Player("Lukas", [])
+    player1 = Player("player1", [])
+    player2 = Player("player2", [])
+    player3 = Player("neutral", [])
     player_chain = PlayerChain(player1, player2)
+    player_chain.InsertPlayer(player3)
 
-    print(player_chain.len)
-    player1.Kill()
+    print(player_chain.GetCurrentPlayer().name)  # player1
+    player_chain.NextPlayersTurn()
+    print(player_chain.GetCurrentPlayer().name)  # player2
+    player_chain.NextPlayersTurn()
+    print(player_chain.GetCurrentPlayer().name)  # neutral
+    player_chain.GetCurrentPlayer().Kill()
     player_chain.Update()
-    print(player_chain.len)
-    player2.Kill()
-    player_chain.Update()
-    print(player_chain.len)
-    print(player_chain.CheckForDrawn())
+    player_chain.NextPlayersTurn()
+    print(player_chain.GetCurrentPlayer().name)  # ???
