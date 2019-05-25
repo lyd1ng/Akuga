@@ -24,6 +24,12 @@ class Player:
         """
         self.jumons_to_summon = jumons
 
+    def AddJumonToSummon(self, jumon):
+        """
+        Add a jumon to summon
+        """
+        self.jumons_to_summon.append(jumon)
+
     def InPickPhase(self):
         """
         Returns if the player is in the pick phase
@@ -192,6 +198,7 @@ class NeutralPlayer(Player):
     def __init__(self, arena):
         self.arena = arena
         super().__init__("neutral player", True)
+        super().SetToSummonPhase()
 
     def SummonJumons(self):
         """
