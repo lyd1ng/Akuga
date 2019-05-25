@@ -136,6 +136,7 @@ class PickState(State):
         switch to the summon phase.
         """
         jumon = self.state_variables["jumon_to_pick"]
+        jumon.SetOwner(self.fsm.player_chain.GetCurrentPlayer())
         self.fsm.jumon_pick_pool.remove(jumon)
         self.fsm.player_chain.GetCurrentPlayer().AddJumonToSummon(jumon)
         if len(self.fsm.jumon_pick_pool) < self.fsm.player_chain.GetNotNeutralLength():
