@@ -5,6 +5,7 @@ from Akuga.Player import (Player, NeutralPlayer)
 from Akuga.PlayerChain import PlayerChain
 from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
+                                     PICK_JUMON_EVENT,
                                      PLAYER_HAS_WON,
                                      MATCH_IS_DRAWN)
 from Akuga.ArenaCreator import CreateArena
@@ -28,22 +29,22 @@ def main():
     player_chain = PlayerChain(player1, player2)
     player_chain.InsertPlayer(neutral_player)
 
-    # Create the fsm and add the 'globale' data to it
-    state_machiene = AkugaStateMachiene.CreateLastManStandingFSM()
-    state_machiene.AddData("arena", arena)
-    state_machiene.AddData("player_chain", player_chain)
-
     jumon1 = Jumon("1", "red", 400, 2, None, player1)
     jumon3 = Jumon("2", "red", 400, 2, None, player2)
     jumon4 = TestNeutralJumon(neutral_player)
 
-    player1.SetJumonsToSummon([jumon1])
-    player2.SetJumonsToSummon([jumon3])
-    neutral_player.SetJumonsToSummon([jumon4])
-
     test_artefact = Test2Artefact()
     test_artefact.AttachTo(jumon4)
 
+    # Create the fsm and add the 'globale' data to it
+    state_machiene = AkugaStateMachiene.CreateLastManStandingFSM()
+    state_machiene.AddData("arena", arena)
+    state_machiene.AddData("player_chain", player_chain)
+    state_machiene.AddData("jumon_pick_pool", [jumon1, jumon3])
+
+    neutral_player.SetJumonsToSummon([jumon4])
+    player1.AddJumonToSummon(jumon1)
+    player2.AddJumonToSummon(jumon3)
     neutral_player.SummonJumons()
 
     while Running:
@@ -61,6 +62,10 @@ def main():
             player1.Kill()
             player2.Kill()
             print(player_chain.len)
+        if command == "pick":
+            jumon = state_machiene.jumon_pick_pool[0]
+            event = pygame.event.Event(PICK_JUMON_EVENT, jumon_to_pick=jumon)
+            pygame.event.post(event)
         if command == "summon":
             jumon = player_chain.GetCurrentPlayer().jumons_to_summon[0]
             event = pygame.event.Event(SUMMON_JUMON_EVENT, jumon_to_summon=jumon)
