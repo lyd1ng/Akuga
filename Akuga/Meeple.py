@@ -56,6 +56,14 @@ class Jumon():
         """
         self.position = position
 
+    def SetOwner(self, owner):
+        """
+        Set the owner of this meeple.
+        Used in the pick state of the fsm if this jumon is picked
+        by a player
+        """
+        self.owned_by = owner
+
     def SpecialAbility(self, current_state, next_state_and_variables):
         """
         The very basic ability script which doesnt do anything
