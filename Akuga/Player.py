@@ -12,7 +12,7 @@ class Player:
     """
     def __init__(self, name, is_neutral=False):
         self.name = name
-        self.phase = 0
+        self.phase = "pick_phase"
         self.jumons_to_summon = []
         self.summoned_jumons = []
         self.is_dead = False
@@ -24,29 +24,35 @@ class Player:
         """
         self.jumons_to_summon = jumons
 
+    def InPickPhase(self):
+        """
+        Returns if the player is in the pick phase
+        """
+        return self.phase == "pick_phase"
+
     def InSummonPhase(self):
         """
         Returns if the player is in the summon phase
         """
-        return self.phase == 0
+        return self.phase == "summon_phase"
 
     def InMovePhase(self):
         """
         Represent if the player is in the move phase
         """
-        return self.phase == 1
+        return self.phase == "move_phase"
 
     def SetToSummonPhase(self):
         """
         Set the player in the summon phase
         """
-        self.phase = 0
+        self.phase = "summon_phase"
 
     def SetToMovePhase(self):
         """
         Set the player in the move phase
         """
-        self.phase = 1
+        self.phase = "move_phase"
 
     def OwnsTile(self, arena, tile_position):
         """
