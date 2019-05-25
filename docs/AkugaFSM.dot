@@ -3,6 +3,7 @@ digraph AkugaFSM {
 	node [shape = circle]
 	// Declare every existing state within the fsm
 	idle_state
+	pick_state
 	summon_state
 	check_move_state
 	check_special_move_state
@@ -24,9 +25,13 @@ digraph AkugaFSM {
 	change_player_state -> idle_state
 
 	// Idle state
+	idle_state -> pick_state [label="pick event"];
 	idle_state -> summon_state [label="summon event"];
 	idle_state -> check_move_state [label="move event"];
 	idle_state -> check_special_move_state [label="special move event"];
+
+	// Pick State
+	pick_state -> change_player_state
 
 	// Summon State
 	summon_state -> summon_check_state
