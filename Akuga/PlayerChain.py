@@ -66,6 +66,19 @@ class PlayerChain:
         self.startNode.SetPrev(self.endNode)
         self.currentNode = self.startNode
         self.len = 2
+        self.not_neutral_len = 2
+
+    def GetLength(self):
+        """
+        Return the absolute length of the player chain
+        """
+        return self.len
+
+    def GetNotNeutralLength(self):
+        """
+        Return the length of the player chain without neutral players
+        """
+        return self.not_neutral_len
 
     def InsertPlayer(self, player):
         """
@@ -77,6 +90,8 @@ class PlayerChain:
         self.endNode = newNode
         self.startNode.SetPrev(self.endNode)
         self.len += 1
+        if type(player) is not NeutralPlayer:
+            self.not_neutral_len += 1
 
     def RemovePlayer(self, player):
         """
@@ -101,6 +116,8 @@ class PlayerChain:
                 node_pointer.GetNext().SetPrev(node_pointer.GetPrev())
                 # Decrement the length of the chain
                 self.len -= 1
+                if type(node_pointer.GetCurrentPlayer()) is not NeutralPlayer:
+                    self.not_neutral_len -= 1
                 return
             # Jump to the next node to walk through the chain
             node_pointer = node_pointer.GetNext()
@@ -152,7 +169,6 @@ class PlayerChain:
         There are two cases which have to be checked
         1. There is only one not neutral player left
         2. A player has won with an alternative win condition
-        
         1:
         Go throug the whole list and count the number of non neutral
         players, safe the last not neutral player as this will be the
