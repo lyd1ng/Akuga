@@ -3,7 +3,7 @@ from Akuga.Position import Position
 from Akuga.Meeple import (Jumon, Test2Artefact, TestNeutralJumon)
 from Akuga.Player import (Player, NeutralPlayer)
 from Akuga.PlayerChain import PlayerChain
-from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
+from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
                                      PICK_JUMON_EVENT,
                                      PLAYER_HAS_WON,

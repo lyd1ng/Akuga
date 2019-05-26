@@ -6,7 +6,7 @@ from Akuga.PathFinder import FindPath
 from Akuga.Position import Position
 from Akuga.Player import NeutralPlayer
 from Akuga.StateMachieneState import StateMachieneState as State
-from Akuga.event_definitions import (SUMMON_JUMON_EVENT,
+from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                      SELECT_JUMON_TO_MOVE_EVENT,
                                      SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
                                      PICK_JUMON_EVENT,
