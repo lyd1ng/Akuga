@@ -56,6 +56,12 @@ class Jumon():
         """
         self.position = position
 
+    def GetPosition(self):
+        """
+        Jus get the position of the jumon
+        """
+        return self.position
+
     def SetOwner(self, owner):
         """
         Set the owner of this meeple.
@@ -168,8 +174,8 @@ class Test2Jumon(Jumon):
 
 
 class TestNeutralJumon(Jumon):
-    def __init__(self, owned_by):
-        super().__init__("N1", "red", 300, 2, None, owned_by)
+    def __init__(self, name, owned_by):
+        super().__init__(name, "red", 300, 2, None, owned_by)
 
     def wrap(self, x, min_value, max_value):
         """
