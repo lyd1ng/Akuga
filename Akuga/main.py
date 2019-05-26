@@ -9,7 +9,7 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                      PLAYER_HAS_WON,
                                      MATCH_IS_DRAWN)
 from Akuga.ArenaCreator import CreateArena
-import Akuga.global_definitions as global_definitions
+import Akuga.GlobalDefinitions as GlobalDefinitions
 import Akuga.AkugaStateMachiene as AkugaStateMachiene
 
 
@@ -19,8 +19,8 @@ def main():
     Running = True
 
     # Create the arena to play in
-    arena = CreateArena(global_definitions.BOARD_WIDTH,
-                        global_definitions.BOARD_HEIGHT,
+    arena = CreateArena(GlobalDefinitions.BOARD_WIDTH,
+                        GlobalDefinitions.BOARD_HEIGHT,
                         0, 255)
     # Create the player chain
     player1 = Player("Spieler1")

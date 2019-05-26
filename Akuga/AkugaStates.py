@@ -1,6 +1,6 @@
 import random
 import pygame
-import Akuga.global_definitions as global_definitions
+import Akuga.GlobalDefinitions as GlobalDefinitions
 import Akuga.Meeple
 from Akuga.PathFinder import FindPath
 from Akuga.Position import Position
@@ -165,8 +165,8 @@ class SummonState(State):
         summon_check_state with the position and the summon as
         summon_check_state_variables
         """
-        x_position = random.randint(0, global_definitions.BOARD_WIDTH - 1)
-        y_position = random.randint(0, global_definitions.BOARD_HEIGHT - 1)
+        x_position = random.randint(0, GlobalDefinitions.BOARD_WIDTH - 1)
+        y_position = random.randint(0, GlobalDefinitions.BOARD_HEIGHT - 1)
         jumon_to_summon = self.state_variables["jumon_to_summon"]
         # Build the summon_check_variables
         summon_check_state_variables = {

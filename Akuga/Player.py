@@ -1,6 +1,6 @@
 from random import randint
 from Akuga.Position import Position
-from Akuga import global_definitions
+from Akuga import GlobalDefinitions
 
 
 class Player:
@@ -129,11 +129,11 @@ class Player:
         if len(self.jumons_to_summon) < 1:
             self.SetToMovePhase()
         print("To summon ", end="")
-        print(self.jumons_to_summon if global_definitions.DEBUG else "")
+        print(self.jumons_to_summon if GlobalDefinitions.DEBUG else "")
         print("Summoned summon ", end="")
-        print(self.summoned_jumons if global_definitions.DEBUG else "")
+        print(self.summoned_jumons if GlobalDefinitions.DEBUG else "")
         print("Current Phase: ", end="")
-        print(self.phase if global_definitions.DEBUG else "")
+        print(self.phase if GlobalDefinitions.DEBUG else "")
 
     def HandleJumonDeath(self, jumon):
         """
@@ -208,8 +208,8 @@ class NeutralPlayer(Player):
         """
         # Make sure is no summoning on an occupyied tile
         summon_positions = []
-        width = global_definitions.BOARD_WIDTH - 1
-        height = global_definitions.BOARD_HEIGHT - 1
+        width = GlobalDefinitions.BOARD_WIDTH - 1
+        height = GlobalDefinitions.BOARD_HEIGHT - 1
         for jumon in self.jumons_to_summon:
             position = Position(randint(0, width), randint(0, height))
             if position not in summon_positions:

@@ -1,4 +1,4 @@
-from Akuga.global_definitions import DEBUG
+from Akuga.GlobalDefinitions import DEBUG
 
 
 class StateMachiene():

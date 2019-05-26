@@ -1,6 +1,6 @@
 from random import randint
 from Akuga.Position import Position
-from Akuga import global_definitions
+from Akuga import GlobalDefinitions
 
 
 class Artefact():
@@ -186,8 +186,8 @@ class TestNeutralJumon(Jumon):
         Archieve a state change to the check move state
         """
         if current_state is current_state.fsm.idle_state:
-            width = global_definitions.BOARD_WIDTH - 1
-            height = global_definitions.BOARD_HEIGHT - 1
+            width = GlobalDefinitions.BOARD_WIDTH - 1
+            height = GlobalDefinitions.BOARD_HEIGHT - 1
             random_target = self.position +\
                 Position(randint(-1, 1), randint(-1, 1))
             random_target.x = self.wrap(random_target.x, 0, width)
