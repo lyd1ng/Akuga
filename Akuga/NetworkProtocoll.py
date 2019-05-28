@@ -11,7 +11,7 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                               PICK_JUMON_EVENT)
 
 
-def AsyncCallbackRecv(connection, nbytes, terminator, callback):
+def AsyncCallbackRecv(connection, nbytes, callback, terminator="END"):
     """
     Receives bytes from connection until terminator is received.
     Than invoke callback with the received data
@@ -157,6 +157,16 @@ def HandleMatchConnection(packet):
         pygame.event.post(jumon_special_move_event)
 
 
+def SendPacket(connection, tokens, terminator="END"):
+    """
+    Send a packet containing out of multiple tokens
+    """
+    for t in tokens:
+        connection.send((str(t) + ":").encode('utf-8'))
+    if terminator is not None:
+        connection.send(str(terminator).encode('utf-8'))
+
+
 if __name__ == "__main__":
     pygame.init()
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -167,7 +177,7 @@ if __name__ == "__main__":
     fcntl.fcntl(connection, fcntl.F_SETFL, os.O_NONBLOCK)
 
     while True:
-        AsyncCallbackRecv(connection, 128, "END", HandleMatchConnection)
+        AsyncCallbackRecv(connection, 128, HandleMatchConnection)
 
         pygame.event.pump()
         event = pygame.event.poll()
@@ -175,6 +185,8 @@ if __name__ == "__main__":
             print("Pick Jumon Event: " + event.jumon_to_pick.name)
         if event.type == SUMMON_JUMON_EVENT:
             print("Summon Jumon Event: " + event.jumon_to_summon.name)
+            SendPacket(connection, ["A", "pick", "jumon", "event",
+                "was", "thrown"])
         if event.type == SELECT_JUMON_TO_MOVE_EVENT:
             print("Move Jumon Event: " + event.jumon_to_move.name)
             print("Current Position: " + str(event.current_position))
