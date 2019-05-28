@@ -246,15 +246,14 @@ class PlayerChain:
         """
         return self.currentNode.GetPlayer()
 
-    def GetNotNeutralPlayers(self):
+    def GetPlayers(self):
         """
-        Get all not neutral players in a list
+        Get all players in a list
         """
         node_pointer = self.startNode
         player_list = []
         while True:
-            if type(node_pointer.GetPlayer()) is not NeutralPlayer:
-                player_list.append(node_pointer.GetPlayer())
+            player_list.append(node_pointer.GetPlayer())
             # Walk through the list of players
             node_pointer = node_pointer.GetNext()
             if node_pointer is self.endNode:
