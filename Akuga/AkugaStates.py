@@ -7,11 +7,11 @@ from Akuga.Position import Position
 from Akuga.Player import NeutralPlayer
 from Akuga.StateMachieneState import StateMachieneState as State
 from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
-                                     SELECT_JUMON_TO_MOVE_EVENT,
-                                     SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
-                                     PICK_JUMON_EVENT,
-                                     PLAYER_HAS_WON,
-                                     MATCH_IS_DRAWN)
+                                    SELECT_JUMON_TO_MOVE_EVENT,
+                                    SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
+                                    PICK_JUMON_EVENT,
+                                    PLAYER_HAS_WON,
+                                    MATCH_IS_DRAWN)
 
 
 class IdleState(State):
