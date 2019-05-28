@@ -56,6 +56,19 @@ def AsyncCallbackRecv(connection, nbytes, callback, terminator="END"):
 AsyncCallbackRecv.cached_str = ""
 
 
+def SendPacket(connection, tokens, terminator="END"):
+    """
+    Send a packet containing out of multiple tokens
+    Every token is converted to a string using the str function
+    for better convenients and is encoded using utf-8 encoding.
+    A packet has the form token1:token2:...:tokenN:terminator
+    """
+    for t in tokens:
+        connection.send((str(t) + ":").encode('utf-8'))
+    if terminator is not None:
+        connection.send(str(terminator).encode('utf-8'))
+
+
 def HandleMatchConnection(packet):
     """
     Receives a package from connection with a timeout of the defined
@@ -155,16 +168,6 @@ def HandleMatchConnection(packet):
             current_position=jumon_to_special_move.GetPosition(),
             target_position=Position(position_x, position_y))
         pygame.event.post(jumon_special_move_event)
-
-
-def SendPacket(connection, tokens, terminator="END"):
-    """
-    Send a packet containing out of multiple tokens
-    """
-    for t in tokens:
-        connection.send((str(t) + ":").encode('utf-8'))
-    if terminator is not None:
-        connection.send(str(terminator).encode('utf-8'))
 
 
 if __name__ == "__main__":
