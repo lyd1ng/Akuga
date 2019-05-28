@@ -209,7 +209,7 @@ class PlayerChain:
         """
         while True:
             if node_pointer.GetPlayer().HasWon() and\
-                    type(self.startNode.GetPlayer()) is not NeutralPlayer:
+                    type(node_pointer.GetPlayer()) is not NeutralPlayer:
                 return node_pointer.GetPlayer()
             # Walk through the list of players
             node_pointer = node_pointer.GetNext()
@@ -246,6 +246,21 @@ class PlayerChain:
         """
         return self.currentNode.GetPlayer()
 
+    def GetNotNeutralPlayers(self):
+        """
+        Get all not neutral players in a list
+        """
+        node_pointer = self.startNode
+        player_list = []
+        while True:
+            if type(node_pointer.GetPlayer()) is not NeutralPlayer:
+                player_list.append(node_pointer.GetPlayer())
+            # Walk through the list of players
+            node_pointer = node_pointer.GetNext()
+            if node_pointer is self.endNode:
+                break
+        return player_list
+
 
 if __name__ == "__main__":
     """
@@ -257,12 +272,4 @@ if __name__ == "__main__":
     player_chain = PlayerChain(player1, player2)
     player_chain.InsertPlayer(player3)
 
-    print(player_chain.GetCurrentPlayer().name)  # player1
-    player_chain.NextPlayersTurn()
-    print(player_chain.GetCurrentPlayer().name)  # player2
-    player_chain.NextPlayersTurn()
-    print(player_chain.GetCurrentPlayer().name)  # neutral
-    player_chain.GetCurrentPlayer().Kill()
-    player_chain.Update()
-    player_chain.NextPlayersTurn()
-    print(player_chain.GetCurrentPlayer().name)  # ???
+    print(player_chain.GetNotNeutralPlayers())
