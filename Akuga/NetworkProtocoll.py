@@ -3,7 +3,7 @@ import errno
 import pygame
 import fcntl
 import os
-from Akuga import MeepleDict
+from Akuga.MeepleDict import GetMeepleByName
 from Akuga.Position import Position
 from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                               SELECT_JUMON_TO_MOVE_EVENT,
@@ -90,7 +90,7 @@ def HandleMatchConnection(packet):
         PICK_JUMON $name_of_the_jumon_to_pick
         """
         try:
-            jumon_to_pick = MeepleDict.GetMeepleByName(tokens[1])
+            jumon_to_pick = GetMeepleByName(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -106,7 +106,7 @@ def HandleMatchConnection(packet):
         SUMMON_JUMON $name_of_the_jumon_to_summon
         """
         try:
-            jumon_to_summon = MeepleDict.GetMeepleByName(tokens[1])
+            jumon_to_summon = GetMeepleByName(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -137,7 +137,7 @@ def HandleMatchConnection(packet):
             return
         # Get the jumon to move by its name
         try:
-            jumon_to_move = MeepleDict.GetMeepleByName(tokens[1])
+            jumon_to_move = GetMeepleByName(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -171,7 +171,7 @@ def HandleMatchConnection(packet):
             return
         # Get the jumon to move by its name
         try:
-            jumon_to_special_move = MeepleDict.GetMeepleByName(tokens[1])
+            jumon_to_special_move = GetMeepleByName(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -186,32 +186,107 @@ def HandleMatchConnection(packet):
         pygame.event.post(jumon_special_move_event)
 
 
+def SendClientGameState(connection, game_state):
+    """
+    Send all neccessary data from the server game state to build the client
+    game state. The client game state is an excerpt from the state machiene
+    as some data should be hidden or is not necessary for the match client
+    """
+    # First of all send the pick pool
+    pick_pool_data_tokens = ["PICK_POOL_DATA"]
+    for jumon in game_state.jumon_pick_pool:
+        """
+        Send the name of the jumon and the
+        name of its equipment if there is one
+        """
+        pick_pool_data_tokens.append((jumon.name, jumon.equipment.name
+            if jumon.equipment is not None
+            else ""))
+    SendPacket(connection, pick_pool_data_tokens)
+
+    """
+    Now go through all the players and send the jummons per can summon
+    and the jumons per has already summoned.
+    """
+    for player in game_state.player_chain.GetPlayers():
+        pld_jumons_to_summon_token = [
+            "PLAYER_DATA_JUMONS_TO_SUMMON",
+            player.name]
+        pld_summoned_jumons = [
+            "PLAYER_DATA_SUMMONED_JUMONS",
+            player.name]
+        # Go through all jumons to summon
+        for jumon in player.jumons_to_summon:
+            pld_jumons_to_summon_token.append((jumon.name, jumon.equipment.name
+                if jumon.equipment is not None
+                else ""))
+        # Go through all summoned jumons
+        for jumon in player.summoned_jumons:
+            pld_summoned_jumons.append((jumon.name, jumon.equipment.name
+                if jumon.equipment is not None
+                else ""))
+        # Send the data
+        SendPacket(connection, pld_jumons_to_summon_token)
+        SendPacket(connection, pld_summoned_jumons)
+
+    """
+    Now go through all tiles of the arena and send the meeple occupying
+    this tile
+    """
+    # packet format: cmd, (width, height), meeple1, meeple2, ... meepleN, END
+    packet_tokens = [
+        "ARENA_DATA",
+        (game_state.arena.board_width, game_state.arena.board_height)]
+    """
+    Go through all tiles of the arena and append
+    the names of the occupying meeple
+    """
+    for y in range(game_state.arena.board_height):
+        for x in range(game_state.arena.board_width):
+            meeple = game_state.arena.GetUnitAt(Position(x, y))
+            packet_tokens.append(meeple.name if meeple is not None else "")
+    SendPacket(connection, packet_tokens)
+
+
 if __name__ == "__main__":
+    from Akuga.Player import Player
+    from Akuga.PlayerChain import PlayerChain
+    from Akuga.ArenaCreator import CreateArena
+    import Akuga.GlobalDefinitions as GlobalDefinitions
+    import Akuga.AkugaStateMachiene as AkugaStateMachiene
+
     pygame.init()
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(("localhost", 12345))
     server_socket.listen(1)
 
-    connection, connection_address = server_socket.accept()
-    fcntl.fcntl(connection, fcntl.F_SETFL, os.O_NONBLOCK)
+    player1 = Player("player1")
+    player2 = Player("player2")
+    player_chain = PlayerChain(player1, player2)
+
+    GetMeepleByName("Jumon1").SetOwner(player1)
+    GetMeepleByName("Jumon2").SetOwner(player1)
+    player1.AddJumonToSummon(GetMeepleByName("Jumon1"))
+    player1.AddJumonToSummon(GetMeepleByName("Jumon2"))
+
+    GetMeepleByName("Jumon3").SetOwner(player2)
+    GetMeepleByName("Jumon4").SetOwner(player2)
+    player2.AddJumonToSummon(GetMeepleByName("Jumon3"))
+    player2.AddJumonToSummon(GetMeepleByName("Jumon4"))
+
+    arena = CreateArena(GlobalDefinitions.BOARD_WIDTH,
+                        GlobalDefinitions.BOARD_HEIGHT,
+                        0, 255)
+    game_state = AkugaStateMachiene.CreateLastManStandingFSM()
+    game_state.AddData("arena", arena)
+    game_state.AddData("player_chain", player_chain)
+    game_state.AddData("jumon_pick_pool", [GetMeepleByName("Jumon5")])
+
+    arena.PlaceUnitAt(GetMeepleByName("NeutralJumon1"), Position(0, 0))
 
     while True:
-        AsyncCallbackRecv(connection, 128, HandleMatchConnection)
+        connection, address = server_socket.accept()
+        SendClientGameState(connection, game_state)
+        connection.close()
 
-        pygame.event.pump()
-        event = pygame.event.poll()
-        if event.type == PICK_JUMON_EVENT:
-            print("Pick Jumon Event: " + event.jumon_to_pick.name)
-        if event.type == SUMMON_JUMON_EVENT:
-            print("Summon Jumon Event: " + event.jumon_to_summon.name)
-            SendPacket(connection, ["A", "pick", "jumon", "event",
-                "was", "thrown"])
-        if event.type == SELECT_JUMON_TO_MOVE_EVENT:
-            print("Move Jumon Event: " + event.jumon_to_move.name)
-            print("Current Position: " + str(event.current_position))
-            print("Target Position: " + str(event.target_position))
-        if event.type == SELECT_JUMON_TO_SPECIAL_MOVE_EVENT:
-            print("Special Move Jumon Event: " + event.jumon_to_move.name)
-            print("Current Position: " + str(event.current_position))
-            print("Target Position: " + str(event.target_position))
     server_socket.close()
