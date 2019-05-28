@@ -11,7 +11,8 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
                                     PICK_JUMON_EVENT,
                                     PLAYER_HAS_WON,
-                                    MATCH_IS_DRAWN)
+                                    MATCH_IS_DRAWN,
+                                    TURN_ENDS)
 
 
 class IdleState(State):
@@ -319,6 +320,12 @@ class ChangePlayerState(State):
         jump to the idle state again so its the next players turn
         """
         self.fsm.player_chain.NextPlayersTurn()
+        """
+        Throw an turn ends event to refresh the gamestate for the clients
+        and propagate the changes on the gamestate.
+        """
+        event = pygame.event.Event(TURN_ENDS)
+        pygame.event.post(event)
         return (self.fsm.idle_state, {})
 
 
