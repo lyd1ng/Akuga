@@ -12,6 +12,7 @@ PICK_JUMON_EVENT = pygame.USEREVENT + 4
 # Events thrown by the state machiene
 PLAYER_HAS_WON = pygame.USEREVENT + 5
 MATCH_IS_DRAWN = pygame.USEREVENT + 6
+TURN_ENDS = pygame.USEREVENT + 7
 
 # Network Protocoll Events
-PACKET_PARSER_ERROR_EVENT = pygame.USEREVENT + 7
+PACKET_PARSER_ERROR_EVENT = pygame.USEREVENT + 8
