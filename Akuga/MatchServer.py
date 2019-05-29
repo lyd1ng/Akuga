@@ -6,7 +6,7 @@ from time import sleep
 from Akuga.Player import (Player, NeutralPlayer)
 from Akuga.PlayerChain import PlayerChain
 from Akuga.ArenaCreator import CreateArena
-from Akuga.MeepleDict import (MeepleDict, GetNeutralMeeples, GetNotNeutralMeeples)
+from Akuga.MeepleDict import (GetNeutralMeeples, GetNotNeutralMeeples)
 import Akuga.GlobalDefinitions as GlobalDefinitions
 import Akuga.AkugaStateMachiene as AkugaStateMachiene
 from Akuga.NetworkProtocoll import (AsyncCallbackRecv,
@@ -15,8 +15,7 @@ from Akuga.NetworkProtocoll import (AsyncCallbackRecv,
 from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
         TURN_ENDS,
         MATCH_IS_DRAWN,
-        PLAYER_HAS_WON,
-        PICK_JUMON_EVENT)
+        PLAYER_HAS_WON)
 
 
 def BuildLastManStandingGamestate(player_chain, _queue, options={}):
@@ -25,8 +24,11 @@ def BuildLastManStandingGamestate(player_chain, _queue, options={}):
                         GlobalDefinitions.BOARD_HEIGHT,
                         GlobalDefinitions.MIN_TILE_BONUS,
                         GlobalDefinitions.MAX_TILE_BONUS)
-    # # Add a neutral player to the player chain
-    # player_chain.InsertPlayer(NeutralPlayer(arena))
+    # Add a neutral player to the player chain
+    neutral_player = NeutralPlayer(arena)
+    neutral_player.SetJumonsToSummon(GetNeutralMeeples(1))
+    neutral_player.SummonJumons()
+    player_chain.InsertPlayer(neutral_player)
     # Build the state machiene which represents the whole game state
     game_state = AkugaStateMachiene.CreateLastManStandingFSM()
     game_state.AddData("queue", _queue)
@@ -80,10 +82,6 @@ def MatchServer(game_mode, users, options={}):
             event = _queue.get_nowait()
         except queue.Empty:
             event = pygame.event.Event(pygame.NOEVENT)
-
-        if event.type == PICK_JUMON_EVENT:
-            print(event.jumon_to_pick.name)
-            print(event.jumon_to_pick in list(MeepleDict.values()))
 
         game_state.Run(event)
         # Handle the events which are not handeld by the gamestate itself
