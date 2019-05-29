@@ -74,9 +74,11 @@ def MatchServer(game_mode, users, options={}):
         be handeld by the gamestate statemachiene.
         Only some events have to be handeld here.
         """
-        AsyncCallbackRecv(users[game_state.player_chain.
-                GetCurrentPlayer().name],
-                512, _queue, HandleMatchConnection)
+        if type(game_state.player_chain.GetCurrentPlayer())\
+                is not NeutralPlayer:
+            AsyncCallbackRecv(users[game_state.player_chain.
+                    GetCurrentPlayer().name],
+                    512, _queue, HandleMatchConnection)
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
@@ -85,6 +87,8 @@ def MatchServer(game_mode, users, options={}):
 
         game_state.Run(event)
         # Handle the events which are not handeld by the gamestate itself
+
+        game_state.arena.PrintOut()
         if event.type == PACKET_PARSER_ERROR_EVENT:
             # Print the event msg but ignore the packet
             print(event.msg)
