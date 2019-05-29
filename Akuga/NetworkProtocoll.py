@@ -10,53 +10,89 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                               PACKET_PARSER_ERROR_EVENT)
 
 
-def AsyncCallbackRecv(connection, nbytes, queue, callback, terminator="END"):
-    """
-    Receives bytes from connection until terminator is received.
-    Than invoke callback with the received data
-    """
-    try:
+class AsyncCallbackReceiver:
+    # Store the bytes until a whole packet is received
+    cached_str = ""
+    current_connection = None
+    @staticmethod
+    def RefreshConnection(connection):
         """
-        Read and decode the packet asynchrounisly
+        Drop all bytes until no data is received anymore
+        (ddos is possible here) and clear the cached_str.
+        This is used to reset the connection for the new turn of a player.
+        If this function isnt invoked events may be handeld the player send
+        while it is not pers turn. Its uncritically, no invalid moves are
+        possible, its just for convenients.
         """
-        AsyncCallbackRecv.cached_str += connection.recv(nbytes).decode('utf-8')
-    except socket.error as e:
-        if e.args[0] == errno.EAGAIN or e.args[0] == errno.EWOULDBLOCK:
-            """
-            If the error is just cause by the lack of data do nothin
-            """
-            pass
-        else:
-            """
-            If the error is a real error close the connection for now
-            TODO: Better connection error handling
-            """
-            print("Fatal error occured on " + str(connection))
-            connection.close()
-    except UnicodeDecodeError:
-        """
-        If an decode error occured clear the string and return the function
-        """
-        event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
-                msg="Decode Error")
-        queue.put(event)
-        AsyncCallbackRecv.cached_str = ""
-        return
-    # Search the received string for the terminator
-    terminator_index = AsyncCallbackRecv.cached_str.find(terminator)
-    if terminator_index > -1:
-        """
-        If there is a terminator within this packet invoke the callback
-        function with the packet until the terminator
-        """
-        print("Invoke callback functions with: " + AsyncCallbackRecv.cached_str)
-        callback(AsyncCallbackRecv.cached_str[:terminator_index], queue)
-        # The string has to be cleared to receive a new packet
-        AsyncCallbackRecv.cached_str = ""
+        AsyncCallbackReceiver.cached_str = ""
+        while True:
+            try:
+                # Drop the data
+                connection.recv(1024)
+            except socket.error as e:
+                # Leave the while loop if no data is on the socket anymore
+                if e.args[0] == errno.EAGAIN or e.args[0] == errno.EWOULDBLOCK:
+                    break
+                else:
+                    """
+                    If the error is a real error close the connection for now
+                    TODO: Better connection error handling
+                    """
+                    print("Fatal error occured on " + str(connection))
+                    connection.close()
 
-
-# Attach this variable to the function to fake static variables in python
-AsyncCallbackRecv.cached_str = ""
+    @staticmethod
+    def AsyncCallbackRecv(connection,
+                          nbytes,
+                          queue,
+                          callback,
+                          terminator="END"):
+        """
+        Receives bytes from connection until terminator is received.
+        Than invoke callback with the received data
+        """
+        # If the connection is a new connection refresh it
+        if connection != AsyncCallbackReceiver.current_connection:
+            AsyncCallbackReceiver.RefreshConnection(connection)
+            AsyncCallbackReceiver.current_connection = connection
+        try:
+            """
+            Read and decode the packet asynchrounisly
+            """
+            AsyncCallbackReceiver.cached_str += connection.recv(nbytes).decode('utf-8')
+        except socket.error as e:
+            if e.args[0] == errno.EAGAIN or e.args[0] == errno.EWOULDBLOCK:
+                """
+                If the error is just cause by the lack of data do nothin
+                """
+                pass
+            else:
+                """
+                If the error is a real error close the connection for now
+                TODO: Better connection error handling
+                """
+                print("Fatal error occured on " + str(connection))
+                connection.close()
+        except UnicodeDecodeError:
+            """
+            If an decode error occured clear the string and return the function
+            """
+            event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
+                    msg="Decode Error")
+            queue.put(event)
+            AsyncCallbackReceiver.cached_str = ""
+            return
+        # Search the received string for the terminator
+        terminator_index = AsyncCallbackReceiver.cached_str.find(terminator)
+        if terminator_index > -1:
+            """
+            If there is a terminator within this packet invoke the callback
+            function with the packet until the terminator
+            """
+            print("Invoke callback functions with: " + AsyncCallbackReceiver.cached_str)
+            callback(AsyncCallbackReceiver.cached_str[:terminator_index], queue)
+            # The string has to be cleared to receive a new packet
+            AsyncCallbackReceiver.cached_str = ""
 
 
 def SendPacket(connection, tokens, terminator="END"):
