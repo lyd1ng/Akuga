@@ -1,8 +1,6 @@
 import socket
 import errno
 import pygame
-import fcntl
-import os
 from Akuga.MeepleDict import GetMeepleByName
 from Akuga.Position import Position
 from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
@@ -12,7 +10,7 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                               PACKET_PARSER_ERROR_EVENT)
 
 
-def AsyncCallbackRecv(connection, nbytes, callback, terminator="END"):
+def AsyncCallbackRecv(connection, nbytes, queue, callback, terminator="END"):
     """
     Receives bytes from connection until terminator is received.
     Than invoke callback with the received data
@@ -41,7 +39,7 @@ def AsyncCallbackRecv(connection, nbytes, callback, terminator="END"):
         """
         event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                 msg="Decode Error")
-        pygame.event.post(event)
+        queue.put(event)
         AsyncCallbackRecv.cached_str = ""
         return
     # Search the received string for the terminator
@@ -51,7 +49,8 @@ def AsyncCallbackRecv(connection, nbytes, callback, terminator="END"):
         If there is a terminator within this packet invoke the callback
         function with the packet until the terminator
         """
-        callback(AsyncCallbackRecv.cached_str[:terminator_index])
+        print("Invoke callback functions with: " + AsyncCallbackRecv.cached_str)
+        callback(AsyncCallbackRecv.cached_str[:terminator_index], queue)
         # The string has to be cleared to receive a new packet
         AsyncCallbackRecv.cached_str = ""
 
@@ -73,7 +72,7 @@ def SendPacket(connection, tokens, terminator="END"):
         connection.send(str(terminator).encode('utf-8'))
 
 
-def HandleMatchConnection(packet):
+def HandleMatchConnection(packet, queue):
     """
     Receives a package from connection with a timeout of the defined
     seconds per turn. If a packet was received parse it and handle it by
@@ -94,12 +93,12 @@ def HandleMatchConnection(packet):
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
-            pygame.event.post(event)
+            queue.put(event)
             return
         jumon_pick_event = pygame.event.Event(PICK_JUMON_EVENT,
                 jumon_to_pick=jumon_to_pick)
-        pygame.event.post(jumon_pick_event)
-
+        print("pick jumon event!")
+        queue.put(jumon_pick_event)
     if tokens[0] == "SUMMON_JUMON" and len(tokens) >= 2:
         """
         Handles a summon jumon command
@@ -110,11 +109,11 @@ def HandleMatchConnection(packet):
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
-            pygame.event.post(event)
+            queue.put(event)
             return
         jumon_summon_event = pygame.event.Event(SUMMON_JUMON_EVENT,
                 jumon_to_summon=jumon_to_summon)
-        pygame.event.post(jumon_summon_event)
+        queue.put(jumon_summon_event)
 
     if tokens[0] == "MOVE_JUMON" and len(tokens) >= 3:
         """
@@ -133,7 +132,7 @@ def HandleMatchConnection(packet):
         except ValueError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Position Data")
-            pygame.event.post(event)
+            queue.put(event)
             return
         # Get the jumon to move by its name
         try:
@@ -141,14 +140,14 @@ def HandleMatchConnection(packet):
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
-            pygame.event.post(event)
+            queue.put(event)
             return
         # If no error occured the event can be thrown
         jumon_move_event = pygame.event.Event(SELECT_JUMON_TO_MOVE_EVENT,
                 jumon_to_move=jumon_to_move,
                 current_position=jumon_to_move.GetPosition(),
                 target_position=Position(position_x, position_y))
-        pygame.event.post(jumon_move_event)
+        queue.put(jumon_move_event)
 
     if tokens[0] == "SPECIAL_MOVE_JUMON" and len(tokens) >= 3:
         """
@@ -167,7 +166,7 @@ def HandleMatchConnection(packet):
         except ValueError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Position Data")
-            pygame.event.post(event)
+            queue.put(event)
             return
         # Get the jumon to move by its name
         try:
@@ -175,7 +174,7 @@ def HandleMatchConnection(packet):
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
-            pygame.event.post(event)
+            queue.put(event)
             return
         # If no error occured the event can be thrown
         jumon_special_move_event = pygame.event.Event(
@@ -183,7 +182,7 @@ def HandleMatchConnection(packet):
             jumon_to_move=jumon_to_special_move,
             current_position=jumon_to_special_move.GetPosition(),
             target_position=Position(position_x, position_y))
-        pygame.event.post(jumon_special_move_event)
+        queue.put(jumon_special_move_event)
 
 
 def SendClientGameState(connection, game_state):
