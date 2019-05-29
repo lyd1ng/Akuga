@@ -32,9 +32,9 @@ def GetNeutralMeeples(amount):
     neutral_meeples = []
     pool = []
     # Filter for all neutral jumons (all jumons with a name including __neutral)
-    for neutral_meeple in filter(lambda x: x.find("__neutral") > 1,
+    for neutral_meeple_name in filter(lambda x: x.find("__neutral") > 1,
             list(MeepleDict.keys())):
-        neutral_meeples.append(neutral_meeple)
+        neutral_meeples.append(MeepleDict[neutral_meeple_name])
     # Get random jumons from the list without double occupancies
     indices_cached = []
     for i in range(0, min(amount, len(neutral_meeples))):
@@ -53,9 +53,9 @@ def GetNotNeutralMeeples(amount):
     not_neutral_meeples = []
     pool = []
     # Filter for all non neutral jumons (all jumons with a name not including __neutral)
-    for not_neutral_meeple in filter(lambda x: x.find("__neutral") < 0,
+    for not_neutral_meeple_name in filter(lambda x: x.find("__neutral") < 0,
             list(MeepleDict.keys())):
-        not_neutral_meeples.append(not_neutral_meeple)
+        not_neutral_meeples.append(MeepleDict[not_neutral_meeple_name])
     # Get random jumons from the list
     indices_cached = []
     for i in range(0, min(amount, len(not_neutral_meeples))):
