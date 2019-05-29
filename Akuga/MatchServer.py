@@ -9,7 +9,7 @@ from Akuga.ArenaCreator import CreateArena
 from Akuga.MeepleDict import (GetNeutralMeeples, GetNotNeutralMeeples)
 import Akuga.GlobalDefinitions as GlobalDefinitions
 import Akuga.AkugaStateMachiene as AkugaStateMachiene
-from Akuga.NetworkProtocoll import (AsyncCallbackRecv,
+from Akuga.NetworkProtocoll import (AsyncCallbackReceiver,
         HandleMatchConnection,
         SendClientGameState)
 from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
@@ -76,9 +76,9 @@ def MatchServer(game_mode, users, options={}):
         """
         if type(game_state.player_chain.GetCurrentPlayer())\
                 is not NeutralPlayer:
-            AsyncCallbackRecv(users[game_state.player_chain.
-                    GetCurrentPlayer().name],
-                    512, _queue, HandleMatchConnection)
+            AsyncCallbackReceiver.AsyncCallbackRecv(users[game_state.player_chain.
+                GetCurrentPlayer().name],
+                512, _queue, HandleMatchConnection)
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
@@ -95,8 +95,7 @@ def MatchServer(game_mode, users, options={}):
             pass
         if event.type == TURN_ENDS:
             """
-            If a turn ends the changed game state has to be propagated
-            to all users
+            If a turn ends the game_state has to be propagated to all users
             """
             print("Propagating game state")
             for connection in users.values():
