@@ -45,6 +45,7 @@ class IdleState(State):
             if state_change[0] is not None:
                 return state_change
 
+        print("EVENT TYPE: " + str(event.type))
         if event.type == PICK_JUMON_EVENT\
                 and self.fsm.player_chain.GetCurrentPlayer().\
                 InPickPhase():
@@ -305,7 +306,7 @@ class ChangePlayerState(State):
             not be Updated anymore
             """
             drawn_event = pygame.event.Event(MATCH_IS_DRAWN)
-            pygame.event.post(drawn_event)
+            self.fsm.queue.put(drawn_event)
         # Check if a player has won
         victor = self.fsm.player_chain.CheckForVictory()
         if victor is not None:
@@ -314,7 +315,7 @@ class ChangePlayerState(State):
             not be Updated anymore
             """
             won_event = pygame.event.Event(PLAYER_HAS_WON, victor=victor)
-            pygame.event.post(won_event)
+            self.fsm.queue.put(won_event)
         """
         If no one has won and its not drawn change the player and
         jump to the idle state again so its the next players turn
@@ -325,7 +326,7 @@ class ChangePlayerState(State):
         and propagate the changes on the gamestate.
         """
         event = pygame.event.Event(TURN_ENDS)
-        pygame.event.post(event)
+        self.fsm.queue.put(event)
         return (self.fsm.idle_state, {})
 
 
