@@ -3,13 +3,13 @@ import os
 import pygame
 import queue
 from time import sleep
-from Akuga.Player import (Player, NeutralPlayer)
-from Akuga.PlayerChain import PlayerChain
-from Akuga.ArenaCreator import CreateArena
-from Akuga.MeepleDict import (GetNeutralMeeples, GetNotNeutralMeeples)
-import Akuga.GlobalDefinitions as GlobalDefinitions
-import Akuga.AkugaStateMachiene as AkugaStateMachiene
-from Akuga.NetworkProtocoll import (AsyncCallbackReceiver,
+from Akuga.MatchServer.Player import (Player, NeutralPlayer)
+from Akuga.MatchServer.PlayerChain import PlayerChain
+from Akuga.MatchServer.ArenaCreator import CreateArena
+from Akuga.MatchServer.MeepleDict import (GetNeutralMeeples, GetNotNeutralMeeples)
+from .. import GlobalDefinitions
+import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
+from Akuga.MatchServer.NetworkProtocoll import (AsyncCallbackReceiver,
         HandleMatchConnection,
         SendClientGameState)
 from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,

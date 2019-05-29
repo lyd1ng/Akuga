@@ -1,13 +1,13 @@
 import socket
 import errno
 import pygame
-from Akuga.MeepleDict import GetMeepleByName
-from Akuga.Position import Position
+from Akuga.MatchServer.MeepleDict import GetMeepleByName
+from Akuga.MatchServer.Position import Position
 from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
-                              SELECT_JUMON_TO_MOVE_EVENT,
-                              SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
-                              PICK_JUMON_EVENT,
-                              PACKET_PARSER_ERROR_EVENT)
+                                    SELECT_JUMON_TO_MOVE_EVENT,
+                                    SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
+                                    PICK_JUMON_EVENT,
+                                    PACKET_PARSER_ERROR_EVENT)
 
 
 class AsyncCallbackReceiver:

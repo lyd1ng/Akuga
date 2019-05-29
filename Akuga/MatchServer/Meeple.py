@@ -1,6 +1,6 @@
 from random import randint
-from Akuga.Position import Position
-from Akuga import GlobalDefinitions
+from Akuga.MatchServer.Position import Position
+from .. import GlobalDefinitions
 
 
 class Artefact():

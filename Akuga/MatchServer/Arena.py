@@ -1,4 +1,4 @@
-from Akuga.Position import Position
+from Akuga.MatchServer.Position import Position
 
 
 class ArenaTile:

@@ -1,5 +1,5 @@
 import random
-from Akuga.Meeple import (Jumon, TestNeutralJumon)
+from Akuga.MatchServer.Meeple import (Jumon, TestNeutralJumon)
 
 """
 This module contains a dictionary with all meeples in the game

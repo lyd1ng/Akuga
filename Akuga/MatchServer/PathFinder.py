@@ -1,5 +1,5 @@
-from Akuga.ArenaCreator import CreateArena
-from Akuga.Position import Position
+from Akuga.MatchServer.ArenaCreator import CreateArena
+from Akuga.MatchServer.Position import Position
 
 
 def pos_in(position, nodes):

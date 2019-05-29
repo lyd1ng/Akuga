@@ -1,4 +1,4 @@
-from Akuga.GlobalDefinitions import DEBUG
+from .. import GlobalDefinitions as gd
 
 
 class StateMachiene():
@@ -36,7 +36,7 @@ class StateMachiene():
         Invoke the Run function of the current state
         and eventually set change the state
         """
-        print("Run: " + self.current_state.name if DEBUG else "")
+        print("Run: " + self.current_state.name if gd.DEBUG else "")
         result = self.current_state.Run(event)
         if result is not None:
             """
@@ -47,4 +47,4 @@ class StateMachiene():
             next_state_variables = result[1]
             self.current_state = next_state
             self.current_state.state_variables = next_state_variables
-            print("Change State to: " + next_state.name if DEBUG else "")
+            print("Change State to: " + next_state.name if gd.DEBUG else "")
