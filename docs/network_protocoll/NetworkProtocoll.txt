@@ -1,0 +1,69 @@
+General:
+========
+The whole protocol is a clear text protocoll.
+A packet contains multiple arbitrary tokens seperated by a colon.
+A packet ends at the 'END' string. This doesnt have to be a token
+on its own. Tha means 'END' must not be part of any token.
+The first token is used as the command token.
+It is followed by an arbitrary amount of parameters.
+In the following the term 'player' references the representation of a player within
+the MatchSever as it is used by the gamestate.
+The term 'user' represent the active connection to one of the MatchClients.
+
+
+MatchClient -> MatchServer:
+===========================
+
+PICK_JUMON:$jumon_name:END
+---------------------------
+Pick the jumon $jumon_name from the pick pool
+
+SUMMON_JUMON:$jumon_name:END
+----------------------------
+Summon the jumon $jumon_name at a random position
+
+MOVE_JUMON:$jumon_name:$target_x, $target_y:END
+-----------------------------------------------
+Moves the jumon $jumon_name to ($target_x, $target_y).
+The components of the target position are seperated by ','.
+
+SPECIAL_MOVE_JUMON:$jumon_name:$target_x, $target_y:END
+-----------------------------------------------
+Use the special move ability of the jumon $jumon_name.
+The components of the target position are seperated by ','.
+
+MatchServer -> MatchClient
+==========================
+
+PICK_POOL_DATA:($jumon1_name,$jumon1_equipment_name):...:$jumonN_equipment_name):END
+---------------------------------------------------------------------------------
+Send all jumons and their equipments in the pick pool to a player.
+A jumon and its equipment are send as a tupel. If the jumon has no equipment
+which will be the case most of the time as the jumon is in the pick pool, the
+empty string "" is send as the name of the equipment.
+
+PLAYER_DATA_JUMONS_TO_SUMMON:$player_name:($jumon1_name,$jumon1:equipment_name):...:END
+---------------------------------------------------------------------------------------
+Send all jumons the player $player_name can summon to a user.
+A jumon and its equipment are send as a tupel. If the jumon has no equipment
+the empty string "" is send as the name of the equipment.
+
+PLAYER_DATA_SUMMONED_JUMONS:$player_name:($jumon1_name,$jumon1:equipment_name):...:END
+--------------------------------------------------------------------------------------
+Send all jumons the player $player_name has summoned to a user.
+A jumon and its equipment are send as a tupel. If the jumon has no equipment
+the empty string "" is send as the name of the equipment.
+The position of the jumons are send with the arena data.
+
+ARENA_DATA:$width:$height:$meeple1_name:....$meepleN_name:END
+-------------------------------------------------------------
+Send the width and the height as well as all meeples on the arena to a user.
+After the $height token exactly $width times $height tokens are send.
+This tokens represent all tiles of the aren from left to right from top to bottom.
+If a tile is not occupyied by a meeple the empty string "" is send.
+eg.:
+
+ARENA_DATA:2:2::Jumon1::Jumon2:END
+
+would mean that the arena is two tiles width and height, Jumon1 is placed at position
+(1, 0) and Jumon2 is placed at (1, 1).

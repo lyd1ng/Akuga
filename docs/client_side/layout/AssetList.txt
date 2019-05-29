@@ -1,0 +1,47 @@
+Hintergruende:
+-------------
+Login Hintergrund
+Lobby Hintergrund
+Match Hintergrund
+
+Buttons fuer die Lobby:
+-----------------------
+Login
+Register
+Send Passwort
+Play
+Last Man Standing VS
+Last Man Standing Triumvirat
+Akuga the mythic machiene
+Stats
+Ranking
+Options
+Change password
+
+Buttons fuer das Match:
+-----------------------
+Pick
+Summon
+Surrender
+Return
+
+Weitere GUI Elemente fuer das Match:
+------------------------------------
+Hintergrundtexture fuer den PickPool
+Horizontale Scrollbar (wie bei dem Panzerspiel um die Werte einzustellen)
+Victory Bild
+Defeat Bild
+
+Jumons und Artefakte:
+---------------------
+Beliebig viele
+Alle Jumons sollten eine kreisfoermige Representation haben mit der
+man sie aus dem PickPool picken und spaeter beschwoeren kann.
+Einmalig, da es fuer alle kreisfoermigen Representationen verwendet werden
+kann, eine Textur, die man als zweite Ebene anzeigen lassen kann um darzustellen,
+dass das Jumon ausgewaehlt wurde.
+
+Animationen:
+------------
+Todesanimation (fuer alle gleich, sonst wirst du wahnsinnig :D)
+Beschwoerungsanimation (auch wieder fuer alle gleich)
