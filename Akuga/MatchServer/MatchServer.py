@@ -15,8 +15,10 @@ from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
         TURN_ENDS,
         MATCH_IS_DRAWN,
         PLAYER_HAS_WON)
+from time import sleep
 import logging
-logger = logging.getlogger(__name__)
+logging.basicConfig(filename='MatchServer.log', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def BuildLastManStandingGamestate(player_chain, _queue, options={}):
@@ -110,6 +112,7 @@ def MatchServer(game_mode, users, options={}):
         if event.type == PLAYER_HAS_WON:
             running = False
             logger.info("Player: " + event.victor.name + " has won!")
+        sleep(1)
     # Close all connections
     for connection in users.values():
         connection.close()
