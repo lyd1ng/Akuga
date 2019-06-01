@@ -2,7 +2,6 @@ import fcntl
 import os
 import pygame
 import queue
-from time import sleep
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import CreateArena
@@ -16,6 +15,8 @@ from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
         TURN_ENDS,
         MATCH_IS_DRAWN,
         PLAYER_HAS_WON)
+import logging
+logger = logging.getlogger(__name__)
 
 
 def BuildLastManStandingGamestate(player_chain, _queue, options={}):
@@ -58,14 +59,17 @@ def MatchServer(game_mode, users, options={}):
     # Create the queue
     _queue = queue.Queue()
 
+    logger.info("Start match between" + str(player_chain))
+
     game_state = None
     if game_mode == "LastManStanding":
+        logger.info("Game Mode: LastManStanding")
         game_state = BuildLastManStandingGamestate(player_chain,
                 _queue, options)
     else:
+        logger.info("Game Mode: Unknown...Terminating")
         return
 
-    print("Enter the game loop")
     running = True
     while running:
         """
@@ -91,23 +95,21 @@ def MatchServer(game_mode, users, options={}):
         game_state.arena.PrintOut()
         if event.type == PACKET_PARSER_ERROR_EVENT:
             # Print the event msg but ignore the packet
-            print(event.msg)
-            pass
+            logger.info("Packet Parser Error: " + event.msg)
         if event.type == TURN_ENDS:
             """
             If a turn ends the game_state has to be propagated to all users
             """
-            print("Propagating game state")
+            logger.info("Propagating game state")
             for connection in users.values():
                 SendClientGameState(connection, game_state)
 
         if event.type == MATCH_IS_DRAWN:
             running = False
-            print("Match is drawn!")
+            logger.info("Match is drawn!")
         if event.type == PLAYER_HAS_WON:
             running = False
-            print("Player: " + event.victor.name + " has won!")
-        sleep(0.5)
+            logger.info("Player: " + event.victor.name + " has won!")
     # Close all connections
     for connection in users.values():
         connection.close()
