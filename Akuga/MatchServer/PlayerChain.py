@@ -260,6 +260,20 @@ class PlayerChain:
                 break
         return player_list
 
+    def __str__(self):
+        """
+        Return the name of every player in the playerchain
+        """
+        string_representation = ''
+        node_pointer = self.startNode
+        while True:
+            string_representation += node_pointer.GetPlayer().name + ' '
+            # Walk through the list of players
+            node_pointer = node_pointer.GetNext()
+            if node_pointer is self.endNode:
+                break
+        return string_representation
+
 
 if __name__ == "__main__":
     """
@@ -271,4 +285,5 @@ if __name__ == "__main__":
     player_chain = PlayerChain(player1, player2)
     player_chain.InsertPlayer(player3)
 
-    print(player_chain.GetNotNeutralPlayers())
+    print(player_chain.GetPlayers())
+    print(str(player_chain))
