@@ -9,6 +9,8 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     PICK_JUMON_EVENT,
                                     PACKET_PARSER_ERROR_EVENT)
 
+from Akuga.MatchServer.MatchServer import logger
+
 
 class AsyncCallbackReceiver:
     # Store the bytes until a whole packet is received
@@ -24,6 +26,7 @@ class AsyncCallbackReceiver:
         while it is not pers turn. Its uncritically, no invalid moves are
         possible, its just for convenients.
         """
+        logger.info("Reset connection to" + str(connection))
         AsyncCallbackReceiver.cached_str = ""
         while True:
             try:
@@ -38,7 +41,7 @@ class AsyncCallbackReceiver:
                     If the error is a real error close the connection for now
                     TODO: Better connection error handling
                     """
-                    print("Fatal error occured on " + str(connection))
+                    logger.info("Fatal error occured on " + str(connection))
                     connection.close()
 
     @staticmethod
@@ -71,7 +74,7 @@ class AsyncCallbackReceiver:
                 If the error is a real error close the connection for now
                 TODO: Better connection error handling
                 """
-                print("Fatal error occured on " + str(connection))
+                logger.info("Fatal error occured on " + str(connection))
                 connection.close()
         except UnicodeDecodeError:
             """
@@ -89,8 +92,10 @@ class AsyncCallbackReceiver:
             If there is a terminator within this packet invoke the callback
             function with the packet until the terminator
             """
-            print("Invoke callback functions with: " + AsyncCallbackReceiver.cached_str)
-            callback(AsyncCallbackReceiver.cached_str[:terminator_index], queue)
+            logger.info("Invoke callback functions\
+                with: " + AsyncCallbackReceiver.cached_str)
+            callback(AsyncCallbackReceiver.cached_str[:terminator_index],
+                queue)
             # The string has to be cleared to receive a new packet
             AsyncCallbackReceiver.cached_str = ""
 
@@ -117,7 +122,7 @@ def HandleMatchConnection(packet, queue):
     The same is true if an error occurs while parsing the packet.
     """
     tokens = packet.split(":")
-    print(tokens)
+    logger.info("Received packet:" + str(tokens))
 
     if tokens[0] == "PICK_JUMON" and len(tokens) >= 2:
         """
@@ -133,7 +138,6 @@ def HandleMatchConnection(packet, queue):
             return
         jumon_pick_event = pygame.event.Event(PICK_JUMON_EVENT,
                 jumon_to_pick=jumon_to_pick)
-        print("pick jumon event!")
         queue.put(jumon_pick_event)
     if tokens[0] == "SUMMON_JUMON" and len(tokens) >= 2:
         """
