@@ -1,4 +1,5 @@
-from .. import GlobalDefinitions as gd
+# Import the logger from the match server to use its settings
+from Akuga.MatchServer.MatchServer import logger
 
 
 class StateMachiene():
@@ -36,7 +37,7 @@ class StateMachiene():
         Invoke the Run function of the current state
         and eventually set change the state
         """
-        print("Run: " + self.current_state.name if gd.DEBUG else "")
+        logger.info("Run: " + self.current_state.name)
         result = self.current_state.Run(event)
         if result is not None:
             """
@@ -47,4 +48,4 @@ class StateMachiene():
             next_state_variables = result[1]
             self.current_state = next_state
             self.current_state.state_variables = next_state_variables
-            print("Change State to: " + next_state.name if gd.DEBUG else "")
+            logger.info("Change State to: " + next_state.name)
