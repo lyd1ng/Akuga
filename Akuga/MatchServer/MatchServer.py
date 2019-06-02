@@ -2,6 +2,9 @@ import fcntl
 import os
 import pygame
 import queue
+import logging
+logging.basicConfig(filename='MatchServer.log', level=logging.INFO)
+logger = logging.getLogger(__name__)
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import CreateArena
@@ -16,9 +19,6 @@ from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
         MATCH_IS_DRAWN,
         PLAYER_HAS_WON)
 from time import sleep
-import logging
-logging.basicConfig(filename='MatchServer.log', level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 def BuildLastManStandingGamestate(player_chain, _queue, options={}):
