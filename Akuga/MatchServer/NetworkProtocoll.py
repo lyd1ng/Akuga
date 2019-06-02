@@ -92,8 +92,8 @@ class AsyncCallbackReceiver:
             If there is a terminator within this packet invoke the callback
             function with the packet until the terminator
             """
-            logger.info("Invoke callback functions\
-                with: " + AsyncCallbackReceiver.cached_str)
+            logger.info('Invoke callback functions with: '
+                + AsyncCallbackReceiver.cached_str)
             callback(AsyncCallbackReceiver.cached_str[:terminator_index],
                 queue)
             # The string has to be cleared to receive a new packet
