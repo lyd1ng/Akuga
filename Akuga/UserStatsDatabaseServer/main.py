@@ -7,9 +7,23 @@ from Akuga.UserStatsDatabaseServer.GlobalDefinitions import (
     database_path)
 from queue import Queue
 from threading import Thread
+from datetime import datetime
 logging.basicConfig(filename='UserStatsDatabaseServer.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
 running = True
+
+
+def secure_string(string):
+    """
+    Return True if all characters in the string are part of the
+    whitelist. Otherwise return False
+    """
+    whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    for s in string:
+        if s not in whitelist:
+            return False
+    return True
+
 
 
 def handle_sigint(sig, frame):
@@ -21,24 +35,68 @@ def handle_sigint(sig, frame):
     running = False
 
 
+def InitDaylyEntry(cmd_queue, username, game_mode):
+    """
+    Creates an empty userstats entry (0 wins, 0 looses)
+    for the user named username in the specified game mode.
+    The date is always today to avoid tampering entries from the past
+    """
+    command = '''insert into userstats(name, mode, date, wins, looses)
+        select '{0}', '{1}', '{2}', 0, 0
+        where not exists(select 1 from userstats where name='{0}
+        and mode='{1} and date='{2}'''.format(username, game_mode,
+            datetime.today)
+    logging.info("Enqueued command from: local")
+    cmd_queue.put((None, "local", command))
+
+
+def AddWin(connection, client_address, cmd_queue, username, game_mode):
+    """
+    Adds a win for the user username in the game mode game_mode
+    the date is always today to avoid tempering data in the past
+    """
+    # If on of the parameters are insecure log it and return
+    if secure_string(username) is False or secure_string(game_mode) is False:
+        logger.info("Username or gamemode where insecure!")
+        logger.info("Received from: " + str(client_address))
+        return -1
+    # Enqueues to create an empty stats field if none exists
+    # Cause the queue is a fifo structure this will be executed before
+    # the update command
+    InitDaylyEntry(cmd_queue, username, game_mode)
+    # Create the update command
+    command = '''update userstat set wins=wins+1 where name='{0}' and mode=\
+        '{1}' and date='{2}' '''.format(username, game_mode, datetime.today)
+    logger.info('Enqueue command from: ' + str(client_address))
+    cmd_queue.put((connection, client_address, command))
+    return 0
+
+
+def AddLoose(connection, client_address, cmd_queue, username, game_mode):
+    """
+    Adds a loose for the user username in the game mode game_mode
+    the date is always today to avoid tempering data in the past
+    """
+    # If on of the parameters are insecure log it and return
+    if secure_string(username) is False or secure_string(game_mode) is False:
+        logger.info("Username or gamemode where insecure!")
+        logger.info("Received from: " + str(client_address))
+        return -1
+    # Enqueues to create an empty stats field if none exists
+    # Cause the queue is a fifo structure this will be executed before
+    # the update command
+    InitDaylyEntry(cmd_queue, username, game_mode)
+    # Create the update command
+    command = '''update userstat set looses=looses+1 where name='{0}' and mode=\
+        '{1}' and date='{2}' '''.format(username, game_mode, datetime.today)
+    logger.info('Enqueue command from: ' + str(client_address))
+    cmd_queue.put((connection, client_address, command))
+    return 0
+
+
+# TODO: Write a new handle client which reads packets, parses the prot. and invoces the correct functions
 def handle_client(connection, client_address, cmd_queue):
-    """
-    Handles a client connection.
-    Read commands from the client and enque them in the cmd_queue.
-    The commands are plain text sql.
-    The command is enqued with the connection socket and the client
-    address so the sql worker can send the answers directly to the clients
-    """
-    while True:
-        try:
-            command = connection.recv(512).decode('utf-8')
-        except socket.error:
-            logger.info("Socket error receiving from: " + str(client_address) +
-                " terminating handle_client function")
-            connection.close()
-            break
-        logger.info("Enqueu command from: " + str(client_address))
-        cmd_queue.put((connection, client_address, command))
+    pass
 
 
 def sql_worker(cmd_queue):
