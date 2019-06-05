@@ -25,7 +25,7 @@ def secure_string(string):
     Return True if all characters in the string are part of the
     whitelist. Otherwise return False
     """
-    whitelist = '-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     for s in string:
         if s not in whitelist:
             return False
@@ -101,21 +101,25 @@ def AddLoose(connection, client_address, cmd_queue, username, game_mode):
     return 0
 
 
-def GetStats(connection, client_address, cmd_queue, username,
-        game_mode, from_date, to_date):
+def GetStats(connection, client_address, cmd_queue, username, game_mode,
+        from_year, from_month, from_day, to_year, to_month, to_day):
     """
     Queries all the user stats of a user in a certain game mode between and
     including the from and the to date
     """
     # if on of the parameters are insecure log it and return
-    if secure_string(username + game_mode + from_date + to_date) is False:
+    if secure_string(username + game_mode + from_year + from_month + from_day
+            + to_year + to_month + to_day) is False:
         logger.info("One of the parameters where insecure!")
         logger.info("Received from: " + str(client_address))
         return -1
+    # Create the date strings
+    from_date = from_year + '-' + from_month + '-' + from_day
+    to_date = to_year + '-' + to_month + '-' + to_day
     # Create the query command
     command = ('''select date,wins,looses from userstats where name=? and
         mode=? and date >= ? and date <= ?''',
-        (username, game_mode, today(), today()))
+        (username, game_mode, from_date, to_date))
     print(command)
     logger.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
@@ -204,10 +208,15 @@ def handle_client(connection, client_address, cmd_queue):
             """
             username = tokens[1]
             game_mode = tokens[2]
-            from_date = tokens[3]
-            to_date = tokens[4]
-            GetStats(connection, client_address, cmd_queue, username,
-                game_mode, from_date, to_date)
+            from_year = tokens[3]
+            from_month = tokens[4]
+            from_day = tokens[5]
+            to_year = tokens[6]
+            to_month = tokens[7]
+            to_day = tokens[8]
+            GetStats(connection, client_address, cmd_queue, username, game_mode,
+                     from_year, from_month, from_day,
+                     to_year, to_month, to_day)
         if tokens[0] == "CHECK_USERNAME" and len(tokens) >= 2:
             """
             If the command token is check_username and enough tokens
