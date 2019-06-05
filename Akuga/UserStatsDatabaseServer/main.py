@@ -12,7 +12,6 @@ logging.basicConfig(filename='UserStatsDatabaseServer.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
 running = True
 
-# TODO: wrap the sql output inside the akuga network protocoll
 
 def today():
     """
@@ -48,11 +47,11 @@ def InitDaylyEntry(cmd_queue, username, game_mode):
     for the user named username in the specified game mode.
     The date is always today to avoid tampering entries from the past
     """
-    command = '''insert into userstats (name, mode, date, wins, looses)
-        select '{0}', '{1}', '{2}', 0, 0
-        where not exists(select 1 from userstats where name='{0}'
-        and mode='{1}' and date='{2}') '''.format(username, game_mode,
-            today())
+    command = ('''insert into userstats (name, mode, date, wins, looses)
+        select :name, :mode, :date, 0, 0
+        where not exists(select 1 from userstats where name=:name
+        and mode=:mode and date=:date)''',
+        {'name': username, 'mode': game_mode, 'date': today()})
     print(command)
     logging.info("Enqueued command from: local")
     cmd_queue.put((None, "local", command))
@@ -73,8 +72,8 @@ def AddWin(connection, client_address, cmd_queue, username, game_mode):
     # the update command
     InitDaylyEntry(cmd_queue, username, game_mode)
     # Create the update command
-    command = '''update userstats set wins=wins+1 where name='{0}' and mode=\
-        '{1}' and date='{2}' '''.format(username, game_mode, today())
+    command = ('''update userstats set wins=wins+1 where name=? and mode=?\
+        and date=? ''', (username, game_mode, today()))
     logger.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
     return 0
@@ -95,8 +94,8 @@ def AddLoose(connection, client_address, cmd_queue, username, game_mode):
     # the update command
     InitDaylyEntry(cmd_queue, username, game_mode)
     # Create the update command
-    command = '''update userstats set looses=looses+1 where name='{0}' and mode=\
-        '{1}' and date='{2}' '''.format(username, game_mode, today())
+    command = ('''update userstats set looses=looses+1 where name=? and mode=?\
+        and date=? ''', (username, game_mode, today()))
     logger.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
     return 0
@@ -114,13 +113,57 @@ def GetStats(connection, client_address, cmd_queue, username,
         logger.info("Received from: " + str(client_address))
         return -1
     # Create the query command
-    command = '''select date,wins,looses from userstats where name='{0}' and
-        mode='{1}' and date >= '{2}' and date <= '{3}'
-        '''.format(username, game_mode, from_date, to_date)
+    command = ('''select date,wins,looses from userstats where name=? and
+        mode=? and date >= ? and date <= ?''',
+        (username, game_mode, today(), today()))
     print(command)
     logger.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
     return 0
+
+
+def CheckUsername(connection, client_address, cmd_queue, username):
+    """
+    Checks if a username is free or not
+    """
+    if secure_string(username) is False:
+        logger.info("One of the parameters where insecure!")
+        logger.info("Received from: " + str(client_address))
+        return -1
+    command = ("select name from credentials where name=?", (username, ))
+    logger.info('Enqueue command from: ' + str(client_address))
+    cmd_queue.put((connection, client_address, command))
+
+
+def RegisterUser(connection, client_address, cmd_queue, username, pass_hash):
+    """
+    Registers a user with a given name and pers pass hash in the database
+    """
+    if secure_string(username + pass_hash) is False:
+        logger.info("One of the parameters where insecure!")
+        logger.info("Received from: " + str(client_address))
+        return -1
+    command = ("insert into credentials(name, pass_hash)\
+        select :name, :pass_hash\
+        where not exists(select 1 from credentials where name= :name)",
+        {'name': username, 'pass_hash': pass_hash})
+    logger.info('Enqueue command from: ' + str(client_address))
+    cmd_queue.put((connection, client_address, command))
+
+
+def CheckUserCredentials(connection, client_address,
+        cmd_queue, username, pass_hash):
+    """
+    Checks the credentials of a user
+    """
+    if secure_string(username + pass_hash) is False:
+        logger.info("One of the parameters where insecure!")
+        logger.info("Recieved from: " + str(client_address))
+        return -1
+    command = ("select name from credentials where name=?\
+            and pass_hash=?", (username, pass_hash))
+    logger.info('Enqueue command from: ' + str(client_address))
+    cmd_queue.put((connection, client_address, command))
 
 
 def handle_client(connection, client_address, cmd_queue):
@@ -165,6 +208,26 @@ def handle_client(connection, client_address, cmd_queue):
             to_date = tokens[4]
             GetStats(connection, client_address, cmd_queue, username,
                 game_mode, from_date, to_date)
+        if tokens[0] == "CHECK_USERNAME" and len(tokens) >= 2:
+            """
+            If the command token is check_username and enough tokens
+            are received check if the username in token[1] is free or not
+            """
+            CheckUsername(connection, client_address, cmd_queue, tokens[1])
+        if tokens[0] == "REGISTER_USER" and len(tokens) >= 3:
+            """
+            If the command token is register_user and enough tokens are
+            received insert a new entry into the credentials table
+            """
+            RegisterUser(connection, client_address, cmd_queue,
+                tokens[1], tokens[2])
+        if tokens[0] == "CHECK_CREDENTIALS" and len(tokens) >= 2:
+            """
+            If the command token is check_credentials and enough tokens
+            are received, check the credentials
+            """
+            CheckUserCredentials(connection, client_address, cmd_queue,
+                tokens[1], tokens[2])
 
 
 def sql_worker(cmd_queue):
@@ -193,7 +256,7 @@ def sql_worker(cmd_queue):
         """
         result = ""
         try:
-            cursor.execute(command)
+            cursor.execute(command[0], command[1])
             result = str(cursor.fetchall())
         except sqlite3.Error as e:
             logger.info("SQL Error from: " + str(client_address))
@@ -220,6 +283,13 @@ def InitDatabase(database, cursor):
         database.commit()
     except sqlite3.Error:
         logger.info("Failed to create the table userstats")
+        logger.info("Does it already exists?")
+    try:
+        logger.info("Create a credentials table")
+        cursor.execute("create table credentials (name text, pass_hash text)")
+        database.commit()
+    except sqlite3.Error:
+        logger.info("Failed to create the table credentials")
         logger.info("Does it already exists?")
 
 
