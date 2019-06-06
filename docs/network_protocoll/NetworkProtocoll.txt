@@ -67,3 +67,32 @@ ARENA_DATA:2:2::Jumon1::Jumon2:END
 
 would mean that the arena is two tiles width and height, Jumon1 is placed at position
 (1, 0) and Jumon2 is placed at (1, 1).
+
+
+LobbyClient -> GameServer:
+==========================
+
+REGISTER_USER:username:email:END
+---------------------------
+Sends a register request to the game server.
+A password is generated on the server side
+and send to the client via email.
+The username and the pass_hash is stored in the
+credentials table of the user database.
+
+LOGIN:username:pass_hash:END
+----------------------------
+Log the user in, this is the first step after
+a connection is established to the game server.
+No other action is allowed until the user has loged
+in succesfully.
+
+LOGOUT:username:END
+-------------------
+Log the user out (optionally)
+
+ENQUEUE_FOR_MATCH:game_mode:END
+-------------------------------
+Enqueue the user in the queue of the specified game queue.
+The top n (depending on the game mode) user in a queue are
+thrown into a match against each other.
