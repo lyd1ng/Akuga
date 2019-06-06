@@ -1,14 +1,14 @@
 import socket
 import sqlite3
 import logging
-from Akuga.UserStatsDatabaseServer.GlobalDefinitions import (
+from Akuga.UserDatabaseServer.GlobalDefinitions import (
     server_address,
     max_active_connections,
     database_path)
 from queue import Queue
 from threading import Thread
 from datetime import datetime
-logging.basicConfig(filename='UserStatsDatabaseServer.log', level=logging.INFO)
+logging.basicConfig(filename='UserDatabaseServer.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
 running = True
 
@@ -30,6 +30,19 @@ def secure_string(string):
         if s not in whitelist:
             return False
     return True
+
+
+def SendPacket(connection, tokens, terminator="END"):
+    """
+    Send a packet containing out of multiple tokens
+    Every token is converted to a string using the str function
+    for better convenients and is encoded using utf-8 encoding.
+    A packet has the form token1:token2:...:tokenN:terminator
+    """
+    for t in tokens:
+        connection.send((str(t) + ":").encode('utf-8'))
+    if terminator is not None:
+        connection.send(str(terminator).encode('utf-8'))
 
 
 def handle_sigint(sig, frame):
@@ -66,6 +79,7 @@ def AddWin(connection, client_address, cmd_queue, username, game_mode):
     if secure_string(username) is False or secure_string(game_mode) is False:
         logger.info("Username or gamemode where insecure!")
         logger.info("Received from: " + str(client_address))
+        SendPacket(connection, ["SQL_ERROR", "Insecure Parameter"])
         return -1
     # Enqueues to create an empty stats field if none exists
     # Cause the queue is a fifo structure this will be executed before
@@ -88,6 +102,7 @@ def AddLoose(connection, client_address, cmd_queue, username, game_mode):
     if secure_string(username) is False or secure_string(game_mode) is False:
         logger.info("Username or gamemode where insecure!")
         logger.info("Received from: " + str(client_address))
+        SendPacket(connection, ["SQL_ERROR", "Insecure Parameter"])
         return -1
     # Enqueues to create an empty stats field if none exists
     # Cause the queue is a fifo structure this will be executed before
@@ -112,6 +127,7 @@ def GetStats(connection, client_address, cmd_queue, username, game_mode,
             + to_year + to_month + to_day) is False:
         logger.info("One of the parameters where insecure!")
         logger.info("Received from: " + str(client_address))
+        SendPacket(connection, ["SQL_ERROR", "Insecure Parameter"])
         return -1
     # Create the date strings
     from_date = from_year + '-' + from_month + '-' + from_day
@@ -133,6 +149,7 @@ def CheckUsername(connection, client_address, cmd_queue, username):
     if secure_string(username) is False:
         logger.info("One of the parameters where insecure!")
         logger.info("Received from: " + str(client_address))
+        SendPacket(connection, ["SQL_ERROR", "Insecure Parameter"])
         return -1
     command = ("select name from credentials where name=?", (username, ))
     logger.info('Enqueue command from: ' + str(client_address))
@@ -146,6 +163,7 @@ def RegisterUser(connection, client_address, cmd_queue, username, pass_hash):
     if secure_string(username + pass_hash) is False:
         logger.info("One of the parameters where insecure!")
         logger.info("Received from: " + str(client_address))
+        SendPacket(connection, ["SQL_ERROR", "Insecure Parameter"])
         return -1
     command = ("insert into credentials(name, pass_hash)\
         select :name, :pass_hash\
@@ -163,6 +181,7 @@ def CheckUserCredentials(connection, client_address,
     if secure_string(username + pass_hash) is False:
         logger.info("One of the parameters where insecure!")
         logger.info("Recieved from: " + str(client_address))
+        SendPacket(connection, ["SQL_ERROR", "Insecure Parameter"])
         return -1
     command = ("select name from credentials where name=?\
             and pass_hash=?", (username, pass_hash))
@@ -269,11 +288,22 @@ def sql_worker(cmd_queue):
             result = str(cursor.fetchall())
         except sqlite3.Error as e:
             logger.info("SQL Error from: " + str(client_address))
+            # Set the sql error msg as the result so its send to the user
             result = e.args[0]
+            # If the command wasnt a locale command send the result
+            # to the client using the SQL_ERROR command token
+            # to signal the error
+            if connection is not None:
+                logger.info("Send result to: " + str(client_address))
+                result = result.encode('utf-8')
+                SendPacket(["SQL_ERROR", result])
+        # If the command wasnt a locale command send the result
+        # to the client using the SQL_SUCCESS command token
+        # to signal the success
         if connection is not None:
-            result = result.encode('utf-8')
-            connection.send(result)
             logger.info("Send result to: " + str(client_address))
+            result = result.encode('utf-8')
+            SendPacket(connection, ["SQL_SUCCESS", result])
         cmd_queue.task_done()
         # Commit to the database to make the changes visible
         database.commit()
