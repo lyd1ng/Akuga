@@ -299,7 +299,7 @@ def sql_worker(cmd_queue):
             # to signal the error
             if connection is not None:
                 logger.info("Send result to: " + str(client_address))
-                SendPacket(["ERROR", result])
+                SendPacket(connection, ["ERROR", result])
         # If the command wasnt a locale command send the result
         # to the client using the SUCCESS command token
         # to signal the success
