@@ -39,10 +39,13 @@ def SendPacket(connection, tokens, terminator="END"):
     for better convenients and is encoded using utf-8 encoding.
     A packet has the form token1:token2:...:tokenN:terminator
     """
+    query = ""
     for t in tokens:
-        connection.send((str(t) + ":").encode('utf-8'))
+        query += t + ":"
     if terminator is not None:
-        connection.send(str(terminator).encode('utf-8'))
+        query += terminator
+    query = query.encode('utf-8')
+    connection.send(query)
 
 
 def handle_sigint(sig, frame):
@@ -249,7 +252,7 @@ def handle_client(connection, client_address, cmd_queue):
             """
             RegisterUser(connection, client_address, cmd_queue,
                 tokens[1], tokens[2])
-        if tokens[0] == "CHECK_CREDENTIALS" and len(tokens) >= 2:
+        if tokens[0] == "CHECK_CREDENTIALS" and len(tokens) >= 3:
             """
             If the command token is check_credentials and enough tokens
             are received, check the credentials
@@ -286,6 +289,7 @@ def sql_worker(cmd_queue):
         try:
             cursor.execute(command[0], command[1])
             result = str(cursor.fetchall())
+            print("Result :" + result)
         except sqlite3.Error as e:
             logger.info("SQL Error from: " + str(client_address))
             # Set the sql error msg as the result so its send to the user
@@ -295,14 +299,12 @@ def sql_worker(cmd_queue):
             # to signal the error
             if connection is not None:
                 logger.info("Send result to: " + str(client_address))
-                result = result.encode('utf-8')
                 SendPacket(["ERROR", result])
         # If the command wasnt a locale command send the result
         # to the client using the SUCCESS command token
         # to signal the success
         if connection is not None:
             logger.info("Send result to: " + str(client_address))
-            result = result.encode('utf-8')
             SendPacket(connection, ["SUCCESS", result])
         cmd_queue.task_done()
         # Commit to the database to make the changes visible
