@@ -96,3 +96,18 @@ ENQUEUE_FOR_MATCH:game_mode:END
 Enqueue the user in the queue of the specified game queue.
 The top n (depending on the game mode) user in a queue are
 thrown into a match against each other.
+
+GameServer -> LobbyClient:
+==========================
+
+ERROR:error_msg:
+----------------
+Signal an error with error_msg
+
+SUCCESFULLY_REGISTERED:END
+--------------------------
+Signal that the user has been succesfully registered
+
+SUCCESFULLY_LOGGED_IN:END
+--------------------------
+Signal that the user has been succesfully loged in

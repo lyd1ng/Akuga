@@ -160,7 +160,7 @@ def handle_client(connection, client_address):
                         """
                         logger.info("Register user: " + username)
                         SendPasswordToClientEmail(username, password, email)
-                        SendPacket(connection, ["SUCCESS"])
+                        SendPacket(connection, ["SUCCESSFULLY_REGISTERED"])
             if tokens[0] == "LOG_IN" and len(tokens) >= 3:
                 """
                 Check the credentials of the user
@@ -182,7 +182,7 @@ def handle_client(connection, client_address):
                     # Unlock the logged in functionalities
                     logged_in = True
                     logger.info("Logging in: " + username)
-                    SendPacket(connection, ["SUCCESS"])
+                    SendPacket(connection, ["SUCCESSFULLY_LOGGED_IN"])
         else:
             # TODO: Implement the functionalities for a logged in user
             pass
