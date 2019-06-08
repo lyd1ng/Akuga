@@ -87,10 +87,6 @@ a connection is established to the game server.
 No other action is allowed until the user has loged
 in succesfully.
 
-LOGOUT:username:END
--------------------
-Log the user out (optionally)
-
 ENQUEUE_FOR_MATCH:game_mode:END
 -------------------------------
 Enqueue the user in the queue of the specified game queue.
