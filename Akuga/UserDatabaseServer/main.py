@@ -8,6 +8,7 @@ from Akuga.UserDatabaseServer.GlobalDefinitions import (
 from queue import Queue
 from threading import Thread
 from datetime import datetime
+
 logging.basicConfig(filename='UserDatabaseServer.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
 running = True
@@ -53,7 +54,7 @@ def handle_sigint(sig, frame):
     Termintate the programme properly on sigint
     """
     global running
-    logger.info("Received sigint, terminating program")
+    logger.info("Received sigint, terminating program\n")
     running = False
 
 
@@ -69,7 +70,7 @@ def InitDaylyEntry(cmd_queue, username, game_mode):
         and mode=:mode and date=:date)''',
         {'name': username, 'mode': game_mode, 'date': today()})
     print(command)
-    logging.info("Enqueued command from: local")
+    logger.info("Enqueued command from: local\n")
     cmd_queue.put((None, "local", command))
 
 
@@ -80,8 +81,8 @@ def AddWin(connection, client_address, cmd_queue, username, game_mode):
     """
     # If on of the parameters are insecure log it and return
     if secure_string(username) is False or secure_string(game_mode) is False:
-        logger.info("Username or gamemode where insecure!")
-        logger.info("Received from: " + str(client_address))
+        logger.info("Username or gamemode where insecure!\n")
+        logging.info("Received from: " + str(client_address))
         SendPacket(connection, ["ERROR", "Insecure Parameter"])
         return -1
     # Enqueues to create an empty stats field if none exists
@@ -91,7 +92,7 @@ def AddWin(connection, client_address, cmd_queue, username, game_mode):
     # Create the update command
     command = ('''update userstats set wins=wins+1 where name=? and mode=?\
         and date=? ''', (username, game_mode, today()))
-    logger.info('Enqueue command from: ' + str(client_address))
+    logging.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
     return 0
 
@@ -103,8 +104,8 @@ def AddLoose(connection, client_address, cmd_queue, username, game_mode):
     """
     # If on of the parameters are insecure log it and return
     if secure_string(username) is False or secure_string(game_mode) is False:
-        logger.info("Username or gamemode where insecure!")
-        logger.info("Received from: " + str(client_address))
+        logger.info("Username or gamemode where insecure!\n")
+        logging.info("Received from: " + str(client_address))
         SendPacket(connection, ["ERROR", "Insecure Parameter"])
         return -1
     # Enqueues to create an empty stats field if none exists
@@ -114,7 +115,7 @@ def AddLoose(connection, client_address, cmd_queue, username, game_mode):
     # Create the update command
     command = ('''update userstats set looses=looses+1 where name=? and mode=?\
         and date=? ''', (username, game_mode, today()))
-    logger.info('Enqueue command from: ' + str(client_address))
+    logging.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
     return 0
 
@@ -128,8 +129,8 @@ def GetStats(connection, client_address, cmd_queue, username, game_mode,
     # if on of the parameters are insecure log it and return
     if secure_string(username + game_mode + from_year + from_month + from_day
             + to_year + to_month + to_day) is False:
-        logger.info("One of the parameters where insecure!")
-        logger.info("Received from: " + str(client_address))
+        logger.info("One of the parameters where insecure!\n")
+        logging.info("Received from: " + str(client_address))
         SendPacket(connection, ["ERROR", "Insecure Parameter"])
         return -1
     # Create the date strings
@@ -140,7 +141,7 @@ def GetStats(connection, client_address, cmd_queue, username, game_mode,
         mode=? and date >= ? and date <= ?''',
         (username, game_mode, from_date, to_date))
     print(command)
-    logger.info('Enqueue command from: ' + str(client_address))
+    logging.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
     return 0
 
@@ -150,12 +151,12 @@ def CheckUsername(connection, client_address, cmd_queue, username):
     Checks if a username is free or not
     """
     if secure_string(username) is False:
-        logger.info("One of the parameters where insecure!")
-        logger.info("Received from: " + str(client_address))
+        logger.info("One of the parameters where insecure!\n")
+        logging.info("Received from: " + str(client_address))
         SendPacket(connection, ["ERROR", "Insecure Parameter"])
         return -1
     command = ("select name from credentials where name=?", (username, ))
-    logger.info('Enqueue command from: ' + str(client_address))
+    logging.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
 
 
@@ -164,15 +165,15 @@ def RegisterUser(connection, client_address, cmd_queue, username, pass_hash):
     Registers a user with a given name and pers pass hash in the database
     """
     if secure_string(username + pass_hash) is False:
-        logger.info("One of the parameters where insecure!")
-        logger.info("Received from: " + str(client_address))
+        logger.info("One of the parameters where insecure!\n")
+        logging.info("Received from: " + str(client_address))
         SendPacket(connection, ["ERROR", "Insecure Parameter"])
         return -1
     command = ("insert into credentials(name, pass_hash)\
         select :name, :pass_hash\
         where not exists(select 1 from credentials where name= :name)",
         {'name': username, 'pass_hash': pass_hash})
-    logger.info('Enqueue command from: ' + str(client_address))
+    logging.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
 
 
@@ -182,13 +183,13 @@ def CheckUserCredentials(connection, client_address,
     Checks the credentials of a user
     """
     if secure_string(username + pass_hash) is False:
-        logger.info("One of the parameters where insecure!")
-        logger.info("Recieved from: " + str(client_address))
+        logger.info("One of the parameters where insecure!\n")
+        logging.info("Recieved from: " + str(client_address))
         SendPacket(connection, ["ERROR", "Insecure Parameter"])
         return -1
     command = ("select name from credentials where name=?\
             and pass_hash=?", (username, pass_hash))
-    logger.info('Enqueue command from: ' + str(client_address))
+    logging.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
 
 
@@ -197,7 +198,10 @@ def handle_client(connection, client_address, cmd_queue):
         try:
             packet = connection.recv(512).decode('utf-8')
         except socket.error:
-            connection.close()
+            logger.info("Socket Error")
+            break
+        if not packet:
+            logger.info("Socket Close")
             break
         if packet.find('END') < 0:
             """
@@ -278,7 +282,7 @@ def sql_worker(cmd_queue):
     while True:
         connection, client_address, command = cmd_queue.get()
         if command is None:
-            logger.info("Received None command. SQL Worker shutting down")
+            logger.info("Received None command. SQL Worker shutting down\n")
             break
         """
         The result can be turned into a string and send to the client
@@ -291,20 +295,20 @@ def sql_worker(cmd_queue):
             result = str(cursor.fetchall())
             print("Result :" + result)
         except sqlite3.Error as e:
-            logger.info("SQL Error from: " + str(client_address))
+            logging.info("SQL Error from: " + str(client_address))
             # Set the sql error msg as the result so its send to the user
             result = e.args[0]
             # If the command wasnt a locale command send the result
             # to the client using the ERROR command token
             # to signal the error
             if connection is not None:
-                logger.info("Send result to: " + str(client_address))
+                logging.info("Send result to: " + str(client_address))
                 SendPacket(connection, ["ERROR", result])
         # If the command wasnt a locale command send the result
         # to the client using the SUCCESS command token
         # to signal the success
         if connection is not None:
-            logger.info("Send result to: " + str(client_address))
+            logging.info("Send result to: " + str(client_address))
             SendPacket(connection, ["SUCCESS", result])
         cmd_queue.task_done()
         # Commit to the database to make the changes visible
@@ -318,20 +322,20 @@ def InitDatabase(database, cursor):
     Just create a userstats table if there is none
     """
     try:
-        logger.info("Create a userstats table")
+        logger.info("Create a userstats table\n")
         cursor.execute("create table userstats\
             (name text, mode text, date text, wins real, looses real)")
         database.commit()
     except sqlite3.Error:
-        logger.info("Failed to create the table userstats")
-        logger.info("Does it already exists?")
+        logger.info("Failed to create the table userstats\n")
+        logger.info("Does it already exists?\n")
     try:
-        logger.info("Create a credentials table")
+        logger.info("Create a credentials table\n")
         cursor.execute("create table credentials (name text, pass_hash text)")
         database.commit()
     except sqlite3.Error:
-        logger.info("Failed to create the table credentials")
-        logger.info("Does it already exists?")
+        logger.info("Failed to create the table credentials\n")
+        logger.info("Does it already exists?\n")
 
 
 if __name__ == "__main__":
@@ -339,8 +343,8 @@ if __name__ == "__main__":
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(server_address)
     server_socket.listen(max_active_connections)
-    logger.info("Server socket listening at " + str(server_address))
-    logger.info("Server socket listening for " + str(max_active_connections))
+    logging.info("Server socket listening at " + str(server_address))
+    logging.info("Server socket listening for " + str(max_active_connections))
 
     # Create the cmd queue with a max of 512 entries
     cmd_queue = Queue(512)
