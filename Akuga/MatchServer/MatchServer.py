@@ -3,8 +3,6 @@ import os
 import pygame
 import queue
 import logging
-logging.basicConfig(filename='MatchServer.log', level=logging.INFO)
-logger = logging.getLogger(__name__)
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import CreateArena
@@ -19,6 +17,9 @@ from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
         MATCH_IS_DRAWN,
         PLAYER_HAS_WON)
 from time import sleep
+
+
+logger = logging.getLogger(__name__)
 
 
 def BuildLastManStandingGamestate(player_chain, _queue, options={}):
@@ -61,16 +62,19 @@ def MatchServer(game_mode, users, options={}):
     # Create the queue
     _queue = queue.Queue()
 
-    logger.info("Start match between" + str(player_chain))
-
     game_state = None
-    if game_mode == "LastManStanding":
-        logger.info("Game Mode: LastManStanding")
+    if game_mode == "lms":
+        logger.info("Game Mode: LastManStanding\n")
         game_state = BuildLastManStandingGamestate(player_chain,
                 _queue, options)
     else:
-        logger.info("Game Mode: Unknown...Terminating")
+        logger.info("Game Mode: Unknown...Terminating\n")
         return
+
+    logger.info("Start match between" + str(player_chain) + "\n")
+    logger.info("Propagating game state\n")
+    for connection in users.values():
+        SendClientGameState(connection, game_state)
 
     running = True
     while running:
@@ -97,21 +101,21 @@ def MatchServer(game_mode, users, options={}):
         game_state.arena.PrintOut()
         if event.type == PACKET_PARSER_ERROR_EVENT:
             # Print the event msg but ignore the packet
-            logger.info("Packet Parser Error: " + event.msg)
+            logger.info("Packet Parser Error: " + event.msg + "\n")
         if event.type == TURN_ENDS:
             """
             If a turn ends the game_state has to be propagated to all users
             """
-            logger.info("Propagating game state")
+            logger.info("Propagating game state\n")
             for connection in users.values():
                 SendClientGameState(connection, game_state)
 
         if event.type == MATCH_IS_DRAWN:
             running = False
-            logger.info("Match is drawn!")
+            logger.info("Match is drawn!\n")
         if event.type == PLAYER_HAS_WON:
             running = False
-            logger.info("Player: " + event.victor.name + " has won!")
+            logger.info("Player: " + event.victor.name + " has won!\n")
         sleep(1)
     # Close all connections
     for connection in users.values():

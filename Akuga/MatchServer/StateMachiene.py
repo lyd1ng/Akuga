@@ -1,5 +1,3 @@
-# Import the logger from the match server to use its settings
-from Akuga.MatchServer.MatchServer import logger
 
 
 class StateMachiene():
@@ -37,7 +35,6 @@ class StateMachiene():
         Invoke the Run function of the current state
         and eventually set change the state
         """
-        logger.info("Run: " + self.current_state.name)
         result = self.current_state.Run(event)
         if result is not None:
             """
@@ -48,4 +45,3 @@ class StateMachiene():
             next_state_variables = result[1]
             self.current_state = next_state
             self.current_state.state_variables = next_state_variables
-            logger.info("Change State to: " + next_state.name)

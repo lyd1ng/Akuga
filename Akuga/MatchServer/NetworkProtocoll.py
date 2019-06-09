@@ -9,8 +9,6 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     PICK_JUMON_EVENT,
                                     PACKET_PARSER_ERROR_EVENT)
 
-from Akuga.MatchServer.MatchServer import logger
-
 
 class AsyncCallbackReceiver:
     # Store the bytes until a whole packet is received
@@ -26,7 +24,6 @@ class AsyncCallbackReceiver:
         while it is not pers turn. Its uncritically, no invalid moves are
         possible, its just for convenients.
         """
-        logger.info("Reset connection to" + str(connection))
         AsyncCallbackReceiver.cached_str = ""
         while True:
             try:
@@ -41,7 +38,6 @@ class AsyncCallbackReceiver:
                     If the error is a real error close the connection for now
                     TODO: Better connection error handling
                     """
-                    logger.info("Fatal error occured on " + str(connection))
                     connection.close()
 
     @staticmethod
@@ -74,7 +70,6 @@ class AsyncCallbackReceiver:
                 If the error is a real error close the connection for now
                 TODO: Better connection error handling
                 """
-                logger.info("Fatal error occured on " + str(connection))
                 connection.close()
         except UnicodeDecodeError:
             """
@@ -92,8 +87,6 @@ class AsyncCallbackReceiver:
             If there is a terminator within this packet invoke the callback
             function with the packet until the terminator
             """
-            logger.info('Invoke callback functions with: '
-                + AsyncCallbackReceiver.cached_str)
             callback(AsyncCallbackReceiver.cached_str[:terminator_index],
                 queue)
             # The string has to be cleared to receive a new packet
@@ -122,7 +115,6 @@ def HandleMatchConnection(packet, queue):
     The same is true if an error occurs while parsing the packet.
     """
     tokens = packet.split(":")
-    logger.info("Received packet:" + str(tokens))
 
     if tokens[0] == "PICK_JUMON" and len(tokens) >= 2:
         """
