@@ -114,9 +114,11 @@ def handle_client(connection, client_address, lms_queue, amm_queue):
         try:
             packet = connection.recv(512).decode('utf-8')
         except socket.error:
+            connection.close()
             logger.info("Connection error")
             break
         if not packet:
+            connection.close()
             logger.info("Connection close")
             break
         tokens = packet.split(":")
