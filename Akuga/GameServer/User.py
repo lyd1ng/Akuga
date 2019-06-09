@@ -11,6 +11,7 @@ class User:
         self.pass_hash = pass_hash
         self.connection = connection
         self.client_address = client_address
+        self.in_play = False
 
     def __str__(self):
         """
