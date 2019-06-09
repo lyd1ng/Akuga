@@ -54,7 +54,7 @@ def MatchServer(game_mode, users, options={}):
     victor_name = None
     # Set all connections to be non blocking
     for connection in users.values():
-        fcntl.fcntl(connection, fcntl.F_SETFL, os.O_NONBLOCK)
+        connection.setblocking(0)
     # Build the player chain
     player_name_list = list(users.keys())
     player1 = Player(player_name_list[0])
@@ -131,9 +131,9 @@ def MatchServer(game_mode, users, options={}):
         SendPacket(connection, ["MATCH_END"])
         SendPacket(connection, ["MATCH_RESULT", victor_name])
 
-    # Close all connections
+    # Set all sockets to blocking again
     for connection in users.values():
-        connection.close()
+        connection.setblocking(1)
 
 
 if __name__ == "__main__":
