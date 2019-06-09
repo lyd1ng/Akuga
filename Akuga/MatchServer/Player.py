@@ -23,11 +23,15 @@ class Player:
         Set the jumons to summon
         """
         self.jumons_to_summon = jumons
+        # Set the owner of the jumons
+        for j in self.jumons_to_summon:
+            j.SetOwner(self)
 
     def AddJumonToSummon(self, jumon):
         """
         Add a jumon to summon
         """
+        jumon.SetOwner(self)
         self.jumons_to_summon.append(jumon)
 
     def InPickPhase(self):
