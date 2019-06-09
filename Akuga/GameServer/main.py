@@ -1,11 +1,15 @@
+import queue
 import random
 import socket
 import logging
 import smtplib
 from hashlib import md5
 from threading import Thread
+from multiprocessing import Process
 from ast import literal_eval
 from email.mime.text import MIMEText
+from Akuga.GameServer.User import User
+from Akuga.MatchServer.MatchServer import MatchServer
 from Akuga.GameServer.GlobalDefinitions import (
     server_address,
     user_dbs_address,
@@ -15,9 +19,9 @@ from Akuga.GameServer.GlobalDefinitions import (
     email_address,
     email_password)
 
-whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-logging.basicConfig(filename='GameServer.log', level=logging.INFO)
+logging.basicConfig(filename='Akuga.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
+whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
 
 def SendPacket(connection, tokens, terminator="END"):
@@ -95,7 +99,7 @@ def SendPasswordToClientEmail(username, password, user_email):
     server.quit()
 
 
-def handle_client(connection, client_address):
+def handle_client(connection, client_address, lms_queue, amm_queue):
     """
     Handles the connection of a user (the connection as well as the
     client address is stored within the user instance)
@@ -104,13 +108,17 @@ def handle_client(connection, client_address):
     userdb_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     userdb_connection.connect(user_dbs_address)
     print("In handle client thread!")
-    # Disable most of the functions until the user logs in
-    logged_in = False
+    # The instance of the user: None until a succsefully log in
+    user = None
     while True:
-        packet = connection.recv(512).decode('utf-8')
+        try:
+            packet = connection.recv(512).decode('utf-8')
+        except socket.error:
+            connection.close()
+            break
         print("Received: " + packet)
         tokens = packet.split(":")
-        if logged_in is False:
+        if user is None:
             """
             If the user is not logged in only logging in and register
             commands are allowed
@@ -135,7 +143,7 @@ def handle_client(connection, client_address):
                     logger.info("Database error: " + error)
                     SendPacket(connection, ["ERROR", error])
                 elif len(response) > 0:
-                    logger.info("User: " + username + " already exists")
+                    logger.info("User: " + username + " already exists\n")
                     SendPacket(connection, ["ERROR",
                         "User: " + username + " already exists"])
                 else:
@@ -180,18 +188,88 @@ def handle_client(connection, client_address):
                     But keep > 0 for safety
                     """
                     # Unlock the logged in functionalities
-                    logged_in = True
+                    user = User(username, pass_hash,
+                        connection, client_address)
                     logger.info("Logging in: " + username)
                     SendPacket(connection, ["SUCCESSFULLY_LOGGED_IN"])
+        elif user.in_play is False:
+            """
+            If the user is logged in an not playing a match
+            """
+            print("logged in and not in play")
+            if tokens[0] == 'ENQUEUE_FOR_MATCH' and len(tokens) >= 2:
+                """
+                Enqueue the user in the queue for the specified game mode
+                """
+                if tokens[1] == 'lms':
+                    logger.info("Enqueue " + user.name + "for lms")
+                    lms_queue.put(user)
+                elif tokens[1] == 'amm':
+                    logger.info("Enqueue " + user.name + "for amm")
+                    amm_queue.put(user)
+                else:
+                    logger.info("Invalid game mode: " + tokens[1])
+                    SendPacket(connection, ["ERROR", "Invalid game mode: "
+                        + tokens[1]])
         else:
-            # TODO: Implement the functionalities for a logged in user
+            """
+            If the user is logged in but currently playing a match,
+            do nothin
+            """
             pass
+
+
+def HandleLMSQueue(lms_queue):
+    """
+    Invoke a lms match between the two uppermost users
+    """
+    # Get two users from the queue
+    user1 = lms_queue.get()
+    user1.in_play = True
+    user2 = lms_queue.get()
+    user2.in_play = True
+    logger.info("Got two user for an lms match\n")
+    users = {user1.name: user1.connection, user2.name: user2.connection}
+    MatchServerProcess = Process(target=MatchServer, args=('lms', users, None))
+    MatchServerProcess.start()
+    logger.info("Started MatchServer subprocess\n")
+
+
+def HandleAMMQueue(amm_queue):
+    """
+    Invoke a amm match between the two uppermost users
+    """
+    # Get two users from the queue
+    user1 = amm_queue.get()
+    user1.in_play = True
+    user2 = amm_queue.get()
+    user2.in_play = True
+    logger.info("Got two user for an amm match\n")
+    users = {user1.name: user1.connection, user2.name: user2.connection}
+    MatchServerProcess = Process(target=MatchServer, args=('amm', users, None))
+    MatchServerProcess.start()
+    logger.info("Started MatchServer subprocess\n")
 
 
 if __name__ == '__main__':
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(server_address)
     server_socket.listen(max_active_connection)
+    logger.info("Creates server socket, waiting for: "
+        + str(max_active_connection))
+
+    # The game mode queues
+    lms_queue = queue.Queue()
+    amm_queue = queue.Queue()
+
+    # Create and start the handle game mode queue threads for each game mode
+    handle_lms_queue_thread = Thread(target=HandleLMSQueue, args=(lms_queue,))
+    handle_amm_queue_thread = Thread(target=HandleAMMQueue, args=(amm_queue,))
+    handle_lms_queue_thread.daemon = True
+    handle_amm_queue_thread.daemon = True
+    handle_lms_queue_thread.start()
+    handle_amm_queue_thread.start()
+    logger.info("Started handle_gamemode_queue threads as daemons\n")
 
     while True:
         try:
@@ -199,6 +277,6 @@ if __name__ == '__main__':
         except socket.error:
             break
         handle_client_thread = Thread(target=handle_client,
-            args=(connection, client_address))
+            args=(connection, client_address, lms_queue, amm_queue))
         handle_client_thread.start()
     server_socket.close()
