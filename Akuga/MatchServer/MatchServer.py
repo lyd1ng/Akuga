@@ -11,7 +11,8 @@ from .. import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
 from Akuga.MatchServer.NetworkProtocoll import (AsyncCallbackReceiver,
         HandleMatchConnection,
-        SendClientGameState)
+        SendClientGameState,
+        SendPacket)
 from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
         TURN_ENDS,
         MATCH_IS_DRAWN,
@@ -49,6 +50,8 @@ def MatchServer(game_mode, users, options={}):
     users: list of (player_name, player_connection)
     options: A dictionary with options, not used yet
     """
+    # Will hold the victor at the end
+    victor_name = None
     # Set all connections to be non blocking
     for connection in users.values():
         fcntl.fcntl(connection, fcntl.F_SETFL, os.O_NONBLOCK)
@@ -71,6 +74,11 @@ def MatchServer(game_mode, users, options={}):
         logger.info("Game Mode: Unknown...Terminating\n")
         return
 
+    # Signal the clients that the match starts
+    for connection in users.values():
+        SendPacket(connection, ["MATCH_START", game_mode])
+
+    # Initially propagate the game state
     logger.info("Start match between" + str(player_chain) + "\n")
     logger.info("Propagating game state\n")
     for connection in users.values():
@@ -115,8 +123,14 @@ def MatchServer(game_mode, users, options={}):
             logger.info("Match is drawn!\n")
         if event.type == PLAYER_HAS_WON:
             running = False
-            logger.info("Player: " + event.victor.name + " has won!\n")
+            victor_name = event.victor.name
+            logger.info("Player: " + victor_name + " has won!\n")
         sleep(1)
+    # Signal the end of the match and the victor
+    for connection in users.values():
+        SendPacket(connection, ["MATCH_END"])
+        SendPacket(connection, ["MATCH_RESULT", victor_name])
+
     # Close all connections
     for connection in users.values():
         connection.close()
@@ -137,7 +151,7 @@ if __name__ == "__main__":
         print('Found player2')
         print('Start match!')
         match_process = Process(target=MatchServer,
-            args=('LastManStanding', users))
+            args=('lms', users))
         match_process.start()
     except socket.error:
         for connection in users.values():
