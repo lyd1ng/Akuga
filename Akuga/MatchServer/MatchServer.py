@@ -1,5 +1,3 @@
-import fcntl
-import os
 import pygame
 import queue
 import logging
@@ -39,7 +37,7 @@ def BuildLastManStandingGamestate(player_chain, _queue, options={}):
     game_state.AddData("queue", _queue)
     game_state.AddData("arena", arena)
     game_state.AddData("player_chain", player_chain)
-    game_state.AddData("jumon_pick_pool", GetNotNeutralMeeples(10))
+    game_state.AddData("jumon_pick_pool", GetNotNeutralMeeples(2))
     return game_state
 
 
@@ -126,6 +124,27 @@ def MatchServer(game_mode, users, options={}):
             victor_name = event.victor.name
             logger.info("Player: " + victor_name + " has won!\n")
         sleep(1)
+
+    # If the match is not drawn add a victory or loose to the userstats
+    if victor_name is not None:
+        userdbs_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            userdbs_connection.connect(GlobalDefinitions.USER_DBS_ADDRESS)
+        except ConnectionRefusedError:
+            userdbs_connection = None
+        # Do nothing if the userdatabase server is unreachable
+        if userdbs_connection is not None:
+            for user_name in users:
+                logger.info("Logger in player_chain: " + user_name)
+                if user_name == victor_name:
+                    SendPacket(userdbs_connection,
+                        ["ADD_WIN", user_name, game_mode])
+                    userdbs_connection.recv(128)
+                else:
+                    SendPacket(userdbs_connection,
+                        ["ADD_LOOSE", user_name, game_mode])
+                    userdbs_connection.recv(128)
+            userdbs_connection.close()
     # Signal the end of the match and the victor
     for connection in users.values():
         SendPacket(connection, ["MATCH_END"])
@@ -137,17 +156,20 @@ def MatchServer(game_mode, users, options={}):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='MatchServer.log', level=logging.INFO)
+    logger = logging.getLogger(__name__)
     import socket
     from multiprocessing import Process
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('localhost', 12345))
     server_socket.listen(2)
-    users = {}
+    users = {'lyding': None, 'lyding2': None}
+
     try:
         print('Waiting for players')
-        users['player1'], _ = server_socket.accept()
+        users['lyding'], _ = server_socket.accept()
         print('Found player1')
-        users['player2'], _ = server_socket.accept()
+        users['lyding2'], _ = server_socket.accept()
         print('Found player2')
         print('Start match!')
         match_process = Process(target=MatchServer,
@@ -156,4 +178,4 @@ if __name__ == "__main__":
     except socket.error:
         for connection in users.values():
             connection.close()
-        server_socket.close()
+    server_socket.close()
