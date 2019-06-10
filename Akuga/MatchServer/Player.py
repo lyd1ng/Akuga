@@ -25,13 +25,13 @@ class Player:
         self.jumons_to_summon = jumons
         # Set the owner of the jumons
         for j in self.jumons_to_summon:
-            j.SetOwner(self)
+            j.set_owner(self)
 
     def AddJumonToSummon(self, jumon):
         """
         Add a jumon to summon
         """
-        jumon.SetOwner(self)
+        jumon.set_owner(self)
         self.jumons_to_summon.append(jumon)
 
     def InPickPhase(self):
@@ -222,7 +222,7 @@ class NeutralPlayer(Player):
                 """
                 self.HandleSummoning(jumon)
                 self.arena.PlaceUnitAt(jumon, position)
-                jumon.SetPosition(position)
+                jumon.set_position(position)
                 # Now add the position to positions to make this tile occupied
                 summon_positions.append(position)
 
@@ -236,5 +236,5 @@ class NeutralPlayer(Player):
         random_index = randint(0, len(self.summoned_jumons) - 1)
         state_change = next_state_and_variables
         state_change = self.summoned_jumons[random_index].\
-            SpecialAbility(current_state, next_state_and_variables)
+            special_ability(current_state, next_state_and_variables)
         return state_change

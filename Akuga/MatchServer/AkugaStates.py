@@ -138,7 +138,7 @@ class PickState(State):
         switch to the summon phase.
         """
         jumon = self.state_variables["jumon_to_pick"]
-        jumon.SetOwner(self.fsm.player_chain.GetCurrentPlayer())
+        jumon.set_owner(self.fsm.player_chain.GetCurrentPlayer())
         self.fsm.jumon_pick_pool.remove(jumon)
         self.fsm.player_chain.GetCurrentPlayer().AddJumonToSummon(jumon)
         if len(self.fsm.jumon_pick_pool) < self.fsm.player_chain.GetNotNeutralLength():
@@ -178,7 +178,7 @@ class SummonState(State):
         Invoke the special ability function of the current jumon
         and use its return for the state change of the fsm
         """
-        state_change = jumon_to_summon.SpecialAbility(self,
+        state_change = jumon_to_summon.special_ability(self,
                 (self.fsm.summon_check_state, summon_check_state_variables))
         return state_change
 
@@ -216,13 +216,13 @@ class SummonCheckState(State):
                 HandleSummoning(jumon)
             # Place the jumon at the arena
             self.fsm.arena.PlaceUnitAt(jumon, summon_position)
-            jumon.SetPosition(summon_position)
+            jumon.set_position(summon_position)
             """
             Invoke the jumon special ability with the same state variables
             as no new state variables occured. This way enter the battlefield
             effects can be implemented.
             """
-            state_change = jumon.SpecialAbility(self,
+            state_change = jumon.special_ability(self,
                     (self.fsm.change_player_state, self.state_variables))
             return state_change
         elif issubclass(type(self.fsm.arena.GetUnitAt(
@@ -239,7 +239,7 @@ class SummonCheckState(State):
             artefact = self.fsm.arena.GetUnitAt(summon_position)
             # Place the jumon at the arena
             self.fsm.arena.PlaceUnitAt(jumon, summon_position)
-            jumon.SetPosition(summon_position)
+            jumon.set_position(summon_position)
             """
             Create the state variables with the last state as None
             as there is no last position and do the state change
@@ -364,7 +364,7 @@ class CheckMoveState(State):
             """
             self.fsm.arena.PlaceUnitAt(None, current_position)
             self.fsm.arena.PlaceUnitAt(jumon, target_position)
-            jumon.SetPosition(target_position)
+            jumon.set_position(target_position)
             return (self.fsm.change_player_state, {})
         elif self.fsm.player_chain.GetCurrentPlayer().\
                 OwnsTile(self.fsm.arena, target_position):
@@ -384,7 +384,7 @@ class CheckMoveState(State):
             # Move the jumon
             self.fsm.arena.PlaceUnitAt(None, current_position)
             self.fsm.arena.PlaceUnitAt(jumon, target_position)
-            jumon.SetPosition(target_position)
+            jumon.set_position(target_position)
             # Jump to the equip artefact to jumon state
             return (self.fsm.equip_artefact_to_jumon_state, {
                 "jumon": jumon,
@@ -417,12 +417,12 @@ class CheckSpecialMoveState(State):
         jumon = self.state_variables["jumon_to_move"]
         current_position = self.state_variables["current_position"]
         target_position = self.state_variables["target_position"]
-        if jumon.IsSpecialMoveLegal(current_position, target_position):
+        if jumon.is_special_move_legal(current_position, target_position):
             """
             If the special move is legal invoke the special move function
             of the current jumon
             """
-            state_change = jumon.DoSpecialMove(self.fsm, current_position,
+            state_change = jumon.do_special_move(self.fsm, current_position,
                     target_position)
             return state_change
         else:
@@ -451,10 +451,10 @@ class OneTileBattleBeginState(State):
         """
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.one_tile_battle_flip_state,
                 self.state_variables))
-        state_change = defending_jumon.SpecialAbility(self, state_change)
+        state_change = defending_jumon.special_ability(self, state_change)
         # Do the state change
         return state_change
 
@@ -491,10 +491,10 @@ class OneTileBattleFlipState(State):
         That means the state change of the attacking jumon has to be passed
         to the defending jumon!
         """
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.one_tile_battle_boni_evaluation_state,
                  one_tile_battle_boni_evaluation_state_variables))
-        state_change = defending_jumon.SpecialAbility(self,
+        state_change = defending_jumon.special_ability(self,
                 (state_change[0], state_change[1]))
         return state_change
 
@@ -530,10 +530,10 @@ class OneTileBattleBoniEvaluationState(State):
         """
         After the bonus values are evaluated invoke the ability scripts
         """
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.one_tile_battle_fight_state,
                 one_tile_battle_figh_state_variables))
-        state_change = defending_jumon.SpecialAbility(self,
+        state_change = defending_jumon.special_ability(self,
                 (state_change[0], state_change[1]))
         return state_change
 
@@ -591,10 +591,10 @@ class OneTileBattleFightState(State):
         Run the ability scripts after victor and looser are determined,
         this way ability scripts can trigger if the bakugan wins or looses
         """
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.one_tile_battle_aftermath_state,
                 one_tile_battle_aftermath_state_variables))
-        state_change = defending_jumon.SpecialAbility(self, state_change)
+        state_change = defending_jumon.special_ability(self, state_change)
         return state_change
 
 
@@ -622,10 +622,10 @@ class OneTileBattleAftermathState(State):
         This way the destruction of both jumons could be prohibited
         and death rattle effects can be implemented
         """
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.change_player_state,
                 self.state_variables))
-        state_change = defending_jumon.SpecialAbility(self, state_change)
+        state_change = defending_jumon.special_ability(self, state_change)
         if victor is None and looser is None:
             """
             If no victor and no looser is assigned both jumons had the same
@@ -635,7 +635,7 @@ class OneTileBattleAftermathState(State):
             """
             if attacking_jumon.equipment is not None:
                 artefact = attacking_jumon.equipment
-                artefact.DetachFrom(attacking_jumon)
+                artefact.detach_from(attacking_jumon)
                 battle_arena_tile.PlaceUnit(artefact)
             """
             If the defender has an equipment attached to it detach it
@@ -646,7 +646,7 @@ class OneTileBattleAftermathState(State):
             """
             if defending_jumon.equipment is not None:
                 artefact = defending_jumon.equipment
-                artefact.DetachFrom(defending_jumon)
+                artefact.detach_from(defending_jumon)
                 battle_arena_tile.PlaceUnit(artefact)
             # Kill the jumons
             attacking_jumon.owned_by.HandleJumonDeath(attacking_jumon)
@@ -660,8 +660,8 @@ class OneTileBattleAftermathState(State):
                 winner instead
                 """
                 artifact = looser.equipment
-                looser.equipment.DetachFrom(looser)
-                artifact.AttachTo(victor)
+                looser.equipment.detach_from(looser)
+                artifact.attach_to(victor)
             # Now kill the looser
             looser.owned_by.HandleJumonDeath(looser)
             # Place the victor on the arena tile
@@ -686,10 +686,10 @@ class TwoTileBattleBeginState(State):
         """
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.two_tile_battle_flip_state,
                 self.state_variables))
-        state_change = defending_jumon.SpecialAbility(self, state_change)
+        state_change = defending_jumon.special_ability(self, state_change)
         return state_change
 
 
@@ -727,10 +727,10 @@ class TwoTileBattleFlipState(State):
         of the nameless jumon or red robot can be implemented.
         The attacking jumons triggers first!
         """
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.two_tile_battle_boni_evaluation_state,
                 two_tile_battle_boni_evaluation_state_variables))
-        state_change = defending_jumon.SpecialAbility(self, state_change)
+        state_change = defending_jumon.special_ability(self, state_change)
         # Do the state change
         return state_change
 
@@ -772,10 +772,10 @@ class TwoTileBattleBoniEvaluationState(State):
         """
         After the bonus values are evaluated invoke the ability scripts
         """
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.two_tile_battle_fight_state,
                 two_tile_battle_figh_state_variables))
-        state_change = defending_jumon.SpecialAbility(self, state_change)
+        state_change = defending_jumon.special_ability(self, state_change)
         # Do the state change
         return state_change
 
@@ -836,10 +836,10 @@ class TwoTileBattleFightState(State):
         Run the ability scripts after victor and looser are determined,
         this way ability scripts can trigger if the bakugan wins or looses
         """
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.two_tile_battle_aftermath_state,
                 two_tile_battle_aftermath_state_variables))
-        state_change = defending_jumon.SpecialAbility(self, state_change)
+        state_change = defending_jumon.special_ability(self, state_change)
         # Do the state change
         return state_change
 
@@ -865,10 +865,10 @@ class TwoTileBattleAftermathState(State):
         This way the destruction of both jumons could be prohibited
         and death rattle effects can be implemented
         """
-        state_change = attacking_jumon.SpecialAbility(self,
+        state_change = attacking_jumon.special_ability(self,
                 (self.fsm.change_player_state,
                 self.state_variables))
-        state_change = defending_jumon.SpecialAbility(self, state_change)
+        state_change = defending_jumon.special_ability(self, state_change)
         if victor is None and looser is None:
             """
             If no victor and no looser is assigned both jumons had the same
@@ -885,14 +885,14 @@ class TwoTileBattleAftermathState(State):
                 If the attacking_jumon had an artefact equiped drop it
                 """
                 artefact = attacking_jumon.equipment
-                artefact.DetachFrom(attacking_jumon)
+                artefact.detach_from(attacking_jumon)
                 attack_tile.PlaceUnit(artefact)
             if defending_jumon.equipment is not None:
                 """
                 If the defending_jumon had an artefact equiped drop it
                 """
                 artefact = defending_jumon.equipment
-                artefact.DetachFrom(defending_jumon)
+                artefact.detach_from(defending_jumon)
                 defense_tile.PlaceUnit(artefact)
 
         elif victor is attacking_jumon:
@@ -910,7 +910,7 @@ class TwoTileBattleAftermathState(State):
                 from it and attached to the attacker
                 """
                 looser_artefact = looser.equipment
-                looser_artefact.DetachFrom(looser)
+                looser_artefact.detach_from(looser)
                 if victor.equipment is not None:
                     """
                     If the victor jumon has an equipment on its own it dropps
@@ -918,10 +918,10 @@ class TwoTileBattleAftermathState(State):
                     artefact of the defender jumon
                     """
                     victor_artefact = victor.equipment
-                    victor_artefact.DetachFrom(victor)
+                    victor_artefact.detach_from(victor)
                     attack_tile.PlaceUnit(victor_artefact)
                 # Attach the artefact of the defender to the attacker
-                looser_artefact.AttachTo(victor)
+                looser_artefact.attach_to(victor)
         elif victor is defending_jumon:
             """
             If the defending_jumon has won remove the attacking jumon
@@ -936,7 +936,7 @@ class TwoTileBattleAftermathState(State):
                 """
                 # Detach the artefact from the jumon
                 attack_artefact = attacking_jumon.equipment
-                attack_artefact.DetachFrom(attacking_jumon)
+                attack_artefact.detach_from(attacking_jumon)
                 # Place it on the attack tile
                 attack_tile.PlaceUnit(attack_artefact)
         # Now the turn ends so do the change
@@ -962,7 +962,7 @@ class EquipArtefactToJumonState(State):
             """
             If the jumon has no equipment yet just attach it
             """
-            artefact.AttachTo(jumon)
+            artefact.attach_to(jumon)
         else:
             """
             If the jumon has an equipment attached it has to be detached
@@ -972,9 +972,9 @@ class EquipArtefactToJumonState(State):
             """
             # Get the artefact to detach and detach it from the jumon
             detached_artefact = jumon.equipment
-            detached_artefact.DetachFrom(jumon)
+            detached_artefact.detach_from(jumon)
             # Attach the current artefact to the jumon
-            artefact.AttachTo(jumon)
+            artefact.attach_to(jumon)
             """
             Just place the detached artefact on the arena again if the
             last position is not None like it would be if the jumon
@@ -985,5 +985,5 @@ class EquipArtefactToJumonState(State):
                 self.fsm.arena.PlaceUnitAt(detached_artefact, last_position)
         # Invoke the special ability of the jumon and do the state change
         state_change = (self.fsm.change_player_state, {})
-        state_change = jumon.SpecialAbility(self, state_change)
+        state_change = jumon.special_ability(self, state_change)
         return state_change

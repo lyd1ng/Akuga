@@ -180,7 +180,7 @@ def HandleMatchConnection(packet, queue):
         # If no error occured the event can be thrown
         jumon_move_event = pygame.event.Event(SELECT_JUMON_TO_MOVE_EVENT,
                 jumon_to_move=jumon_to_move,
-                current_position=jumon_to_move.GetPosition(),
+                current_position=jumon_to_move.get_position(),
                 target_position=Position(position_x, position_y))
         queue.put(jumon_move_event)
 
@@ -215,7 +215,7 @@ def HandleMatchConnection(packet, queue):
         jumon_special_move_event = pygame.event.Event(
             SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
             jumon_to_move=jumon_to_special_move,
-            current_position=jumon_to_special_move.GetPosition(),
+            current_position=jumon_to_special_move.get_position(),
             target_position=Position(position_x, position_y))
         queue.put(jumon_special_move_event)
 
@@ -298,13 +298,13 @@ if __name__ == "__main__":
     player2 = Player("player2")
     player_chain = PlayerChain(player1, player2)
 
-    GetMeepleByName("Jumon1").SetOwner(player1)
-    GetMeepleByName("Jumon2").SetOwner(player1)
+    GetMeepleByName("Jumon1").set_owner(player1)
+    GetMeepleByName("Jumon2").set_owner(player1)
     player1.AddJumonToSummon(GetMeepleByName("Jumon1"))
     player1.AddJumonToSummon(GetMeepleByName("Jumon2"))
 
-    GetMeepleByName("Jumon3").SetOwner(player2)
-    GetMeepleByName("Jumon4").SetOwner(player2)
+    GetMeepleByName("Jumon3").set_owner(player2)
+    GetMeepleByName("Jumon4").set_owner(player2)
     player2.AddJumonToSummon(GetMeepleByName("Jumon3"))
     player2.AddJumonToSummon(GetMeepleByName("Jumon4"))
 
