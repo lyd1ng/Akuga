@@ -13,20 +13,20 @@ class ArenaTile:
     def __init__(self, boni, flip_effect_script):
         self.boni = boni
         self.flip_scripy = flip_effect_script
-        self.occupied_by = None
+        self._occupied_by = None
 
     def occupied_by(self):
         """
         Returns the unit aka jumon, equipment ocuppying this tile
         """
-        return self.occupied_by
+        return self._occupied_by
 
     def is_blocked(self):
         """
         Returns whether the unit occupying this tile is blocking or not
         """
-        if self.occupied_by is not None:
-            return self.occupied_by.blocking
+        if self._occupied_by is not None:
+            return self._occupied_by.blocking
         return False
 
     def get_bonus_for_jumon(self, jumon):
@@ -43,13 +43,13 @@ class ArenaTile:
         """
         Places a unit on this tile
         """
-        self.occupied_by = unit
+        self._occupied_by = unit
 
     def remove_unit(self):
         """
         Removes the unit from the tile if there is one
         """
-        self.occupied_by = None
+        self._occupied_by = None
 
 
 class Arena:
