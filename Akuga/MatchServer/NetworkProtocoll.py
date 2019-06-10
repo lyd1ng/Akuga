@@ -15,7 +15,7 @@ class AsyncCallbackReceiver:
     cached_str = ""
     current_connection = None
     @staticmethod
-    def RefreshConnection(connection):
+    def refresh_connection(connection):
         """
         Drop all bytes until no data is received anymore
         (ddos is possible here) and clear the cached_str.
@@ -41,7 +41,7 @@ class AsyncCallbackReceiver:
                     connection.close()
 
     @staticmethod
-    def AsyncCallbackRecv(connection,
+    def async_callback_recv(connection,
                           nbytes,
                           queue,
                           callback,
@@ -52,7 +52,7 @@ class AsyncCallbackReceiver:
         """
         # If the connection is a new connection refresh it
         if connection != AsyncCallbackReceiver.current_connection:
-            AsyncCallbackReceiver.RefreshConnection(connection)
+            AsyncCallbackReceiver.refresh_connection(connection)
             AsyncCallbackReceiver.current_connection = connection
         try:
             """
@@ -93,7 +93,7 @@ class AsyncCallbackReceiver:
             AsyncCallbackReceiver.cached_str = ""
 
 
-def SendPacket(connection, tokens, terminator="END"):
+def send_packet(connection, tokens, terminator="END"):
     """
     Send a packet containing multiple tokens.
     Every token is converted to a string using the str function
@@ -109,7 +109,7 @@ def SendPacket(connection, tokens, terminator="END"):
     connection.send(query)
 
 
-def HandleMatchConnection(packet, queue):
+def handle_match_connection(packet, queue):
     """
     Receives a package from connection with a timeout of the defined
     seconds per turn. If a packet was received parse it and handle it by
@@ -220,7 +220,7 @@ def HandleMatchConnection(packet, queue):
         queue.put(jumon_special_move_event)
 
 
-def SendClientGameState(connection, game_state):
+def send_gamestate_to_client(connection, game_state):
     """
     Send all neccessary data from the server game state to build the client
     game state. The client game state is an excerpt from the state machiene
@@ -236,13 +236,13 @@ def SendClientGameState(connection, game_state):
         pick_pool_data_tokens.append((jumon.name, jumon.equipment.name
             if jumon.equipment is not None
             else ""))
-    SendPacket(connection, pick_pool_data_tokens)
+    send_packet(connection, pick_pool_data_tokens)
 
     """
     Now go through all the players and send the jummons per can summon
     and the jumons per has already summoned.
     """
-    for player in game_state.player_chain.GetPlayers():
+    for player in game_state.player_chain.get_players():
         pld_jumons_to_summon_token = [
             "PLAYER_DATA_JUMONS_TO_SUMMON",
             player.name]
@@ -260,8 +260,8 @@ def SendClientGameState(connection, game_state):
                 if jumon.equipment is not None
                 else ""))
         # Send the data
-        SendPacket(connection, pld_jumons_to_summon_token)
-        SendPacket(connection, pld_summoned_jumons)
+        send_packet(connection, pld_jumons_to_summon_token)
+        send_packet(connection, pld_summoned_jumons)
 
     """
     Now go through all tiles of the arena and send the meeple occupying
@@ -277,15 +277,15 @@ def SendClientGameState(connection, game_state):
     """
     for y in range(game_state.arena.board_height):
         for x in range(game_state.arena.board_width):
-            meeple = game_state.arena.GetUnitAt(Position(x, y))
+            meeple = game_state.arena.get_unit_at(Position(x, y))
             packet_tokens.append(meeple.name if meeple is not None else "")
-    SendPacket(connection, packet_tokens)
+    send_packet(connection, packet_tokens)
 
 
 if __name__ == "__main__":
     from Akuga.Player import Player
     from Akuga.PlayerChain import PlayerChain
-    from Akuga.ArenaCreator import CreateArena
+    from Akuga.ArenaCreator import create_arena
     import Akuga.GlobalDefinitions as GlobalDefinitions
     import Akuga.AkugaStateMachiene as AkugaStateMachiene
 
@@ -300,27 +300,27 @@ if __name__ == "__main__":
 
     get_meeple_by_name("Jumon1").set_owner(player1)
     get_meeple_by_name("Jumon2").set_owner(player1)
-    player1.AddJumonToSummon(get_meeple_by_name("Jumon1"))
-    player1.AddJumonToSummon(get_meeple_by_name("Jumon2"))
+    player1.add_jumon_to_summon(get_meeple_by_name("Jumon1"))
+    player1.add_jumon_to_summon(get_meeple_by_name("Jumon2"))
 
     get_meeple_by_name("Jumon3").set_owner(player2)
     get_meeple_by_name("Jumon4").set_owner(player2)
-    player2.AddJumonToSummon(get_meeple_by_name("Jumon3"))
-    player2.AddJumonToSummon(get_meeple_by_name("Jumon4"))
+    player2.add_jumon_to_summon(get_meeple_by_name("Jumon3"))
+    player2.add_jumon_to_summon(get_meeple_by_name("Jumon4"))
 
-    arena = CreateArena(GlobalDefinitions.BOARD_WIDTH,
+    arena = create_arena(GlobalDefinitions.BOARD_WIDTH,
                         GlobalDefinitions.BOARD_HEIGHT,
                         0, 255)
-    game_state = AkugaStateMachiene.CreateLastManStandingFSM()
-    game_state.AddData("arena", arena)
-    game_state.AddData("player_chain", player_chain)
-    game_state.AddData("jumon_pick_pool", [get_meeple_by_name("Jumon5")])
+    game_state = AkugaStateMachiene.create_last_man_standing_fsm()
+    game_state.add_data("arena", arena)
+    game_state.add_data("player_chain", player_chain)
+    game_state.add_data("jumon_pick_pool", [get_meeple_by_name("Jumon5")])
 
-    arena.PlaceUnitAt(get_meeple_by_name("NeutralJumon1"), Position(0, 0))
+    arena.place_unit_at(get_meeple_by_name("NeutralJumon1"), Position(0, 0))
 
     while True:
         connection, address = server_socket.accept()
-        SendClientGameState(connection, game_state)
+        send_gamestate_to_client(connection, game_state)
         connection.close()
 
     server_socket.close()

@@ -15,13 +15,13 @@ class ArenaTile:
         self.flip_scripy = flip_effect_script
         self.occupied_by = None
 
-    def OccupiedBy(self):
+    def occupied_by(self):
         """
         Returns the unit aka jumon, equipment ocuppying this tile
         """
         return self.occupied_by
 
-    def IsBlocked(self):
+    def is_blocked(self):
         """
         Returns whether the unit occupying this tile is blocking or not
         """
@@ -29,7 +29,7 @@ class ArenaTile:
             return self.occupied_by.blocking
         return False
 
-    def GetBonusForJumon(self, jumon):
+    def get_bonus_for_jumon(self, jumon):
         """
         Just returns the bonus value for the color of the jumon
         or 0 if ther jumon has an unknown color
@@ -39,13 +39,13 @@ class ArenaTile:
         except(KeyError):
             return 0
 
-    def PlaceUnit(self, unit):
+    def place_unit(self, unit):
         """
         Places a unit on this tile
         """
         self.occupied_by = unit
 
-    def RemoveUnit(self):
+    def remove_unit(self):
         """
         Removes the unit from the tile if there is one
         """
@@ -65,35 +65,35 @@ class Arena:
         self.board_width = board_width
         self.board_height = board_height
 
-    def GetTileAt(self, position):
+    def get_tile_at(self, position):
         """
         Returns the arena tile at the given position
         """
         return self.tiles[position.x][position.y]
 
-    def IsBlockedAt(self, position):
+    def is_blocked_at(self, position):
         """
         Return whether the tile at position is blocked or not
         """
-        return self.tiles[position.x][position.y].IsBlocked()
+        return self.tiles[position.x][position.y].is_blocked()
 
-    def GetUnitAt(self, position):
+    def get_unit_at(self, position):
         """
         Get the Unit aka Jumon, Equipment or Trap at position
         """
-        return self.tiles[position.x][position.y].OccupiedBy()
+        return self.tiles[position.x][position.y].occupied_by()
 
-    def PlaceUnitAt(self, unit, position):
+    def place_unit_at(self, unit, position):
         """
         Places unit at position
         """
-        self.tiles[position.x][position.y].PlaceUnit(unit)
+        self.tiles[position.x][position.y].place_unit(unit)
 
-    def PrintOut(self):
+    def print_out(self):
         for y in range(0, self.board_height):
             for x in range(0, self.board_width):
                 print("|", end="")
-                if self.GetUnitAt(Position(x, y)) is not None:
-                    print(self.GetUnitAt(Position(x, y)).name, end=" ")
+                if self.get_unit_at(Position(x, y)) is not None:
+                    print(self.get_unit_at(Position(x, y)).name, end=" ")
                 print("\t", end="")
             print("")

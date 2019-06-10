@@ -1,4 +1,4 @@
-from Akuga.MatchServer.ArenaCreator import CreateArena
+from Akuga.MatchServer.ArenaCreator import create_arena
 from Akuga.MatchServer.Position import Position
 
 
@@ -17,7 +17,7 @@ class PathNode:
         self.position = position
         self.predecessor = predecessor
 
-    def ExpandNode(self, tiles, end_pos, frontier, visited, width, height):
+    def expand_node(self, tiles, end_pos, frontier, visited, width, height):
         """
         Checks all four direct neighbour tiles and add them to the
         expand list if their are free and not yet in the frontier list
@@ -50,7 +50,7 @@ class PathNode:
         return expand_list
 
 
-def BacktracePath(end_node):
+def batracke_path(end_node):
     """
     Walkes through the predecessors until it is None, thats the start node
     """
@@ -64,7 +64,7 @@ def BacktracePath(end_node):
     return path
 
 
-def FindPath(start_position, end_position, arena):
+def find_path(start_position, end_position, arena):
     width = arena.board_width
     height = arena.board_width
     tiles = []
@@ -74,7 +74,7 @@ def FindPath(start_position, end_position, arena):
     for x in range(0, width):
         row = []
         for y in range(0, height):
-            row.append(arena.GetTileAt(Position(x, y)).OccupiedBy() is None)
+            row.append(arena.get_tile_at(Position(x, y)).occupied_by() is None)
         tiles.append(row)
 
     while len(frontier_nodes) > 0:
@@ -82,13 +82,13 @@ def FindPath(start_position, end_position, arena):
         As long as there are nodes within the frontier list there is hope
         to find a path
         """
-        expand_list = frontier_nodes[0].ExpandNode(tiles, end_position, frontier_nodes, visited_nodes, width, height)
+        expand_list = frontier_nodes[0].expand_node(tiles, end_position, frontier_nodes, visited_nodes, width, height)
         visited_nodes.append(frontier_nodes[0])
         frontier_nodes.remove(frontier_nodes[0])
         potentiel_end_node = next(filter(lambda x: x.position == end_position,
             visited_nodes), None)
         if potentiel_end_node:
-            return BacktracePath(potentiel_end_node)
+            return batracke_path(potentiel_end_node)
         frontier_nodes = frontier_nodes + expand_list
     return None
 
@@ -96,15 +96,15 @@ def FindPath(start_position, end_position, arena):
 if __name__ == "__main__":
     width = 5
     height = 5
-    arena = CreateArena(width, height, 0, 0)
+    arena = create_arena(width, height, 0, 0)
     # block a tile
-    arena.PlaceUnitAt("A", Position(0, 0))
-    arena.PlaceUnitAt("A", Position(1, 0))
-    arena.PlaceUnitAt("A", Position(0, 2))
+    arena.place_unit_at("A", Position(0, 0))
+    arena.place_unit_at("A", Position(1, 0))
+    arena.place_unit_at("A", Position(0, 2))
 
-    arena.PlaceUnitAt("A", Position(2, 2))
+    arena.place_unit_at("A", Position(2, 2))
 
-    path = FindPath(Position(4, 4), Position(2, 2), arena)
+    path = find_path(Position(4, 4), Position(2, 2), arena)
     if path is None:
         exit(-1)
     print(len(path))

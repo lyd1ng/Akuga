@@ -14,37 +14,37 @@ class PlayerNode:
         self.prev_player_node = prev_player_node
         self.next_player_node = next_player_node
 
-    def SetNext(self, next_player_node):
+    def set_next(self, next_player_node):
         """
         Set the next node
         """
         self.next_player_node = next_player_node
 
-    def SetPrev(self, prev_player_node):
+    def set_prev(self, prev_player_node):
         """
         Set the prev node
         """
         self.prev_player_node = prev_player_node
 
-    def GetNext(self):
+    def get_next(self):
         """
         Get the next node
         """
         return self.next_player_node
 
-    def GetPrev(self):
+    def get_prev(self):
         """
         Get the prev node
         """
         return self.prev_player_node
 
-    def GetNextPlayer(self):
+    def get_next_player(self):
         """
         Get the player of the next node
         """
         return self.next_player_node.player
 
-    def GetPlayer(self):
+    def get_player(self):
         """
         Get the player of this node
         """
@@ -62,70 +62,70 @@ class PlayerChain:
     def __init__(self, start_player, end_player):
         self.startNode = PlayerNode(start_player, None, None)
         self.endNode = PlayerNode(end_player, self.startNode, self.startNode)
-        self.startNode.SetNext(self.endNode)
-        self.startNode.SetPrev(self.endNode)
+        self.startNode.set_next(self.endNode)
+        self.startNode.set_prev(self.endNode)
         self.currentNode = self.startNode
         self.len = 2
         self.not_neutral_len = 2
 
-    def GetLength(self):
+    def get_length(self):
         """
         Return the absolute length of the player chain
         """
         return self.len
 
-    def GetNotNeutralLength(self):
+    def get_not_neutral_length(self):
         """
         Return the length of the player chain without neutral players
         """
         return self.not_neutral_len
 
-    def InsertPlayer(self, player):
+    def insert_player(self, player):
         """
         Insert a player a the "end" of the chain. This way the new node
         becomes the end node
         """
         newNode = PlayerNode(player, self.endNode, self.startNode)
-        self.endNode.SetNext(newNode)
+        self.endNode.set_next(newNode)
         self.endNode = newNode
-        self.startNode.SetPrev(self.endNode)
+        self.startNode.set_prev(self.endNode)
         self.len += 1
         if type(player) is not NeutralPlayer:
             self.not_neutral_len += 1
 
-    def RemovePlayer(self, player):
+    def remove_player(self, player):
         """
         Removes a player from the chain
         """
         # A temporary node pointer to walk through the chain
         node_pointer = self.startNode
         while True:
-            if node_pointer.GetPlayer() is player:
+            if node_pointer.get_player() is player:
                 """
                 If the current player dies jump to the prev player
-                cause of the end of turn NextPlayersTurn will be invoked
+                cause of the end of turn next_players_turn will be invoked
                 so the current player is going to be the player after
                 the one who died.
                 """
                 if node_pointer is self.currentNode:
-                    self.currentNode = self.currentNode.GetPrev()
-                # If the matching node is the start node Update it
+                    self.currentNode = self.currentNode.get_prev()
+                # If the matching node is the start node update it
                 if node_pointer is self.startNode:
-                    self.startNode = self.startNode.GetNext()
-                # If the matching node is the end node Update it
+                    self.startNode = self.startNode.get_next()
+                # If the matching node is the end node update it
                 if node_pointer is self.endNode:
-                    self.endNode = self.endNode.GetPrev()
+                    self.endNode = self.endNode.get_prev()
                 # Set the next of the prev to the next of the current node
-                node_pointer.GetPrev().SetNext(node_pointer.GetNext())
+                node_pointer.get_prev().set_next(node_pointer.get_next())
                 # Set the prev of the next to the prev of the current node
-                node_pointer.GetNext().SetPrev(node_pointer.GetPrev())
+                node_pointer.get_next().set_prev(node_pointer.get_prev())
                 # Decrement the length of the chain
                 self.len -= 1
-                if type(node_pointer.GetCurrentPlayer()) is not NeutralPlayer:
+                if type(node_pointer.get_current_player()) is not NeutralPlayer:
                     self.not_neutral_len -= 1
                 return
             # Jump to the next node to walk through the chain
-            node_pointer = node_pointer.GetNext()
+            node_pointer = node_pointer.get_next()
             """
             If now the node_pointer is the start node it jumped from the
             end node to the start node, the chain has been walked through
@@ -134,43 +134,43 @@ class PlayerChain:
             if node_pointer is self.startNode:
                 break
 
-    def RemoveNode(self, node):
+    def remove_node(self, node):
         """
         Removes a node from the chain
         """
         # If the current player dies instantly jump to the next player
         if node is self.currentNode:
-            self.currentNode = self.currentNode.GetPrev()
-        # If the matching node is the start node Update it
+            self.currentNode = self.currentNode.get_prev()
+        # If the matching node is the start node update it
         if node is self.startNode:
-            self.startNode = self.startNode.GetNext()
-        # If the matching node is the end node Update it
+            self.startNode = self.startNode.get_next()
+        # If the matching node is the end node update it
         if node is self.endNode:
-            self.endNode = self.endNode.GetPrev()
+            self.endNode = self.endNode.get_prev()
         # Set the next of the prev to the next of the current node
-        node.GetPrev().SetNext(node.GetNext())
+        node.get_prev().set_next(node.get_next())
         # Set the prev of the next to the prev of the current node
-        node.GetNext().SetPrev(node.GetPrev())
+        node.get_next().set_prev(node.get_prev())
         # Decrement the length of the chain by 1
         self.len -= 1
-        if type(node.GetPlayer()) is not NeutralPlayer:
+        if type(node.get_player()) is not NeutralPlayer:
             self.not_neutral_len -= 1
 
-    def Update(self):
+    def update(self):
         """
         Removes dead player from the player chain
         """
         node_pointer = self.startNode
         while True:
-            if node_pointer.GetPlayer().IsDead():
-                self.RemoveNode(node_pointer)
+            if node_pointer.get_player().is_dead():
+                self.remove_node(node_pointer)
             # Leave the loop if every node has been walked through
             if node_pointer is self.endNode:
                 break
             # Walk through the list of players
-            node_pointer = node_pointer.GetNext()
+            node_pointer = node_pointer.get_next()
 
-    def CheckForVictory(self):
+    def check_for_victory(self):
         """
         Checks if a player has won and return per
         There are two cases which have to be checked
@@ -185,17 +185,17 @@ class PlayerChain:
         not_neutral_player_count = 0
         node_pointer = self.startNode
         while True:
-            if type(node_pointer.GetPlayer()) is not NeutralPlayer:
+            if type(node_pointer.get_player()) is not NeutralPlayer:
                 not_neutral_player_count += 1
                 # Save this player, if per is the only one per is the victor
-                not_neutral_player = node_pointer.GetPlayer()
+                not_neutral_player = node_pointer.get_player()
             if node_pointer is self.endNode:
                 """
                 If the whole chane has been walked through break the loop
                 """
                 break
             # Jump to the next node
-            node_pointer = node_pointer.GetNext()
+            node_pointer = node_pointer.get_next()
         if not_neutral_player_count == 1:
             # Check the result and return the victor if there is one
             return not_neutral_player
@@ -208,11 +208,11 @@ class PlayerChain:
         opponents. This may occure with alternative win conditions
         """
         while True:
-            if node_pointer.GetPlayer().HasWon() and\
-                    type(node_pointer.GetPlayer()) is not NeutralPlayer:
-                return node_pointer.GetPlayer()
+            if node_pointer.get_player().has_won() and\
+                    type(node_pointer.get_player()) is not NeutralPlayer:
+                return node_pointer.get_player()
             # Walk through the list of players
-            node_pointer = node_pointer.GetNext()
+            node_pointer = node_pointer.get_next()
             """
             If node_pointer now is the start node it jumped from the end node
             to the start node which means all nodes has been walked through
@@ -221,41 +221,41 @@ class PlayerChain:
                 break
         return None
 
-    def CheckForDrawn(self):
+    def check_for_drawn(self):
         """
         Returns if all not neutral players are dead
         """
         return self.len == 0 or (self.len == 1 and type(self.startNode.
-            GetPlayer()) is NeutralPlayer)
+            get_player()) is NeutralPlayer)
 
-    def NextPlayersTurn(self):
+    def next_players_turn(self):
         """
         Go to the next players turn
         """
-        self.currentNode = self.currentNode.GetNext()
+        self.currentNode = self.currentNode.get_next()
 
-    def PrevPlayersTurn(self):
+    def prev_players_turn(self):
         """
         Go to the prev players turn
         """
-        self.currentNode = self.currentNode.GetPrev()
+        self.currentNode = self.currentNode.get_prev()
 
-    def GetCurrentPlayer(self):
+    def get_current_player(self):
         """
         Get the current player
         """
-        return self.currentNode.GetPlayer()
+        return self.currentNode.get_player()
 
-    def GetPlayers(self):
+    def get_players(self):
         """
         Get all players in a list
         """
         node_pointer = self.startNode
         player_list = []
         while True:
-            player_list.append(node_pointer.GetPlayer())
+            player_list.append(node_pointer.get_player())
             # Walk through the list of players
-            node_pointer = node_pointer.GetNext()
+            node_pointer = node_pointer.get_next()
             if node_pointer is self.endNode:
                 break
         return player_list
@@ -267,9 +267,9 @@ class PlayerChain:
         string_representation = ''
         node_pointer = self.startNode
         while True:
-            string_representation += node_pointer.GetPlayer().name + ' '
+            string_representation += node_pointer.get_player().name + ' '
             # Walk through the list of players
-            node_pointer = node_pointer.GetNext()
+            node_pointer = node_pointer.get_next()
             if node_pointer is self.endNode:
                 break
         return string_representation
@@ -283,7 +283,7 @@ if __name__ == "__main__":
     player2 = Player("player2", [])
     player3 = Player("neutral", [])
     player_chain = PlayerChain(player1, player2)
-    player_chain.InsertPlayer(player3)
+    player_chain.insert_player(player3)
 
-    print(player_chain.GetPlayers())
+    print(player_chain.get_players())
     print(str(player_chain))

@@ -3,8 +3,8 @@
 class StateMachiene():
     """
     Represents the state machiene which will handle most of the
-    game logic. It will invoke the the Run function of the current
-    state and jump to the state the Run function of the current
+    game logic. It will invoke the the run function of the current
+    state and jump to the state the run function of the current
     state has provided. Every entry in the data dict will be used
     globally within the states
     """
@@ -17,25 +17,25 @@ class StateMachiene():
         start_state.fsm = self
         exec("self." + start_state.name + " = start_state")
 
-    def AddState(self, state):
+    def add_state(self, state):
         """
         Add a state to the list of states under its name
         """
         state.fsm = self
         exec("self." + state.name + " = state")
 
-    def AddData(self, data_name, data):
+    def add_data(self, data_name, data):
         """
         Add variable data to the fsm under the name data_name
         """
         exec("self." + data_name + " = data")
 
-    def Run(self, event):
+    def run(self, event):
         """
-        Invoke the Run function of the current state
+        Invoke the run function of the current state
         and eventually set change the state
         """
-        result = self.current_state.Run(event)
+        result = self.current_state.run(event)
         if result is not None:
             """
             If the result of the new state is not None

@@ -16,13 +16,13 @@ class StateMachieneState:
         self.fsm = fsm
         self.state_variables = {}
 
-    def SetFSM(self, fsm):
+    def set_fsm(self, fsm):
         """
         Set the fsm
         """
         self.fsm = fsm
 
-    def Run(self, event):
+    def run(self, event):
         """
         The function invoked by the state machiene if the current
         state is active.

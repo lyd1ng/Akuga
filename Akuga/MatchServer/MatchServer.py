@@ -3,14 +3,14 @@ import queue
 import logging
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
-from Akuga.MatchServer.ArenaCreator import CreateArena
+from Akuga.MatchServer.ArenaCreator import create_arena
 from Akuga.MatchServer.MeepleDict import (get_neutral_meeples, get_not_neutral_meeples)
 from .. import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
 from Akuga.MatchServer.NetworkProtocoll import (AsyncCallbackReceiver,
-        HandleMatchConnection,
-        SendClientGameState,
-        SendPacket)
+        handle_match_connection,
+        send_gamestate_to_client,
+        send_packet)
 from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
         TURN_ENDS,
         MATCH_IS_DRAWN,
@@ -21,27 +21,27 @@ from time import sleep
 logger = logging.getLogger(__name__)
 
 
-def BuildLastManStandingGamestate(player_chain, _queue, options={}):
+def build_last_man_standing_game_state(player_chain, _queue, options={}):
     # Build the arena
-    arena = CreateArena(GlobalDefinitions.BOARD_WIDTH,
+    arena = create_arena(GlobalDefinitions.BOARD_WIDTH,
                         GlobalDefinitions.BOARD_HEIGHT,
                         GlobalDefinitions.MIN_TILE_BONUS,
                         GlobalDefinitions.MAX_TILE_BONUS)
     # Add a neutral player to the player chain
     neutral_player = NeutralPlayer(arena)
-    neutral_player.SetJumonsToSummon(get_neutral_meeples(1))
-    neutral_player.SummonJumons()
-    player_chain.InsertPlayer(neutral_player)
+    neutral_player.set_jumons_to_summon(get_neutral_meeples(1))
+    neutral_player.summon_jumons()
+    player_chain.insert_player(neutral_player)
     # Build the state machiene which represents the whole game state
-    game_state = AkugaStateMachiene.CreateLastManStandingFSM()
-    game_state.AddData("queue", _queue)
-    game_state.AddData("arena", arena)
-    game_state.AddData("player_chain", player_chain)
-    game_state.AddData("jumon_pick_pool", get_not_neutral_meeples(2))
+    game_state = AkugaStateMachiene.create_last_man_standing_fsm()
+    game_state.add_data("queue", _queue)
+    game_state.add_data("arena", arena)
+    game_state.add_data("player_chain", player_chain)
+    game_state.add_data("jumon_pick_pool", get_not_neutral_meeples(2))
     return game_state
 
 
-def MatchServer(game_mode, users, options={}):
+def match_server(game_mode, users, options={}):
     """
     The actual game runs here and is propagated to the users
     game_mode: string
@@ -59,14 +59,14 @@ def MatchServer(game_mode, users, options={}):
     player2 = Player(player_name_list[1])
     player_chain = PlayerChain(player1, player2)
     for i in range(2, len(player_name_list)):
-        player_chain.InsertPlayer(Player(player_name_list[i]))
+        player_chain.insert_player(Player(player_name_list[i]))
     # Create the queue
     _queue = queue.Queue()
 
     game_state = None
     if game_mode == "lms":
         logger.info("Game Mode: LastManStanding\n")
-        game_state = BuildLastManStandingGamestate(player_chain,
+        game_state = build_last_man_standing_game_state(player_chain,
                 _queue, options)
     else:
         logger.info("Game Mode: Unknown...Terminating\n")
@@ -74,37 +74,37 @@ def MatchServer(game_mode, users, options={}):
 
     # Signal the clients that the match starts
     for connection in users.values():
-        SendPacket(connection, ["MATCH_START", game_mode])
+        send_packet(connection, ["MATCH_START", game_mode])
 
     # Initially propagate the game state
     logger.info("Start match between" + str(player_chain) + "\n")
     logger.info("Propagating game state\n")
     for connection in users.values():
-        SendClientGameState(connection, game_state)
+        send_gamestate_to_client(connection, game_state)
 
     running = True
     while running:
         """
         Receive and handle packets from the current player only
-        The HandleMatchConnection will throw the right event which will
+        The handle_match_connection will throw the right event which will
         be handeld by the gamestate statemachiene.
         Only some events have to be handeld here.
         """
-        if type(game_state.player_chain.GetCurrentPlayer())\
+        if type(game_state.player_chain.get_current_player())\
                 is not NeutralPlayer:
-            AsyncCallbackReceiver.AsyncCallbackRecv(users[game_state.player_chain.
-                GetCurrentPlayer().name],
-                512, _queue, HandleMatchConnection)
+            AsyncCallbackReceiver.async_callback_recv(users[game_state.player_chain.
+                get_current_player().name],
+                512, _queue, handle_match_connection)
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
         except queue.Empty:
             event = pygame.event.Event(pygame.NOEVENT)
 
-        game_state.Run(event)
+        game_state.run(event)
         # Handle the events which are not handeld by the gamestate itself
 
-        game_state.arena.PrintOut()
+        game_state.arena.print_out()
         if event.type == PACKET_PARSER_ERROR_EVENT:
             # Print the event msg but ignore the packet
             logger.info("Packet Parser Error: " + event.msg + "\n")
@@ -114,7 +114,7 @@ def MatchServer(game_mode, users, options={}):
             """
             logger.info("Propagating game state\n")
             for connection in users.values():
-                SendClientGameState(connection, game_state)
+                send_gamestate_to_client(connection, game_state)
 
         if event.type == MATCH_IS_DRAWN:
             running = False
@@ -137,18 +137,18 @@ def MatchServer(game_mode, users, options={}):
             for user_name in users:
                 logger.info("Logger in player_chain: " + user_name)
                 if user_name == victor_name:
-                    SendPacket(userdbs_connection,
+                    send_packet(userdbs_connection,
                         ["ADD_WIN", user_name, game_mode])
                     userdbs_connection.recv(128)
                 else:
-                    SendPacket(userdbs_connection,
+                    send_packet(userdbs_connection,
                         ["ADD_LOOSE", user_name, game_mode])
                     userdbs_connection.recv(128)
             userdbs_connection.close()
     # Signal the end of the match and the victor
     for connection in users.values():
-        SendPacket(connection, ["MATCH_END"])
-        SendPacket(connection, ["MATCH_RESULT", victor_name])
+        send_packet(connection, ["MATCH_END"])
+        send_packet(connection, ["MATCH_RESULT", victor_name])
 
     # Set all sockets to blocking again
     for connection in users.values():
@@ -172,7 +172,7 @@ if __name__ == "__main__":
         users['lyding2'], _ = server_socket.accept()
         print('Found player2')
         print('Start match!')
-        match_process = Process(target=MatchServer,
+        match_process = Process(target=match_server,
             args=('lms', users))
         match_process.start()
     except socket.error:

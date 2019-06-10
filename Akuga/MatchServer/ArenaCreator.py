@@ -2,7 +2,7 @@ from random import randint
 from Akuga.MatchServer.Arena import (ArenaTile, Arena)
 
 
-def CreateArena(width, height, min_bonus, max_bonus):
+def create_arena(width, height, min_bonus, max_bonus):
     """
     Just creates an arena out of a 2d array of tiles
     without any ArenaTile special ability
