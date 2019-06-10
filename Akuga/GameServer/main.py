@@ -48,7 +48,7 @@ def handle_client(connection, client_address, lms_queue, amm_queue):
             break
         if not packet:
             connection.close()
-            logger.info("Connection close")
+            logger.info("Connection closed")
             break
         tokens = packet.split(":")
         if user is None:
@@ -76,7 +76,7 @@ def handle_client(connection, client_address, lms_queue, amm_queue):
                     logger.info("Database error: " + error)
                     send_packet(connection, ["ERROR", error])
                 elif len(response) > 0:
-                    logger.info("User: " + username + " already exists\n")
+                    logger.info("User: " + username + " already exists")
                     send_packet(connection, ["ERROR",
                         "User: " + username + " already exists"])
                 else:
@@ -148,7 +148,7 @@ def handle_client(connection, client_address, lms_queue, amm_queue):
         else:
             """
             If the user is logged in but currently playing a match,
-            do nothin
+            do nothing
             """
             pass
 
@@ -162,11 +162,15 @@ def HandleLMSQueue(lms_queue):
     user1.in_play = True
     user2 = lms_queue.get()
     user2.in_play = True
-    logger.info("Got two user for an lms match\n")
+    logger.info("Got two user for a lms match")
     users = {user1.name: user1.connection, user2.name: user2.connection}
+    logger.info("Start MatchServer subprocess")
     MatchServerProcess = Process(target=MatchServer, args=('lms', users, None))
     MatchServerProcess.start()
-    logger.info("Started MatchServer subprocess\n")
+    logger.info("Started MatchServer subprocess")
+    # Signal that the users has been processed
+    queue.task_done()
+    queue.task_done()
 
 
 def HandleAMMQueue(amm_queue):
@@ -178,21 +182,28 @@ def HandleAMMQueue(amm_queue):
     user1.in_play = True
     user2 = amm_queue.get()
     user2.in_play = True
-    logger.info("Got two user for an amm match\n")
+    logger.info("Got two user for an amm match")
     users = {user1.name: user1.connection, user2.name: user2.connection}
+    logger.info("Start MatchServer subprocess")
     MatchServerProcess = Process(target=MatchServer, args=('amm', users, None))
     MatchServerProcess.start()
-    logger.info("Started MatchServer subprocess\n")
+    logger.info("Started MatchServer subprocess")
+    # Signal that the users has been processed
+    queue.task_done()
+    queue.task_done()
 
 
 if __name__ == '__main__':
+    # Create a logger
     logging.basicConfig(filename='Akuga.log', level=logging.INFO)
     logger = logging.getLogger(__name__)
 
+    # Listen on the server address
+    logger.info("Create a server socket")
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(SERVER_ADDRESS)
     server_socket.listen(MAX_ACTIVE_CONNECTIONS)
-    logger.info("Creates server socket, waiting for: "
+    logger.info("Created server socket, waiting for: "
         + str(MAX_ACTIVE_CONNECTIONS))
 
     # The game mode queues
@@ -200,20 +211,24 @@ if __name__ == '__main__':
     amm_queue = queue.Queue()
 
     # Create and start the handle game mode queue threads for each game mode
+    logger.info("Start handle_gamemode_queue threads as daemons")
     handle_lms_queue_thread = Thread(target=HandleLMSQueue, args=(lms_queue,))
     handle_amm_queue_thread = Thread(target=HandleAMMQueue, args=(amm_queue,))
     handle_lms_queue_thread.daemon = True
     handle_amm_queue_thread.daemon = True
     handle_lms_queue_thread.start()
     handle_amm_queue_thread.start()
-    logger.info("Started handle_gamemode_queue threads as daemons\n")
-
+    logger.info("Started handle_gamemode_queue threads as daemons")
+    logger.info("Enter server loop")
     while True:
         try:
             connection, client_address = server_socket.accept()
         except socket.error:
+            logger.info("Error while accepting connections")
             break
         handle_client_thread = Thread(target=handle_client,
             args=(connection, client_address, lms_queue, amm_queue))
         handle_client_thread.start()
+    logger.info("Leave server loop")
+    logger.info("Close the server socket, terminate programm")
     server_socket.close()
