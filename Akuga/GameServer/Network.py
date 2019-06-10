@@ -12,7 +12,7 @@ whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
 def send_packet(connection, tokens, terminator="END"):
     """
-    Send a packet containing out of multiple tokens
+    Send a packet containing multiple tokens.
     Every token is converted to a string using the str function
     for better convenients and is encoded using utf-8 encoding.
     A packet has the form token1:token2:...:tokenN:terminator

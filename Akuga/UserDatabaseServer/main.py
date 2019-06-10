@@ -35,16 +35,16 @@ def secure_string(string):
 
 def SendPacket(connection, tokens, terminator="END"):
     """
-    Send a packet containing out of multiple tokens
+    Send a packet containing multiple tokens.
     Every token is converted to a string using the str function
     for better convenients and is encoded using utf-8 encoding.
     A packet has the form token1:token2:...:tokenN:terminator
     """
     query = ""
     for t in tokens:
-        query += t + ":"
+        query += str(t) + ":"
     if terminator is not None:
-        query += terminator
+        query += str(terminator)
     query = query.encode('utf-8')
     connection.send(query)
 
