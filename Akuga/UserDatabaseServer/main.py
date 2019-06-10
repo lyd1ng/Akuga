@@ -343,19 +343,30 @@ if __name__ == "__main__":
     # Spawn the sql worker process. It will work on the queue
     # containing the sql commands and the socket they where send
     # on. The results are directly send to the clients
+    logger.info("Start the sql_worker thread as a daemon")
     sql_worker_process = Thread(target=sql_worker, args=(cmd_queue, ))
     sql_worker_process.daemon = True
     sql_worker_process.start()
-
+    logger.info("Started sql_worker thread as a daemon")
+    logger.info("Enter server loop")
     while True:
         # Accept new connections
-        connection, client_address = server_socket.accept()
+        try:
+            connection, client_address = server_socket.accept()
+        except socket.Error:
+            logging.info("Error while accepting connections")
+            break
         # And handle them using the handle_client function
         handle_client_thread = Thread(target=handle_client,
             args=(connection, client_address, cmd_queue))
         handle_client_thread.daemon = True
         handle_client_thread.start()
+    logger.info("Leave the server loop")
     # Handle all remaining requests
+    logger.info("Wait for the command queue to be processed completly")
     cmd_queue.join()
+    logger.info("Command queue was processed completly")
+
     # Close the server socket to free the address
+    logger.info("Close the server socket, terminate programm")
     server_socket.close()
