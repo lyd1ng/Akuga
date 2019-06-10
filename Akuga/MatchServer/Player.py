@@ -15,8 +15,8 @@ class Player:
         self.phase = "pick_phase"
         self.jumons_to_summon = []
         self.summoned_jumons = []
-        self.is_dead = False
-        self.has_won = False
+        self._is_dead = False
+        self._has_won = False
 
     def set_jumons_to_summon(self, jumons):
         """
@@ -165,30 +165,30 @@ class Player:
         Returns if the player is dead or not, dead players are removed
         from the player chain.
         """
-        return self.is_dead
+        return self._is_dead
 
     def has_won(self):
         """
         Returns if a player has won. If a player has won the match ends
         immediatly
         """
-        return self.has_won
+        return self._has_won
 
     def kill(self):
         """
         kill the player, a player is killed if per doesnt own a single jumon
         anymore
         """
-        self.is_dead = True
-        self.has_won = False
+        self._is_dead = True
+        self._has_won = False
 
     def insta_win(self):
         """
         Makes the player the winner, this might be usefull for alternative
         win conditions
         """
-        self.is_dead = False
-        self.has_won = True
+        self._is_dead = False
+        self._has_won = True
 
 
 class NeutralPlayer(Player):
