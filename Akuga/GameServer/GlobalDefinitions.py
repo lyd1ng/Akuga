@@ -1,7 +1,7 @@
-server_address = ('127.0.0.1', 10315)
-user_dbs_address = ('127.0.0.1', 10098)
-max_active_connection = 1024
-email_server = 'mail.gmx.net'
-email_port = 587
-email_address = "Akuga@gmx.de"
-email_password = "akugathemythicmachiene"
+SERVER_ADDRESS = ('127.0.0.1', 10315)
+USER_DBS_ADDRESS = ('127.0.0.1', 10098)
+MAX_ACTIVE_CONNECTIONS = 1024
+EMAIL_SERVER = 'mail.gmx.net'
+EMAIL_PORT = 587
+EMAIL_ADDRESS = "Akuga@gmx.de"
+EMAIL_PASSWORD = "akugathemythicmachiene"
