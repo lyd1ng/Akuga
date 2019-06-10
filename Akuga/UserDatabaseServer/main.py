@@ -353,7 +353,7 @@ if __name__ == "__main__":
         # Accept new connections
         try:
             connection, client_address = server_socket.accept()
-        except socket.Error:
+        except socket.error:
             logging.info("Error while accepting connections")
             break
         # And handle them using the handle_client function
