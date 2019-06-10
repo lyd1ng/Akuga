@@ -1,7 +1,7 @@
 import socket
 import errno
 import pygame
-from Akuga.MatchServer.MeepleDict import GetMeepleByName
+from Akuga.MatchServer.MeepleDict import get_meeple_by_name
 from Akuga.MatchServer.Position import Position
 from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_MOVE_EVENT,
@@ -125,7 +125,7 @@ def HandleMatchConnection(packet, queue):
         PICK_JUMON $name_of_the_jumon_to_pick
         """
         try:
-            jumon_to_pick = GetMeepleByName(tokens[1])
+            jumon_to_pick = get_meeple_by_name(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -140,7 +140,7 @@ def HandleMatchConnection(packet, queue):
         SUMMON_JUMON $name_of_the_jumon_to_summon
         """
         try:
-            jumon_to_summon = GetMeepleByName(tokens[1])
+            jumon_to_summon = get_meeple_by_name(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -171,7 +171,7 @@ def HandleMatchConnection(packet, queue):
             return
         # Get the jumon to move by its name
         try:
-            jumon_to_move = GetMeepleByName(tokens[1])
+            jumon_to_move = get_meeple_by_name(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -205,7 +205,7 @@ def HandleMatchConnection(packet, queue):
             return
         # Get the jumon to move by its name
         try:
-            jumon_to_special_move = GetMeepleByName(tokens[1])
+            jumon_to_special_move = get_meeple_by_name(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -298,15 +298,15 @@ if __name__ == "__main__":
     player2 = Player("player2")
     player_chain = PlayerChain(player1, player2)
 
-    GetMeepleByName("Jumon1").set_owner(player1)
-    GetMeepleByName("Jumon2").set_owner(player1)
-    player1.AddJumonToSummon(GetMeepleByName("Jumon1"))
-    player1.AddJumonToSummon(GetMeepleByName("Jumon2"))
+    get_meeple_by_name("Jumon1").set_owner(player1)
+    get_meeple_by_name("Jumon2").set_owner(player1)
+    player1.AddJumonToSummon(get_meeple_by_name("Jumon1"))
+    player1.AddJumonToSummon(get_meeple_by_name("Jumon2"))
 
-    GetMeepleByName("Jumon3").set_owner(player2)
-    GetMeepleByName("Jumon4").set_owner(player2)
-    player2.AddJumonToSummon(GetMeepleByName("Jumon3"))
-    player2.AddJumonToSummon(GetMeepleByName("Jumon4"))
+    get_meeple_by_name("Jumon3").set_owner(player2)
+    get_meeple_by_name("Jumon4").set_owner(player2)
+    player2.AddJumonToSummon(get_meeple_by_name("Jumon3"))
+    player2.AddJumonToSummon(get_meeple_by_name("Jumon4"))
 
     arena = CreateArena(GlobalDefinitions.BOARD_WIDTH,
                         GlobalDefinitions.BOARD_HEIGHT,
@@ -314,9 +314,9 @@ if __name__ == "__main__":
     game_state = AkugaStateMachiene.CreateLastManStandingFSM()
     game_state.AddData("arena", arena)
     game_state.AddData("player_chain", player_chain)
-    game_state.AddData("jumon_pick_pool", [GetMeepleByName("Jumon5")])
+    game_state.AddData("jumon_pick_pool", [get_meeple_by_name("Jumon5")])
 
-    arena.PlaceUnitAt(GetMeepleByName("NeutralJumon1"), Position(0, 0))
+    arena.PlaceUnitAt(get_meeple_by_name("NeutralJumon1"), Position(0, 0))
 
     while True:
         connection, address = server_socket.accept()

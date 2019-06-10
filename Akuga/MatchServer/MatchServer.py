@@ -4,7 +4,7 @@ import logging
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import CreateArena
-from Akuga.MatchServer.MeepleDict import (GetNeutralMeeples, GetNotNeutralMeeples)
+from Akuga.MatchServer.MeepleDict import (get_neutral_meeples, get_not_neutral_meeples)
 from .. import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
 from Akuga.MatchServer.NetworkProtocoll import (AsyncCallbackReceiver,
@@ -29,7 +29,7 @@ def BuildLastManStandingGamestate(player_chain, _queue, options={}):
                         GlobalDefinitions.MAX_TILE_BONUS)
     # Add a neutral player to the player chain
     neutral_player = NeutralPlayer(arena)
-    neutral_player.SetJumonsToSummon(GetNeutralMeeples(1))
+    neutral_player.SetJumonsToSummon(get_neutral_meeples(1))
     neutral_player.SummonJumons()
     player_chain.InsertPlayer(neutral_player)
     # Build the state machiene which represents the whole game state
@@ -37,7 +37,7 @@ def BuildLastManStandingGamestate(player_chain, _queue, options={}):
     game_state.AddData("queue", _queue)
     game_state.AddData("arena", arena)
     game_state.AddData("player_chain", player_chain)
-    game_state.AddData("jumon_pick_pool", GetNotNeutralMeeples(2))
+    game_state.AddData("jumon_pick_pool", get_not_neutral_meeples(2))
     return game_state
 
 

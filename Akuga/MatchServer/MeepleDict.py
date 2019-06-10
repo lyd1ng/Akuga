@@ -18,14 +18,14 @@ MeepleDict = {
 }
 
 
-def GetMeepleByName(meeple_name):
+def get_meeple_by_name(meeple_name):
     """
     Get a meeple by its name
     """
     return MeepleDict[meeple_name]
 
 
-def GetNeutralMeeples(amount):
+def get_neutral_meeples(amount):
     """
     Get a list of $amount neutral jumons without double occupancies
     """
@@ -46,7 +46,7 @@ def GetNeutralMeeples(amount):
     return pool
 
 
-def GetNotNeutralMeeples(amount):
+def get_not_neutral_meeples(amount):
     """
     Get a list of $amount not neutral jumons without double occupancies
     """
@@ -68,5 +68,5 @@ def GetNotNeutralMeeples(amount):
 
 
 if __name__ == "__main__":
-    print(GetNotNeutralMeeples(10))
-    print(GetNeutralMeeples(10))
+    print(get_not_neutral_meeples(10))
+    print(get_neutral_meeples(10))
