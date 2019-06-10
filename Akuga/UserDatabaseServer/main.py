@@ -344,9 +344,9 @@ if __name__ == "__main__":
     # containing the sql commands and the socket they where send
     # on. The results are directly send to the clients
     logger.info("Start the sql_worker thread as a daemon")
-    sql_worker_process = Thread(target=sql_worker, args=(cmd_queue, ))
-    sql_worker_process.daemon = True
-    sql_worker_process.start()
+    sql_worker_thread = Thread(target=sql_worker, args=(cmd_queue, ))
+    sql_worker_thread.daemon = True
+    sql_worker_thread.start()
     logger.info("Started sql_worker thread as a daemon")
     logger.info("Enter server loop")
     while True:
