@@ -2,9 +2,9 @@ import socket
 import sqlite3
 import logging
 from Akuga.UserDatabaseServer.GlobalDefinitions import (
-    server_address,
-    max_active_connections,
-    database_path)
+    SERVER_ADDRESS,
+    MAX_ACTIVE_CONNECTIONS,
+    DATABASE_PATH)
 from queue import Queue
 from threading import Thread
 from datetime import datetime
@@ -273,7 +273,7 @@ def sql_worker(cmd_queue):
     is part of the event enqueued in the cmd_queue
     """
     # Open the database (stop having it be close)
-    database = sqlite3.connect(database_path)
+    database = sqlite3.connect(DATABASE_PATH)
     cursor = database.cursor()
 
     # Create a userstats table if non exists
@@ -314,7 +314,7 @@ def sql_worker(cmd_queue):
         # Commit to the database to make the changes visible
         database.commit()
     database.commit()
-    database_path.close()
+    database.close()
 
 
 def InitDatabase(database, cursor):
@@ -341,10 +341,10 @@ def InitDatabase(database, cursor):
 if __name__ == "__main__":
     # Build the server socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(server_address)
-    server_socket.listen(max_active_connections)
-    logging.info("Server socket listening at " + str(server_address))
-    logging.info("Server socket listening for " + str(max_active_connections))
+    server_socket.bind(SERVER_ADDRESS)
+    server_socket.listen(MAX_ACTIVE_CONNECTIONS)
+    logging.info("Server socket listening at " + str(SERVER_ADDRESS))
+    logging.info("Server socket listening for " + str(MAX_ACTIVE_CONNECTIONS))
 
     # Create the cmd queue with a max of 512 entries
     cmd_queue = Queue(512)
