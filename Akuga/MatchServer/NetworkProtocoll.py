@@ -100,10 +100,13 @@ def SendPacket(connection, tokens, terminator="END"):
     for better convenients and is encoded using utf-8 encoding.
     A packet has the form token1:token2:...:tokenN:terminator
     """
+    query = ""
     for t in tokens:
-        connection.send((str(t) + ":").encode('utf-8'))
+        query += t + ":"
     if terminator is not None:
-        connection.send(str(terminator).encode('utf-8'))
+        query += terminator
+    query = query.encode('utf-8')
+    connection.send(query)
 
 
 def HandleMatchConnection(packet, queue):
