@@ -9,10 +9,6 @@ from queue import Queue
 from threading import Thread
 from datetime import datetime
 
-logging.basicConfig(filename='UserDatabaseServer.log', level=logging.INFO)
-logger = logging.getLogger(__name__)
-running = True
-
 
 def today():
     """
@@ -33,7 +29,7 @@ def secure_string(string):
     return True
 
 
-def SendPacket(connection, tokens, terminator="END"):
+def send_packet(connection, tokens, terminator="END"):
     """
     Send a packet containing multiple tokens.
     Every token is converted to a string using the str function
@@ -49,16 +45,7 @@ def SendPacket(connection, tokens, terminator="END"):
     connection.send(query)
 
 
-def handle_sigint(sig, frame):
-    """
-    Termintate the programme properly on sigint
-    """
-    global running
-    logger.info("Received sigint, terminating program\n")
-    running = False
-
-
-def InitDaylyEntry(cmd_queue, username, game_mode):
+def init_dayly_entry(cmd_queue, username, game_mode):
     """
     Creates an empty userstats entry (0 wins, 0 looses)
     for the user named username in the specified game mode.
@@ -74,7 +61,7 @@ def InitDaylyEntry(cmd_queue, username, game_mode):
     cmd_queue.put((None, "local", command))
 
 
-def AddWin(connection, client_address, cmd_queue, username, game_mode):
+def add_win(connection, client_address, cmd_queue, username, game_mode):
     """
     Adds a win for the user username in the game mode game_mode
     the date is always today to avoid tempering data in the past
@@ -83,12 +70,12 @@ def AddWin(connection, client_address, cmd_queue, username, game_mode):
     if secure_string(username) is False or secure_string(game_mode) is False:
         logger.info("Username or gamemode where insecure!\n")
         logging.info("Received from: " + str(client_address))
-        SendPacket(connection, ["ERROR", "Insecure Parameter"])
+        send_packet(connection, ["ERROR", "Insecure Parameter"])
         return -1
     # Enqueues to create an empty stats field if none exists
     # Cause the queue is a fifo structure this will be executed before
     # the update command
-    InitDaylyEntry(cmd_queue, username, game_mode)
+    init_dayly_entry(cmd_queue, username, game_mode)
     # Create the update command
     command = ('''update userstats set wins=wins+1 where name=? and mode=?\
         and date=? ''', (username, game_mode, today()))
@@ -97,7 +84,7 @@ def AddWin(connection, client_address, cmd_queue, username, game_mode):
     return 0
 
 
-def AddLoose(connection, client_address, cmd_queue, username, game_mode):
+def add_loose(connection, client_address, cmd_queue, username, game_mode):
     """
     Adds a loose for the user username in the game mode game_mode
     the date is always today to avoid tempering data in the past
@@ -106,12 +93,12 @@ def AddLoose(connection, client_address, cmd_queue, username, game_mode):
     if secure_string(username) is False or secure_string(game_mode) is False:
         logger.info("Username or gamemode where insecure!\n")
         logging.info("Received from: " + str(client_address))
-        SendPacket(connection, ["ERROR", "Insecure Parameter"])
+        send_packet(connection, ["ERROR", "Insecure Parameter"])
         return -1
     # Enqueues to create an empty stats field if none exists
     # Cause the queue is a fifo structure this will be executed before
     # the update command
-    InitDaylyEntry(cmd_queue, username, game_mode)
+    init_dayly_entry(cmd_queue, username, game_mode)
     # Create the update command
     command = ('''update userstats set looses=looses+1 where name=? and mode=?\
         and date=? ''', (username, game_mode, today()))
@@ -120,7 +107,7 @@ def AddLoose(connection, client_address, cmd_queue, username, game_mode):
     return 0
 
 
-def GetStats(connection, client_address, cmd_queue, username, game_mode,
+def get_stats(connection, client_address, cmd_queue, username, game_mode,
         from_year, from_month, from_day, to_year, to_month, to_day):
     """
     Queries all the user stats of a user in a certain game mode between and
@@ -131,7 +118,7 @@ def GetStats(connection, client_address, cmd_queue, username, game_mode,
             + to_year + to_month + to_day) is False:
         logger.info("One of the parameters where insecure!\n")
         logging.info("Received from: " + str(client_address))
-        SendPacket(connection, ["ERROR", "Insecure Parameter"])
+        send_packet(connection, ["ERROR", "Insecure Parameter"])
         return -1
     # Create the date strings
     from_date = from_year + '-' + from_month + '-' + from_day
@@ -146,28 +133,28 @@ def GetStats(connection, client_address, cmd_queue, username, game_mode,
     return 0
 
 
-def CheckUsername(connection, client_address, cmd_queue, username):
+def check_username(connection, client_address, cmd_queue, username):
     """
     Checks if a username is free or not
     """
     if secure_string(username) is False:
         logger.info("One of the parameters where insecure!\n")
         logging.info("Received from: " + str(client_address))
-        SendPacket(connection, ["ERROR", "Insecure Parameter"])
+        send_packet(connection, ["ERROR", "Insecure Parameter"])
         return -1
     command = ("select name from credentials where name=?", (username, ))
     logging.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
 
 
-def RegisterUser(connection, client_address, cmd_queue, username, pass_hash):
+def register_user(connection, client_address, cmd_queue, username, pass_hash):
     """
     Registers a user with a given name and pers pass hash in the database
     """
     if secure_string(username + pass_hash) is False:
         logger.info("One of the parameters where insecure!\n")
         logging.info("Received from: " + str(client_address))
-        SendPacket(connection, ["ERROR", "Insecure Parameter"])
+        send_packet(connection, ["ERROR", "Insecure Parameter"])
         return -1
     command = ("insert into credentials(name, pass_hash)\
         select :name, :pass_hash\
@@ -177,7 +164,7 @@ def RegisterUser(connection, client_address, cmd_queue, username, pass_hash):
     cmd_queue.put((connection, client_address, command))
 
 
-def CheckUserCredentials(connection, client_address,
+def check_user_credentials(connection, client_address,
         cmd_queue, username, pass_hash):
     """
     Checks the credentials of a user
@@ -185,7 +172,7 @@ def CheckUserCredentials(connection, client_address,
     if secure_string(username + pass_hash) is False:
         logger.info("One of the parameters where insecure!\n")
         logging.info("Recieved from: " + str(client_address))
-        SendPacket(connection, ["ERROR", "Insecure Parameter"])
+        send_packet(connection, ["ERROR", "Insecure Parameter"])
         return -1
     command = ("select name from credentials where name=?\
             and pass_hash=?", (username, pass_hash))
@@ -217,7 +204,7 @@ def handle_client(connection, client_address, cmd_queue):
             """
             username = tokens[1]
             game_mode = tokens[2]
-            AddWin(connection, client_address, cmd_queue, username, game_mode)
+            add_win(connection, client_address, cmd_queue, username, game_mode)
         if tokens[0] == "ADD_LOOSE" and len(tokens) >= 3:
             """
             If the command token is ADD_LOOSE and enough tokens are received
@@ -225,7 +212,7 @@ def handle_client(connection, client_address, cmd_queue):
             """
             username = tokens[1]
             game_mode = tokens[2]
-            AddLoose(connection, client_address, cmd_queue, username, game_mode)
+            add_loose(connection, client_address, cmd_queue, username, game_mode)
         if tokens[0] == "GET_STATS" and len(tokens) >= 5:
             """
             If the command token is get_stats and enough tokens are received
@@ -240,7 +227,7 @@ def handle_client(connection, client_address, cmd_queue):
             to_year = tokens[6]
             to_month = tokens[7]
             to_day = tokens[8]
-            GetStats(connection, client_address, cmd_queue, username, game_mode,
+            get_stats(connection, client_address, cmd_queue, username, game_mode,
                      from_year, from_month, from_day,
                      to_year, to_month, to_day)
         if tokens[0] == "CHECK_USERNAME" and len(tokens) >= 2:
@@ -248,20 +235,20 @@ def handle_client(connection, client_address, cmd_queue):
             If the command token is check_username and enough tokens
             are received check if the username in token[1] is free or not
             """
-            CheckUsername(connection, client_address, cmd_queue, tokens[1])
+            check_username(connection, client_address, cmd_queue, tokens[1])
         if tokens[0] == "REGISTER_USER" and len(tokens) >= 3:
             """
             If the command token is register_user and enough tokens are
             received insert a new entry into the credentials table
             """
-            RegisterUser(connection, client_address, cmd_queue,
+            register_user(connection, client_address, cmd_queue,
                 tokens[1], tokens[2])
         if tokens[0] == "CHECK_CREDENTIALS" and len(tokens) >= 3:
             """
             If the command token is check_credentials and enough tokens
             are received, check the credentials
             """
-            CheckUserCredentials(connection, client_address, cmd_queue,
+            check_user_credentials(connection, client_address, cmd_queue,
                 tokens[1], tokens[2])
 
 
@@ -277,7 +264,7 @@ def sql_worker(cmd_queue):
     cursor = database.cursor()
 
     # Create a userstats table if non exists
-    InitDatabase(database, cursor)
+    init_database(database, cursor)
 
     while True:
         connection, client_address, command = cmd_queue.get()
@@ -303,13 +290,13 @@ def sql_worker(cmd_queue):
             # to signal the error
             if connection is not None:
                 logging.info("Send result to: " + str(client_address))
-                SendPacket(connection, ["ERROR", result])
+                send_packet(connection, ["ERROR", result])
         # If the command wasnt a locale command send the result
         # to the client using the SUCCESS command token
         # to signal the success
         if connection is not None:
             logging.info("Send result to: " + str(client_address))
-            SendPacket(connection, ["SUCCESS", result])
+            send_packet(connection, ["SUCCESS", result])
         cmd_queue.task_done()
         # Commit to the database to make the changes visible
         database.commit()
@@ -317,7 +304,7 @@ def sql_worker(cmd_queue):
     database.close()
 
 
-def InitDatabase(database, cursor):
+def init_database(database, cursor):
     """
     Just create a userstats table if there is none
     """
@@ -339,6 +326,10 @@ def InitDatabase(database, cursor):
 
 
 if __name__ == "__main__":
+    # Create a logger
+    logging.basicConfig(filename='UserDatabaseServer.log', level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
     # Build the server socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(SERVER_ADDRESS)
@@ -356,7 +347,7 @@ if __name__ == "__main__":
     sql_worker_process.daemon = True
     sql_worker_process.start()
 
-    while running:
+    while True:
         # Accept new connections
         connection, client_address = server_socket.accept()
         # And handle them using the handle_client function
