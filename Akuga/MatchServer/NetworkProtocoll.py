@@ -280,6 +280,9 @@ def send_gamestate_to_client(connection, game_state):
             meeple = game_state.arena.get_unit_at(Position(x, y))
             packet_tokens.append(meeple.name if meeple is not None else "")
     send_packet(connection, packet_tokens)
+    # Now send the name of the current player
+    send_packet(connection, ["CURRENT_PLAYER",
+        game_state.player_chain.get_current_player().name])
 
 
 if __name__ == "__main__":
