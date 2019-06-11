@@ -11,9 +11,8 @@ class ArenaTile:
     It also has a script which may add special effects on the tile.
     A tile is blocked if the unit occupying the tile is blocking
     """
-    def __init__(self, boni, flip_effect_script):
+    def __init__(self, boni):
         self.boni = boni
-        self.flip_scripy = flip_effect_script
         self._occupied_by = None
 
     def occupied_by(self):
@@ -39,6 +38,15 @@ class ArenaTile:
             return self.boni[jumon.color]
         except(KeyError):
             return 0
+
+    def special_ability(self, jumon, current_state, next_state_and_variables):
+        """
+        The very basic ability script which doesnt do anything
+        just returns the next_state_and_variables tuple
+        state_and_variables: [next_state_to_jump_to, variables_to_pass]
+        """
+        return next_state_and_variables
+
 
 
 class Arena:
