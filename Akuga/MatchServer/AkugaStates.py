@@ -470,24 +470,20 @@ class OneTileBattleFlipState(State):
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
         battle_position = self.state_variables["battle_position"]
+        # Get the battle arena tile
+        battle_tile = self.fsm.arena.get_tile_at(battle_position)
         # Now jump to the OneTileBattleBoniEvaluationState
         one_tile_battle_boni_evaluation_state_variables = {
             "attacking_jumon": attacking_jumon,
             "defending_jumon": defending_jumon,
             "battle_position": battle_position}
         """
-        After the aren tile has flipped invoke the ability script of the
-        jumons. This way an interaction of the arena tile like the one
-        of the nameless jumon or red robot can be implemented.
-        The attacking jumons triggers first!
-        That means the state change of the attacking jumon has to be passed
-        to the defending jumon!
+        After the arena tile has flipped invoke its ability script
         """
-        state_change = attacking_jumon.special_ability(self,
-                (self.fsm.one_tile_battle_boni_evaluation_state,
-                 one_tile_battle_boni_evaluation_state_variables))
-        state_change = defending_jumon.special_ability(self,
-                (state_change[0], state_change[1]))
+        state_change = battle_tile.one_tile_special_ability(self,
+            attacking_jumon, defending_jumon,
+            (self.fsm.one_tile_battle_boni_evaluation_state,
+            one_tile_battle_boni_evaluation_state_variables))
         return state_change
 
 
@@ -703,6 +699,9 @@ class TwoTileBattleFlipState(State):
         defending_jumon = self.state_variables["defending_jumon"]
         attack_position = self.state_variables["attack_position"]
         defense_position = self.state_variables["defense_position"]
+        # Get the battle tiles
+        attack_tile = self.fsm.arena.get_tile_at(attack_position)
+        defense_tile = self.fsm.arena.get_tile_at(defense_position)
         # Now jump to the TwoTileBattleBoniEvaluationState
         two_tile_battle_boni_evaluation_state_variables = {
             "attacking_jumon": attacking_jumon,
@@ -710,15 +709,16 @@ class TwoTileBattleFlipState(State):
             "attack_position": attack_position,
             "defense_position": defense_position}
         """
-        After the aren tile has flipped invoke the ability script of the
-        jumons. This way an interaction of the arena tile like the one
-        of the nameless jumon or red robot can be implemented.
-        The attacking jumons triggers first!
+        After the arena tiles has flipped invoke their ability scripts
+        The attack tile triggers first! The state_change returned by
+        the attack_tile has to be the input of the defense tile so
+        both tiles can alter the state change and the state variables.
         """
-        state_change = attacking_jumon.special_ability(self,
-                (self.fsm.two_tile_battle_boni_evaluation_state,
-                two_tile_battle_boni_evaluation_state_variables))
-        state_change = defending_jumon.special_ability(self, state_change)
+        state_change = attack_tile.special_ability(self, attacking_jumon
+            (self.fsm.two_tile_battle_boni_evaluation_state,
+            two_tile_battle_boni_evaluation_state_variables))
+        state_change = defense_tile.special_ability(self, defending_jumon,
+            state_change)
         # Do the state change
         return state_change
 
