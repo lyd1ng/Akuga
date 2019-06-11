@@ -21,6 +21,6 @@ def create_arena(width, height, min_bonus, max_bonus):
             color_boni["green"] = randint(min_bonus, max_bonus)
             color_boni["black"] = randint(min_bonus, max_bonus)
             color_boni["white"] = randint(min_bonus, max_bonus)
-            row.append(ArenaTile(color_boni, None))
+            row.append(ArenaTile(color_boni))
         tiles.append(row)
     return Arena(tiles, width, height)
