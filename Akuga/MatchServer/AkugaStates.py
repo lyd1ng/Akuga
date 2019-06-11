@@ -1,6 +1,6 @@
 import random
 import pygame
-from .. import GlobalDefinitions
+from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.Meeple
 from Akuga.MatchServer.PathFinder import find_path
 from Akuga.MatchServer.Position import Position

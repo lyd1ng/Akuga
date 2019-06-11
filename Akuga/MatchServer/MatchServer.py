@@ -5,7 +5,7 @@ from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import create_arena
 from Akuga.MatchServer.MeepleDict import (get_neutral_meeples, get_not_neutral_meeples)
-from .. import GlobalDefinitions
+from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
 from Akuga.MatchServer.NetworkProtocoll import (AsyncCallbackReceiver,
         handle_match_connection,
