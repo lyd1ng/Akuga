@@ -159,9 +159,13 @@ if __name__ == "__main__":
     logging.basicConfig(filename='MatchServer.log', level=logging.INFO)
     logger = logging.getLogger(__name__)
     import socket
+    import random
     from multiprocessing import Process
+
+    port = random.randint(1000, 4000)
+    print("Listening on port: " + str(port))
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('localhost', 12345))
+    server_socket.bind(('localhost', port))
     server_socket.listen(2)
     users = {'lyding': None, 'lyding2': None}
 
