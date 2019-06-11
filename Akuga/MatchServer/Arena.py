@@ -39,7 +39,8 @@ class ArenaTile:
         except(KeyError):
             return 0
 
-    def special_ability(self, jumon, current_state, next_state_and_variables):
+    def one_tile_special_ability(self, attacking_jumon, defending_jumon,
+            current_state, next_state_and_variables):
         """
         The very basic ability script which doesnt do anything
         just returns the next_state_and_variables tuple
@@ -47,6 +48,14 @@ class ArenaTile:
         """
         return next_state_and_variables
 
+    def two_tile_special_ability(self, jumon, current_state,
+            next_state_and_variables):
+        """
+        The very basic ability script which doesnt do anything
+        just returns the next_state_and_variables tuple
+        state_and_variables: [next_state_to_jump_to, variables_to_pass]
+        """
+        return next_state_and_variables
 
 
 class Arena:
