@@ -7,8 +7,9 @@ class Artefact():
     """
     The abstraction around an equipment or artifact
     """
-    def __init__(self, name, blocking):
+    def __init__(self, name, position, blocking):
         self.name = name
+        self.position = position
         self.blocking = blocking
 
     def attach_to(self, jumon):
@@ -30,6 +31,18 @@ class Artefact():
         state_and_variables: [next_state_to_jump_to, variables_to_pass]
         """
         return next_state_and_variables
+
+    def set_position(self, position):
+        """
+        Set the position of this artefact
+        """
+        self.position = position
+
+    def get_position(self, position):
+        """
+        Get the position of this artefact
+        """
+        return self.position
 
 
 class Jumon():
