@@ -1,3 +1,4 @@
+from Akuga.MatchServer.Meeple import Jumon
 from Akuga.MatchServer.Position import Position
 
 
@@ -39,18 +40,6 @@ class ArenaTile:
         except(KeyError):
             return 0
 
-    def place_unit(self, unit):
-        """
-        Places a unit on this tile
-        """
-        self._occupied_by = unit
-
-    def remove_unit(self):
-        """
-        Removes the unit from the tile if there is one
-        """
-        self._occupied_by = None
-
 
 class Arena:
     """
@@ -86,8 +75,21 @@ class Arena:
     def place_unit_at(self, unit, position):
         """
         Places unit at position
+        Set unit to None to remove a unit from an arena tile
         """
-        self.tiles[position.x][position.y].place_unit(unit)
+        if unit is not None:
+            """
+            If a unit is placed set its position as well
+            """
+            unit.set_position(position)
+            if type(unit) is Jumon and unit.equipment is not None:
+                """
+                If the unit is a jumon and it has an artefact equipped
+                set its position as well
+                """
+                unit.equipped.set_position(position)
+        # Set the unit to the position
+        self.tiles[position.x][position.y]._occupied_by = unit
 
     def print_out(self):
         for y in range(0, self.board_height):
@@ -95,5 +97,6 @@ class Arena:
                 print("|", end="")
                 if self.get_unit_at(Position(x, y)) is not None:
                     print(self.get_unit_at(Position(x, y)).name, end=" ")
+                    print(str(self.get_unit_at(Position(x, y)).get_position()), end=' ')
                 print("\t", end="")
             print("")
