@@ -14,6 +14,7 @@ class ArenaTile:
     def __init__(self, boni):
         self.boni = boni
         self._occupied_by = None
+        self.wasted = False
 
     def occupied_by(self):
         """
@@ -56,6 +57,18 @@ class ArenaTile:
         state_and_variables: [next_state_to_jump_to, variables_to_pass]
         """
         return next_state_and_variables
+
+    def set_wasted(self, wasted):
+        """
+        Set the wasted predicat of this tile
+        """
+        self.wasted = self.waste
+
+    def is_waste(self):
+        """
+        Return the wasted predicat of this tile
+        """
+        return self.wasted
 
 
 class Arena:
