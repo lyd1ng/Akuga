@@ -64,7 +64,7 @@ class ArenaTile:
         """
         self.wasted = self.waste
 
-    def is_waste(self):
+    def is_wasted(self):
         """
         Return the wasted predicat of this tile
         """
