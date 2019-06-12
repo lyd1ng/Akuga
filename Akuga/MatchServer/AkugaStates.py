@@ -714,11 +714,11 @@ class TwoTileBattleFlipState(State):
         the attack_tile has to be the input of the defense tile so
         both tiles can alter the state change and the state variables.
         """
-        state_change = attack_tile.special_ability(self, attacking_jumon
-            (self.fsm.two_tile_battle_boni_evaluation_state,
+        state_change = attack_tile.two_tile_special_ability(self,
+            attacking_jumon, (self.fsm.two_tile_battle_boni_evaluation_state,
             two_tile_battle_boni_evaluation_state_variables))
-        state_change = defense_tile.special_ability(self, defending_jumon,
-            state_change)
+        state_change = defense_tile.two_tile_special_ability(self,
+            defending_jumon, state_change)
         # Do the state change
         return state_change
 
