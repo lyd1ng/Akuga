@@ -29,11 +29,6 @@ def build_last_man_standing_game_state(player_chain, _queue, options={}):
                         GlobalDefinitions.MIN_TILE_BONUS,
                         GlobalDefinitions.MAX_TILE_BONUS)
 
-    # Set the arena tile in the upper and left most tile to be wasted
-    for y in range(3):
-        for x in range(3):
-            arena.get_tile_at(Position(x, y)).set_wasted(True)
-
     # Add a neutral player to the player chain
     neutral_player = NeutralPlayer(arena)
     neutral_player.set_jumons_to_summon(get_neutral_meeples(1))
