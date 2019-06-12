@@ -214,7 +214,7 @@ class SummonCheckState(State):
             # Let the current player summon this jumon
             self.fsm.player_chain.get_current_player().\
                 handle_summoning(jumon)
-            if self.fsm.arena.get_tile_at(summon_position):
+            if self.fsm.arena.get_tile_at(summon_position).is_wasted():
                 """
                 If the summoned position is a wasted land kill the jumon
                 instead of place it on the tile
@@ -619,15 +619,6 @@ class OneTileBattleAftermathState(State):
         # attacking_jumon_bonus = self.state_variables["attacking_jumon_bonus"]
         # defending_jumon_bonus = self.state_variables["defending_jumon_bonus"]
 
-        """
-        run the ability scripts before the jumons are killed.
-        This way the destruction of both jumons could be prohibited
-        and death rattle effects can be implemented
-        """
-        state_change = attacking_jumon.special_ability(self,
-                (self.fsm.change_player_state,
-                self.state_variables))
-        state_change = defending_jumon.special_ability(self, state_change)
         if victor is None and looser is None:
             """
             If no victor and no looser is assigned both jumons had the same
@@ -670,7 +661,12 @@ class OneTileBattleAftermathState(State):
             looser.owned_by.handle_jumon_death(looser)
             # Place the victor on the arena tile
             self.fsm.arena.place_unit_at(victor, battle_position)
+
         # Now do the state_change (mostly jump to change_player_state)
+        state_change = attacking_jumon.special_ability(self,
+                (self.fsm.change_player_state,
+                self.state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
         return state_change
 
 
@@ -858,15 +854,6 @@ class TwoTileBattleAftermathState(State):
         defense_position = self.state_variables["defense_position"]
         victor = self.state_variables["victor"]
         looser = self.state_variables["looser"]
-        """
-        run the ability scripts before the jumons are killed.
-        This way the destruction of both jumons could be prohibited
-        and death rattle effects can be implemented
-        """
-        state_change = attacking_jumon.special_ability(self,
-                (self.fsm.change_player_state,
-                self.state_variables))
-        state_change = defending_jumon.special_ability(self, state_change)
         if victor is None and looser is None:
             """
             If no victor and no looser is assigned both jumons had the same
@@ -939,6 +926,10 @@ class TwoTileBattleAftermathState(State):
                 # Place it on the attack tile
                 self.fsm.arena.place_unit_at(attack_artefact, attack_position)
         # Now the turn ends so do the change
+        state_change = attacking_jumon.special_ability(self,
+                (self.fsm.change_player_state,
+                self.state_variables))
+        state_change = defending_jumon.special_ability(self, state_change)
         return state_change
 
 
