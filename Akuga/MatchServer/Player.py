@@ -153,12 +153,16 @@ class Player:
         """
         if len(self.jumons_to_summon) < 1 and len(self.summoned_jumons) < 1:
             self.kill()
+        else:
+            self._is_dead = False
         """
         If there are no more jumons to summon left the player changes into
         the move phase
         """
         if len(self.jumons_to_summon) < 1:
             self.set_to_move_phase()
+        else:
+            self.set_to_summon_phase()
 
     def is_dead(self):
         """
