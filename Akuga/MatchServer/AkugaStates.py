@@ -214,8 +214,15 @@ class SummonCheckState(State):
             # Let the current player summon this jumon
             self.fsm.player_chain.get_current_player().\
                 handle_summoning(jumon)
-            # Place the jumon at the arena
-            self.fsm.arena.place_unit_at(jumon, summon_position)
+            if self.fsm.arena.get_tile_at(summon_position):
+                """
+                If the summoned position is a wasted land kill the jumon
+                instead of place it on the tile
+                """
+                jumon.owned_by.handle_jumon_death(jumon)
+            else:
+                """ Place the jumon at the arena """
+                self.fsm.arena.place_unit_at(jumon, summon_position)
             """
             Invoke the jumon special ability with the same state variables
             as no new state variables occured. This way enter the battlefield
@@ -358,14 +365,17 @@ class CheckMoveState(State):
             If the tile at target position is free just do the move
             and end the turn by jumping to the ChangePlayerState
             """
-            self.fsm.arena.place_unit_at(None, current_position)
-            self.fsm.arena.place_unit_at(jumon, target_position)
             if self.fsm.arena.get_tile_at(target_position).is_wasted():
                 """
                 If the target position is a wasted arena tile kill the
                 jumon
                 """
+                self.fsm.arena.place_unit_at(None, current_position)
                 jumon.owned_by.handle_jumon_death(jumon)
+            else:
+                """ Place the jumon on the arena tile """
+                self.fsm.arena.place_unit_at(None, current_position)
+                self.fsm.arena.place_unit_at(jumon, target_position)
             return (self.fsm.change_player_state, {})
         elif self.fsm.player_chain.get_current_player().\
                 owns_tile(self.fsm.arena, target_position):
