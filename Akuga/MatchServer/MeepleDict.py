@@ -9,11 +9,11 @@ within the commands send over the internet to a the meeple references.
 """
 
 MeepleDict = {
-    "Jumon1": Jumon("Jumon1", "red", 400, 1, None, None),
-    "Jumon2": Jumon("Jumon2", "blue", 400, 1, None, None),
-    "Jumon3": Jumon("Jumon3", "green", 400, 1, None, None),
-    "Jumon4": Jumon("Jumon4", "black", 400, 1, None, None),
-    "Jumon5": Jumon("Jumon5", "white", 400, 1, None, None),
+    "Jumon1": Jumon("Jumon1", "red", 400, 400, 1, None, None),
+    "Jumon2": Jumon("Jumon2", "blue", 400, 400, 1, None, None),
+    "Jumon3": Jumon("Jumon3", "green", 400, 400, 1, None, None),
+    "Jumon4": Jumon("Jumon4", "black", 400, 400, 1, None, None),
+    "Jumon5": Jumon("Jumon5", "white", 400, 400, 1, None, None),
     "NJ1__neutral": TestNeutralJumon("NeutralJumon1", None)
 }
 
