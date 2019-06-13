@@ -15,6 +15,23 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     TURN_ENDS)
 
 
+def jumon_fight(attacking_jumon, attacking_bonus,
+                defending_jumon, defending_bonus):
+    """
+    Return the winner and the looser as a tupel of the form
+    ($winner, $looser). If the fight was drawn return None for
+    both.
+    """
+    if attacking_jumon.attack + attacking_bonus >\
+            defending_jumon.defense + defending_bonus:
+        return (attacking_jumon, defending_jumon)
+    elif attacking_jumon.attack + attacking_bonus <\
+            defending_jumon.defense + defending_bonus:
+        return (defending_jumon, attacking_jumon)
+    else:
+        return (None, None)
+
+
 class IdleState(State):
     """
     The representation of the idle state which is the normal
@@ -522,9 +539,9 @@ class OneTileBattleBoniEvaluationState(State):
         battle_position = self.state_variables["battle_position"]
         battle_arena_tile = self.fsm.arena.get_tile_at(battle_position)
         attacking_jumon_bonus = battle_arena_tile.\
-            get_bonus_for_jumon(attacking_jumon)
+            get_attack_bonus(attacking_jumon)
         defending_jumon_bonus = battle_arena_tile.\
-            get_bonus_for_jumon(defending_jumon)
+            get_defense_bonus(defending_jumon)
         # Create the state_variables
         one_tile_battle_figh_state_variables = {
             "attacking_jumon": attacking_jumon,
@@ -563,20 +580,8 @@ class OneTileBattleFightState(State):
         attacking_jumon_bonus = self.state_variables["attacking_jumon_bonus"]
         defending_jumon_bonus = self.state_variables["defending_jumon_bonus"]
         # If no one wins victor and looser are none
-        victor = None
-        looser = None
-        # Check if the summoned jumon looses
-        if attacking_jumon.base_level + attacking_jumon.level_offset +\
-                attacking_jumon_bonus < defending_jumon.base_level +\
-                defending_jumon.level_offset + defending_jumon_bonus:
-            victor = defending_jumon
-            looser = attacking_jumon
-        # Check if the summoned jumon wins
-        if attacking_jumon.base_level + attacking_jumon.level_offset +\
-                attacking_jumon_bonus > defending_jumon.base_level +\
-                defending_jumon.level_offset + defending_jumon_bonus:
-            victor = attacking_jumon
-            looser = defending_jumon
+        victor, looser = jumon_fight(attacking_jumon, attacking_jumon_bonus,
+                                     defending_jumon, defending_jumon_bonus)
         """
         The summoned jumon and the defending_jumon has to be in the variables
         as well to destroy both if victor and looser are None.
@@ -757,8 +762,8 @@ class TwoTileBattleBoniEvaluationState(State):
         defense_tile = self.fsm.arena.get_tile_at(defense_position)
 
         # Get the bonus of the attack or defense tile
-        attacking_jumon_bonus = attack_tile.get_bonus_for_jumon(attacking_jumon)
-        defending_jumon_bonus = defense_tile.get_bonus_for_jumon(defending_jumon)
+        attacking_jumon_bonus = attack_tile.get_attack_bonus(attacking_jumon)
+        defending_jumon_bonus = defense_tile.get_defense_bonus(defending_jumon)
         # Now jump to the two_tile_battle_fight_state
         two_tile_battle_figh_state_variables = {
             "attacking_jumon": attacking_jumon,
@@ -799,20 +804,8 @@ class TwoTileBattleFightState(State):
         attacking_jumon_bonus = self.state_variables["attacking_jumon_bonus"]
         defending_jumon_bonus = self.state_variables["defending_jumon_bonus"]
         # If no one wins victor and looser are none
-        victor = None
-        looser = None
-        # Check if the summoned jumon looses
-        if attacking_jumon.base_level + attacking_jumon.level_offset +\
-                attacking_jumon_bonus < defending_jumon.base_level +\
-                defending_jumon.level_offset + defending_jumon_bonus:
-            victor = defending_jumon
-            looser = attacking_jumon
-        # Check if the summoned jumon wins
-        if attacking_jumon.base_level + attacking_jumon.level_offset +\
-                attacking_jumon_bonus > defending_jumon.base_level +\
-                defending_jumon.level_offset + defending_jumon_bonus:
-            victor = attacking_jumon
-            looser = defending_jumon
+        victor, looser = jumon_fight(attacking_jumon, attacking_jumon_bonus,
+                                     defending_jumon, defending_jumon_bonus)
         """
         The summoned jumon and the defending_jumon has to be in the variables
         as well to destroy both if victor and looser are None.
