@@ -17,8 +17,8 @@ class ArenaTile:
         self.nonpersistent_interf = {}
         # Add all keys of boni in the intererences and store zeroes
         for color in self.boni:
-            self.persistent_interf[color] = 0
-            self.nonpersistent_interf[color] = 0
+            self.persistent_interf[color] = (0, 0)
+            self.nonpersistent_interf[color] = (0, 0)
         self._occupied_by = None
         self.wasted = False
 
@@ -70,7 +70,7 @@ class ArenaTile:
         """
         # Add all keys of boni in the intererences and store zeroes
         for color in self.boni:
-            self.nonpersistent_interf[color] = 0
+            self.nonpersistent_interf[color] = (0, 0)
 
     def one_tile_special_ability(self, attacking_jumon, defending_jumon,
             current_state, next_state_and_variables):
