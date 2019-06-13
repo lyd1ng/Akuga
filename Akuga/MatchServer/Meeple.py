@@ -57,10 +57,10 @@ class Jumon():
         self.color = color
         self.attack = attack
         self.defense = defense
-        self.persistent_attack_bonus = 0
-        self.persistent_defense_bonus = 0
-        self.nonpersistent_attack_bonus = 0
-        self.nonpersistent_defense_bonus = 0
+        self.persistent_attack_interf = 0
+        self.persistent_defense_interf = 0
+        self.nonpersistent_attack_interf = 0
+        self.nonpersistent_defense_interf = 0
         self.movement = movement
         self.equipment = equipment
         self.owned_by = owned_by
@@ -114,16 +114,32 @@ class Jumon():
         """
         return (fsm.change_player_state, {})
 
-    def reset_nonpersistent_bonus(self):
+    def reset_nonpersistent_interf(self):
         """
-        Reset the nonpersistent bonus,
-        this will be used to reset the nonpersistent bonus before
+        Reset the nonpersistent interf,
+        this will be used to reset the nonpersistent interf before
         the passive abilities of all jumons triggers.
         This way passive abilities can be implemented rather simple by
-        incrementing or decrementing the nonpersisten bonus values
+        incrementing or decrementing the nonpersisten interf values
         """
-        self.nonpersistent_attack_bonus = 0
-        self.nonpersistent_defense_bonus = 0
+        self.nonpersistent_attack_interf = 0
+        self.nonpersistent_defense_interf = 0
+
+    def get_total_attack(self):
+        """
+        Returns the sum of the attack value and the persistent and
+        nonpersistent attack interference
+        """
+        return self.attack + self.persistent_attack_interf\
+            + self.nonpersistent_attack_interf
+
+    def get_total_defense(self):
+        """
+        Returns the sum of the defense value and the persistent and
+        nonpersistent defense interference
+        """
+        return self.defense + self.persistent_defense_interf\
+            + self.nonpersistent_defense_interf
 
 
 class TestNeutralJumon(Jumon):
