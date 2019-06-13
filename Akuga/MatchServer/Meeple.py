@@ -57,6 +57,10 @@ class Jumon():
         self.color = color
         self.attack = attack
         self.defense = defense
+        self.persistent_attack_bonus = 0
+        self.persistent_defense_bonus = 0
+        self.nonpersistent_attack_bonus = 0
+        self.nonpersistent_defense_bonus = 0
         self.movement = movement
         self.equipment = equipment
         self.owned_by = owned_by
@@ -109,6 +113,17 @@ class Jumon():
         Normaly the turn ends after a special move
         """
         return (fsm.change_player_state, {})
+
+    def reset_nonpersistent_bonus(self):
+        """
+        Reset the nonpersistent bonus,
+        this will be used to reset the nonpersistent bonus before
+        the passive abilities of all jumons triggers.
+        This way passive abilities can be implemented rather simple by
+        incrementing or decrementing the nonpersisten bonus values
+        """
+        self.nonpersistent_attack_bonus = 0
+        self.nonpersistent_defense_bonus = 0
 
 
 class TestNeutralJumon(Jumon):
