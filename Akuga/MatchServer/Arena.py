@@ -30,15 +30,24 @@ class ArenaTile:
             return self._occupied_by.blocking
         return False
 
-    def get_bonus_for_jumon(self, jumon):
+    def get_attack_bonus(self, jumon):
         """
-        Just returns the bonus value for the color of the jumon
-        or 0 if ther jumon has an unknown color
+        Return the attack bonus for the color of the jumon
         """
         try:
-            return self.boni[jumon.color]
+            return self.boni[jumon.color][0]
         except(KeyError):
             return 0
+
+    def get_defense_bonus(self, jumon):
+        """
+        Return the defense bonus for the color of the jumon
+        """
+        try:
+            return self.boni[jumon.color][1]
+        except(KeyError):
+            return 0
+
 
     def one_tile_special_ability(self, attacking_jumon, defending_jumon,
             current_state, next_state_and_variables):
