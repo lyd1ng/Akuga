@@ -13,6 +13,12 @@ class ArenaTile:
     """
     def __init__(self, boni):
         self.boni = boni
+        self.persistent_interf = {}
+        self.nonpersistent_interf = {}
+        # Add all keys of boni in the intererences and store zeroes
+        for color in self.boni:
+            self.persistent_interf[color] = 0
+            self.nonpersistent_interf[color] = 0
         self._occupied_by = None
         self.wasted = False
 
@@ -35,7 +41,10 @@ class ArenaTile:
         Return the attack bonus for the color of the jumon
         """
         try:
-            return self.boni[jumon.color][0]
+            _sum = self.boni[jumon.color][0]\
+                + self.persistent_interf[jumon.color][0]\
+                + self.nonpersistent_interf[jumon.color][0]
+            return _sum
         except(KeyError):
             return 0
 
@@ -44,10 +53,24 @@ class ArenaTile:
         Return the defense bonus for the color of the jumon
         """
         try:
-            return self.boni[jumon.color][1]
+            _sum = self.boni[jumon.color][1]\
+                + self.persistent_interf[jumon.color][1]\
+                + self.nonpersistent_interf[jumon.color][1]
+            return _sum
         except(KeyError):
             return 0
 
+    def reset_nonpersistent_interf(self):
+        """
+        Reset the nonpersistent interf,
+        this will be used to reset the nonpersistent interf before
+        the passive abilities of all jumons triggers.
+        This way passive abilities can be implemented rather simple by
+        incrementing or decrementing the nonpersisten interf values
+        """
+        # Add all keys of boni in the intererences and store zeroes
+        for color in self.boni:
+            self.nonpersistent_interf[color] = 0
 
     def one_tile_special_ability(self, attacking_jumon, defending_jumon,
             current_state, next_state_and_variables):
