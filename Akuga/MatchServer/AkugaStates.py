@@ -43,9 +43,18 @@ class IdleState(State):
 
     def run(self, event):
         """
+        Go through all summoned jumons of all players and invoke their
+        special abilty function to allow passive abilities.
         Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
         as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
         """
+        # Go through all players, even the neutral player
+        for player in self.fsm.player_chain.get_players():
+            # Go through all jumons that player summoned
+            for jumon in player.summoned_jumons:
+                # There is no state change planed nor are there state variables
+                jumon.special_ability(self, None)
+
         if type(self.fsm.player_chain.get_current_player()) is\
                 NeutralPlayer and self.fsm.player_chain.\
                 get_current_player().in_move_phase():
