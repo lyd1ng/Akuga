@@ -43,11 +43,22 @@ class IdleState(State):
 
     def run(self, event):
         """
-        Go through all summoned jumons of all players and invoke their
-        special abilty function to allow passive abilities.
+        To allow passive special abilities the nonpersistent interference
+        of all jumons and all arena tiles has to be cleared. Then
+        the special ability script of all jumons (even the neutral ones)
+        can be invoked without allowing a state change.
         Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
         as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
         """
+        # Reset the nonpersistent interference of all arena tiles
+        for row in self.fsm.arena.tiles:
+            for arena_tile in row:
+                arena_tile.reset_nonpersistent_interf()
+        # Reset the nonpersistent  interference of all jumons
+        for player in self.fsm.player_chain.get_players():
+            for jumon in player.summoned_jumons:
+                jumon.reset_nonpersistent_interf()
+
         # Go through all players, even the neutral player
         for player in self.fsm.player_chain.get_players():
             # Go through all jumons that player summoned
