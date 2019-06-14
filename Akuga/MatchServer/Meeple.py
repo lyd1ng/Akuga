@@ -57,15 +57,13 @@ class Jumon():
         self.color = color
         self.attack = attack
         self.defense = defense
-        self.persistent_attack_interf = 0
-        self.persistent_defense_interf = 0
-        self.nonpersistent_attack_interf = 0
-        self.nonpersistent_defense_interf = 0
         self.movement = movement
         self.equipment = equipment
         self.owned_by = owned_by
         self.blocking = False
         self.position = None
+        self.persistent_interf = {}
+        self.nonpersistent_interf = {}
 
     def set_position(self, position):
         """
@@ -120,26 +118,33 @@ class Jumon():
         this will be used to reset the nonpersistent interf before
         the passive abilities of all jumons triggers.
         This way passive abilities can be implemented rather simple by
-        incrementing or decrementing the nonpersisten interf values
+        adding an interference to the nonpersistent interference dictionary.
+        An interference is just a tuple with the attack and the defense
+        value
         """
-        self.nonpersistent_attack_interf = 0
-        self.nonpersistent_defense_interf = 0
+        self.nonpersistent_interf = {}
 
     def get_total_attack(self):
         """
-        Returns the sum of the attack value and the persistent and
-        nonpersistent attack interference
+        Sum up the attack and all attack interference
         """
-        return self.attack + self.persistent_attack_interf\
-            + self.nonpersistent_attack_interf
+        total_attack = self.attack
+        for interf in self.nonpersistent_interf.values():
+            total_attack += interf[0]
+        for interf in self.persistent_interf.values():
+            total_attack += interf[0]
+        return total_attack
 
     def get_total_defense(self):
         """
-        Returns the sum of the defense value and the persistent and
-        nonpersistent defense interference
+        Sum up the defense and all defense interference
         """
-        return self.defense + self.persistent_defense_interf\
-            + self.nonpersistent_defense_interf
+        total_defense = self.defense
+        for interf in self.nonpersistent_interf.values():
+            total_defense += interf[1]
+        for interf in self.persistent_interf.values():
+            total_defense += interf[1]
+        return total_defense
 
 
 class TestNeutralJumon(Jumon):
