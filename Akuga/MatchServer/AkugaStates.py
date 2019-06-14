@@ -559,9 +559,9 @@ class OneTileBattleBoniEvaluationState(State):
         battle_position = self.state_variables["battle_position"]
         battle_arena_tile = self.fsm.arena.get_tile_at(battle_position)
         attacking_jumon_bonus = battle_arena_tile.\
-            get_attack_bonus(attacking_jumon)
+            get_total_attack_bonus(attacking_jumon)
         defending_jumon_bonus = battle_arena_tile.\
-            get_defense_bonus(defending_jumon)
+            get_total_defense_bonus(defending_jumon)
         # Create the state_variables
         one_tile_battle_figh_state_variables = {
             "attacking_jumon": attacking_jumon,
@@ -782,8 +782,10 @@ class TwoTileBattleBoniEvaluationState(State):
         defense_tile = self.fsm.arena.get_tile_at(defense_position)
 
         # Get the bonus of the attack or defense tile
-        attacking_jumon_bonus = attack_tile.get_attack_bonus(attacking_jumon)
-        defending_jumon_bonus = defense_tile.get_defense_bonus(defending_jumon)
+        attacking_jumon_bonus = attack_tile.\
+            get_total_attack_bonus(attacking_jumon)
+        defending_jumon_bonus = defense_tile.\
+            get_total_defense_bonus(defending_jumon)
         # Now jump to the two_tile_battle_fight_state
         two_tile_battle_figh_state_variables = {
             "attacking_jumon": attacking_jumon,
