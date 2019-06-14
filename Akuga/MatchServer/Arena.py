@@ -15,10 +15,6 @@ class ArenaTile:
         self.boni = boni
         self.persistent_interf = {}
         self.nonpersistent_interf = {}
-        # Add all keys of boni in the intererences and store zeroes
-        for color in self.boni:
-            self.persistent_interf[color] = (0, 0)
-            self.nonpersistent_interf[color] = (0, 0)
         self._occupied_by = None
         self.wasted = False
 
