@@ -36,29 +36,49 @@ class ArenaTile:
             return self._occupied_by.blocking
         return False
 
-    def get_attack_bonus(self, jumon):
+    def get_total_attack_bonus(self, jumon):
         """
-        Return the attack bonus for the color of the jumon
+        Sum up the attack bonus and all attack interference
         """
-        try:
-            _sum = self.boni[jumon.color][0]\
-                + self.persistent_interf[jumon.color][0]\
-                + self.nonpersistent_interf[jumon.color][0]
-            return _sum
-        except(KeyError):
-            return 0
+        color = jumon.color
+        total_attack = self.boni[color][0]
+        # Go through all interferences and add the
+        # attack value of the interference for the color
+        # of the jumon. If there is no attack_value for
+        # this color do nothing (equally to add 0)
+        for interf in self.nonpersistent_interf.values():
+            try:
+                total_attack += interf[color][0]
+            except(KeyError):
+                pass
+        for interf in self.persistent_interf.values():
+            try:
+                total_attack += interf[color][0]
+            except(KeyError):
+                pass
+        return total_attack
 
-    def get_defense_bonus(self, jumon):
+    def get_total_defense_bonus(self, jumon):
         """
-        Return the defense bonus for the color of the jumon
+        Sum up the defense bonus and all defense interference
         """
-        try:
-            _sum = self.boni[jumon.color][1]\
-                + self.persistent_interf[jumon.color][1]\
-                + self.nonpersistent_interf[jumon.color][1]
-            return _sum
-        except(KeyError):
-            return 0
+        color = jumon.color
+        total_defense = self.boni[color][1]
+        # Go through all interferences and add the
+        # defense value of the interference for the color
+        # of the jumon. If there is no defense value for
+        # this color do nothing (equally to add 0)
+        for interf in self.nonpersistent_interf.values():
+            try:
+                total_defense += interf[color][1]
+            except(KeyError):
+                pass
+        for interf in self.persistent_interf.values():
+            try:
+                total_defense += interf[color][1]
+            except(KeyError):
+                pass
+        return total_defense
 
     def reset_nonpersistent_interf(self):
         """
@@ -66,11 +86,12 @@ class ArenaTile:
         this will be used to reset the nonpersistent interf before
         the passive abilities of all jumons triggers.
         This way passive abilities can be implemented rather simple by
-        incrementing or decrementing the nonpersisten interf values
+        adding a new interference to the nonpersistent interference
+        dictionary.
+        An interference is a dictionary on its own with an attack and defense
+        value stored with a color as the key
         """
-        # Add all keys of boni in the intererences and store zeroes
-        for color in self.boni:
-            self.nonpersistent_interf[color] = (0, 0)
+        self.nonpersistent_interf = {}
 
     def one_tile_special_ability(self, attacking_jumon, defending_jumon,
             current_state, next_state_and_variables):
