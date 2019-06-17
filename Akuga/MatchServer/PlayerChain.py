@@ -255,9 +255,9 @@ class PlayerChain:
         while True:
             player_list.append(node_pointer.get_player())
             # Walk through the list of players
-            node_pointer = node_pointer.get_next()
             if node_pointer is self.endNode:
                 break
+            node_pointer = node_pointer.get_next()
         return player_list
 
     def __str__(self):
