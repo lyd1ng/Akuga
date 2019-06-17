@@ -153,7 +153,7 @@ def handle_client(connection, client_address, lms_queue, amm_queue):
             pass
 
 
-def HandleLMSQueue(lms_queue):
+def handle_lms_queue(lms_queue):
     """
     Invoke a lms match between the two uppermost users
     """
@@ -173,7 +173,7 @@ def HandleLMSQueue(lms_queue):
     queue.task_done()
 
 
-def HandleAMMQueue(amm_queue):
+def handle_amm_queue(amm_queue):
     """
     Invoke a amm match between the two uppermost users
     """
@@ -212,8 +212,8 @@ if __name__ == '__main__':
 
     # Create and start the handle game mode queue threads for each game mode
     logger.info("Start handle_gamemode_queue threads as daemons")
-    handle_lms_queue_thread = Thread(target=HandleLMSQueue, args=(lms_queue,))
-    handle_amm_queue_thread = Thread(target=HandleAMMQueue, args=(amm_queue,))
+    handle_lms_queue_thread = Thread(target=handle_lms_queue, args=(lms_queue,))
+    handle_amm_queue_thread = Thread(target=handle_amm_queue, args=(amm_queue,))
     handle_lms_queue_thread.daemon = True
     handle_amm_queue_thread.daemon = True
     handle_lms_queue_thread.start()
