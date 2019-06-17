@@ -138,9 +138,11 @@ def handle_client(connection, client_address, lms_queue, amm_queue):
                 if tokens[1] == 'lms':
                     logger.info("Enqueue " + user.name + "for lms")
                     lms_queue.put(user)
+                    send_packet(connection, ["SUCCESFULLY_ENQUEUED", "lms"])
                 elif tokens[1] == 'amm':
                     logger.info("Enqueue " + user.name + "for amm")
                     amm_queue.put(user)
+                    send_packet(connection, ["SUCCESFULLY_ENQUEUED", "amm"])
                 else:
                     logger.info("Invalid game mode: " + tokens[1])
                     send_packet(connection, ["ERROR", "Invalid game mode: "
