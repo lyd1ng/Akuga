@@ -118,8 +118,8 @@ def handle_client(connection, client_address, lms_queue, amm_queue):
                     send_packet(connection, ["ERROR", error])
                 if len(response) > 0:
                     """
-                    If there is a result (there should never be one than more)
-                    But keep > 0 for safety
+                    If there is a result (there should never be one than more
+                    but keep > 0 for safety) the credentials are correct
                     """
                     # Unlock the logged in functionalities
                     user = User(username, pass_hash,
