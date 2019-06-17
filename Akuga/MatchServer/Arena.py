@@ -26,14 +26,6 @@ class ArenaTile:
         """
         return self._occupied_by
 
-    def is_blocked(self):
-        """
-        Returns whether the unit occupying this tile is blocking or not
-        """
-        if self._occupied_by is not None:
-            return self._occupied_by.blocking
-        return False
-
     def get_total_attack_bonus(self, jumon):
         """
         Sum up the attack bonus and all attack interference
@@ -142,12 +134,6 @@ class Arena:
         Returns the arena tile at the given position
         """
         return self.tiles[position.x][position.y]
-
-    def is_blocked_at(self, position):
-        """
-        Return whether the tile at position is blocked or not
-        """
-        return self.tiles[position.x][position.y].is_blocked()
 
     def get_unit_at(self, position):
         """
