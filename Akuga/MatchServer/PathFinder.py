@@ -50,7 +50,7 @@ class PathNode:
         return expand_list
 
 
-def batracke_path(end_node):
+def backtrace_path(end_node):
     """
     Walkes through the predecessors until it is None, thats the start node
     """
@@ -88,7 +88,7 @@ def find_path(start_position, end_position, arena):
         potentiel_end_node = next(filter(lambda x: x.position == end_position,
             visited_nodes), None)
         if potentiel_end_node:
-            return batracke_path(potentiel_end_node)
+            return backtrace_path(potentiel_end_node)
         frontier_nodes = frontier_nodes + expand_list
     return None
 
