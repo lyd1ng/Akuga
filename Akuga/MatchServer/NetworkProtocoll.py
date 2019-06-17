@@ -238,10 +238,8 @@ def send_gamestate_to_client(connection, game_state):
             else ""))
     send_packet(connection, pick_pool_data_tokens)
 
-    """
-    Now go through all the players and send the jummons per can summon
-    and the jumons per has already summoned.
-    """
+    # Now go through all the players and send the jummons per can summon
+    # and the jumons per has already summoned.
     for player in game_state.player_chain.get_players():
         pld_jumons_to_summon_token = [
             "PLAYER_DATA_JUMONS_TO_SUMMON",
@@ -263,31 +261,23 @@ def send_gamestate_to_client(connection, game_state):
         send_packet(connection, pld_jumons_to_summon_token)
         send_packet(connection, pld_summoned_jumons)
 
-    """
-    Now go through all tiles of the arena and send the meeple occupying
-    this tile
-    """
+    # Now go through all tiles of the arena and send the meeple occupying
+    # this tile
     # packet format: cmd, (width, height), meeple1, meeple2, ... meepleN, END
     packet_tokens = [
         "ARENA_DATA",
         (game_state.arena.board_width, game_state.arena.board_height)]
-    """
-    Go through all tiles of the arena and append
-    the names of the occupying meeple
-    """
+    # Go through all tiles of the arena and append
+    # the names of the occupying meeple
     for y in range(game_state.arena.board_height):
         for x in range(game_state.arena.board_width):
             meeple = game_state.arena.get_unit_at(Position(x, y))
             packet_tokens.append(meeple.name if meeple is not None else "")
     send_packet(connection, packet_tokens)
-    # Now send the name of the current player
-    send_packet(connection, ["CURRENT_PLAYER",
-        game_state.player_chain.get_current_player().name])
-    """
-    Now go through all jumons summoned and send the interferences
-    The interferences has to be sent even if there are none to clear
-    the interferences if there where one during the last turn
-    """
+
+    # Now go through all jumons summoned and send the interferences
+    # The interferences has to be sent even if there are none to clear
+    # the interferences if there where one during the last turn
     for player in game_state.player_chain.get_players():
         for jumon in player.summoned_jumons:
             # Both interferences are send as a complete dict
@@ -303,6 +293,9 @@ def send_gamestate_to_client(connection, game_state):
             # Send the packets
             send_packet(connection, nonpersistent_interference_tokens)
             send_packet(connection, persistent_interference_tokens)
+    # Now send the name of the current player
+    send_packet(connection, ["CURRENT_PLAYER",
+        game_state.player_chain.get_current_player().name])
 
 
 if __name__ == "__main__":
