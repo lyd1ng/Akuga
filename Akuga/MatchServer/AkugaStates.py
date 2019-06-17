@@ -267,8 +267,8 @@ class SummonCheckState(State):
             state_change = jumon.special_ability(self,
                     (self.fsm.change_player_state, self.state_variables))
             return state_change
-        elif issubclass(type(self.fsm.arena.get_unit_at(
-                summon_position)), Akuga.MatchServer.Meeple.Artefact)
+        elif issubclass(type(self.fsm.arena.get_unit_at(summon_position)),
+                Akuga.MatchServer.Meeple.Artefact):
             """
             If the jumon is summoned on an artefact place it on this tile
             and jump to the equip artefact to jumon state
@@ -289,8 +289,8 @@ class SummonCheckState(State):
                 "artefact": artefact,
                 "last_position": None})
 
-        elif self.fsm.player_chain.\
-                get_current_player().owns_tile(self.fsm.arena, summon_position)
+        elif self.fsm.player_chain.get_current_player().owns_tile(
+                self.fsm.arena, summon_position):
             """
             If the jumon at this tile is owned  by the current player
             the jumon has to be replaced, so jump back to the summon state
@@ -378,7 +378,7 @@ class CheckMoveState(State):
         """
         Get the shortest path from the current position to the target
         position. Do the move if its legal, or jump back to the idle
-        state if its not. Jump to the two tile battle state or the 
+        state if its not. Jump to the two tile battle state or the
         equip artefact state if the target position is occupied by an
         hostile jumon or an artefact
         """
