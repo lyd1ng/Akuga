@@ -1,6 +1,8 @@
 import pygame
 import queue
 import logging
+import socket
+
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import create_arena
@@ -158,7 +160,6 @@ def match_server(game_mode, users, options={}):
 if __name__ == "__main__":
     logging.basicConfig(filename='MatchServer.log', level=logging.INFO)
     logger = logging.getLogger(__name__)
-    import socket
     import random
     from multiprocessing import Process
 
