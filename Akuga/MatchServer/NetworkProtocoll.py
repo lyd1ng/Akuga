@@ -283,6 +283,26 @@ def send_gamestate_to_client(connection, game_state):
     # Now send the name of the current player
     send_packet(connection, ["CURRENT_PLAYER",
         game_state.player_chain.get_current_player().name])
+    """
+    Now go through all jumons summoned and send the interferences
+    The interferences has to be sent even if there are none to clear
+    the interferences if there where one during the last turn
+    """
+    for player in game_state.player_chain.get_players():
+        for jumon in player.summoned_jumons:
+            # Both interferences are send as a complete dict
+            # They can be parsed using the ast.literal_eval function
+            nonpersistent_interference_tokens = [
+                'JUMON_NONPERSISTENT_INTERFERENCE',
+                jumon.name,
+                jumon.nonpersistent_interf]
+            persistent_interference_tokens = [
+                'JUMON_PERSISTENT_INTERFERENCE',
+                jumon.name,
+                jumon.persistent_interf]
+            # Send the packets
+            send_packet(connection, nonpersistent_interference_tokens)
+            send_packet(connection, persistent_interference_tokens)
 
 
 if __name__ == "__main__":
