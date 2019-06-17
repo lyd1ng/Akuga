@@ -171,8 +171,8 @@ def handle_lms_queue(lms_queue):
     MatchServerProcess.start()
     logger.info("Started MatchServer subprocess")
     # Signal that the users has been processed
-    queue.task_done()
-    queue.task_done()
+    lms_queue.task_done()
+    lms_queue.task_done()
 
 
 def handle_amm_queue(amm_queue):
@@ -191,8 +191,8 @@ def handle_amm_queue(amm_queue):
     MatchServerProcess.start()
     logger.info("Started MatchServer subprocess")
     # Signal that the users has been processed
-    queue.task_done()
-    queue.task_done()
+    amm_queue.task_done()
+    amm_queue.task_done()
 
 
 if __name__ == '__main__':
