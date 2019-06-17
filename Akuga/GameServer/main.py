@@ -28,7 +28,8 @@ def generate_random_password():
     return password
 
 
-def handle_client(connection, client_address, lms_queue, amm_queue):
+def handle_client(connection, client_address,
+                  lms_queue, amm_queue, active_users):
     """
     Handles the connection of a user (the connection as well as the
     client address is stored within the user instance)
@@ -45,10 +46,18 @@ def handle_client(connection, client_address, lms_queue, amm_queue):
         except socket.error:
             connection.close()
             logger.info("Connection error")
+            # If the user was logged which means part of the active user list
+            # remove per from it so per can log in again
+            if user is not None:
+                active_users.remove(user.name)
             break
         if not packet:
             connection.close()
             logger.info("Connection closed")
+            # If the user was logged which means part of the active user list
+            # remove per from it so per can log in again
+            if user is not None:
+                active_users.remove(user.name)
             break
         tokens = packet.split(":")
         if user is None:
@@ -116,14 +125,20 @@ def handle_client(connection, client_address, lms_queue, amm_queue):
                     # An error occured, pass the error to the client
                     logger.info("Database error: " + error)
                     send_packet(connection, ["ERROR", error])
-                if len(response) > 0:
+                if len(response) > 0 and username not in active_users:
                     """
                     If there is a result (there should never be one than more
-                    but keep > 0 for safety) the credentials are correct
+                    but keep > 0 for safety) the credentials are correct.
+                    Also the username doesnt have to occure in the list
+                    of usernames already logged in so users cant log in
+                    multiple times
                     """
                     # Unlock the logged in functionalities
                     user = User(username, pass_hash,
                         connection, client_address)
+                    # Add the user to the active users so per cant
+                    # log in a second time
+                    active_users.append(username)
                     logger.info("Logging in: " + username)
                     send_packet(connection, ["SUCCESSFULLY_LOGGED_IN"])
         elif user.in_play is False:
@@ -212,6 +227,9 @@ if __name__ == '__main__':
     lms_queue = queue.Queue()
     amm_queue = queue.Queue()
 
+    # A list of all usernames currently logged in
+    active_users = []
+
     # Create and start the handle game mode queue threads for each game mode
     logger.info("Start handle_gamemode_queue threads as daemons")
     handle_lms_queue_thread = Thread(target=handle_lms_queue, args=(lms_queue,))
@@ -229,7 +247,7 @@ if __name__ == '__main__':
             logger.info("Error while accepting connections")
             break
         handle_client_thread = Thread(target=handle_client,
-            args=(connection, client_address, lms_queue, amm_queue))
+            args=(connection, client_address, lms_queue, amm_queue, active_users))
         handle_client_thread.start()
     logger.info("Leave server loop")
     logger.info("Close the server socket, terminate programm")
