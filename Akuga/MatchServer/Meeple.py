@@ -7,10 +7,9 @@ class Artefact():
     """
     The abstraction around an equipment or artifact
     """
-    def __init__(self, name, position, blocking):
+    def __init__(self, name, position):
         self.name = name
         self.position = position
-        self.blocking = blocking
 
     def attach_to(self, jumon):
         """
@@ -60,7 +59,6 @@ class Jumon():
         self.movement = movement
         self.equipment = equipment
         self.owned_by = owned_by
-        self.blocking = False
         self.position = None
         self.persistent_interf = {}
         self.nonpersistent_interf = {}
