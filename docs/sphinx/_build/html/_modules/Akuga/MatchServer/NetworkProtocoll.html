@@ -1,0 +1,443 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Akuga.MatchServer.NetworkProtocoll &#8212; Akuga 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for Akuga.MatchServer.NetworkProtocoll</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">pygame</span>
+<span class="kn">from</span> <span class="nn">Akuga.MatchServer.MeepleDict</span> <span class="k">import</span> <span class="n">get_meeple_by_name</span>
+<span class="kn">from</span> <span class="nn">Akuga.MatchServer.Position</span> <span class="k">import</span> <span class="n">Position</span>
+<span class="kn">from</span> <span class="nn">Akuga.EventDefinitions</span> <span class="k">import</span> <span class="p">(</span><span class="n">SUMMON_JUMON_EVENT</span><span class="p">,</span>
+                                    <span class="n">SELECT_JUMON_TO_MOVE_EVENT</span><span class="p">,</span>
+                                    <span class="n">SELECT_JUMON_TO_SPECIAL_MOVE_EVENT</span><span class="p">,</span>
+                                    <span class="n">PICK_JUMON_EVENT</span><span class="p">,</span>
+                                    <span class="n">PACKET_PARSER_ERROR_EVENT</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AsyncCallbackReceiver"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver">[docs]</a><span class="k">class</span> <span class="nc">AsyncCallbackReceiver</span><span class="p">:</span>
+    <span class="c1"># Store the bytes until a whole packet is received</span>
+    <span class="n">cached_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">current_connection</span> <span class="o">=</span> <span class="kc">None</span>
+<div class="viewcode-block" id="AsyncCallbackReceiver.refresh_connection"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.refresh_connection">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">refresh_connection</span><span class="p">(</span><span class="n">connection</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Drop all bytes until no data is received anymore</span>
+<span class="sd">        (ddos is possible here) and clear the cached_str.</span>
+<span class="sd">        This is used to reset the connection for the new turn of a player.</span>
+<span class="sd">        If this function isnt invoked events may be handeld the player send</span>
+<span class="sd">        while it is not pers turn. Its uncritically, no invalid moves are</span>
+<span class="sd">        possible, its just for convenients.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">AsyncCallbackReceiver</span><span class="o">.</span><span class="n">cached_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Drop the data</span>
+                <span class="n">connection</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># Leave the while loop if no data is on the socket anymore</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EAGAIN</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EWOULDBLOCK</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                    If the error is a real error close the connection for now</span>
+<span class="sd">                    TODO: Better connection error handling</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+                    <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AsyncCallbackReceiver.async_callback_recv"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.async_callback_recv">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">async_callback_recv</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span>
+                          <span class="n">nbytes</span><span class="p">,</span>
+                          <span class="n">queue</span><span class="p">,</span>
+                          <span class="n">callback</span><span class="p">,</span>
+                          <span class="n">terminator</span><span class="o">=</span><span class="s2">&quot;END&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Receives bytes from connection until terminator is received.</span>
+<span class="sd">        Than invoke callback with the received data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If the connection is a new connection refresh it</span>
+        <span class="k">if</span> <span class="n">connection</span> <span class="o">!=</span> <span class="n">AsyncCallbackReceiver</span><span class="o">.</span><span class="n">current_connection</span><span class="p">:</span>
+            <span class="n">AsyncCallbackReceiver</span><span class="o">.</span><span class="n">refresh_connection</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+            <span class="n">AsyncCallbackReceiver</span><span class="o">.</span><span class="n">current_connection</span> <span class="o">=</span> <span class="n">connection</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Read and decode the packet asynchrounisly</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">AsyncCallbackReceiver</span><span class="o">.</span><span class="n">cached_str</span> <span class="o">+=</span> <span class="n">connection</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">nbytes</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EAGAIN</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EWOULDBLOCK</span><span class="p">:</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                If the error is just cause by the lack of data do nothin</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                If the error is a real error close the connection for now</span>
+<span class="sd">                TODO: Better connection error handling</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If an decode error occured clear the string and return the function</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">PACKET_PARSER_ERROR_EVENT</span><span class="p">,</span>
+                    <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Decode Error&quot;</span><span class="p">)</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="n">AsyncCallbackReceiver</span><span class="o">.</span><span class="n">cached_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">return</span>
+        <span class="c1"># Search the received string for the terminator</span>
+        <span class="n">terminator_index</span> <span class="o">=</span> <span class="n">AsyncCallbackReceiver</span><span class="o">.</span><span class="n">cached_str</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">terminator</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">terminator_index</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If there is a terminator within this packet invoke the callback</span>
+<span class="sd">            function with the packet until the terminator</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">callback</span><span class="p">(</span><span class="n">AsyncCallbackReceiver</span><span class="o">.</span><span class="n">cached_str</span><span class="p">[:</span><span class="n">terminator_index</span><span class="p">],</span>
+                <span class="n">queue</span><span class="p">)</span>
+            <span class="c1"># The string has to be cleared to receive a new packet</span>
+            <span class="n">AsyncCallbackReceiver</span><span class="o">.</span><span class="n">cached_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span></div></div>
+
+
+<div class="viewcode-block" id="send_packet"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.NetworkProtocoll.send_packet">[docs]</a><span class="k">def</span> <span class="nf">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="s2">&quot;END&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Send a packet containing multiple tokens.</span>
+<span class="sd">    Every token is converted to a string using the str function</span>
+<span class="sd">    for better convenients and is encoded using utf-8 encoding.</span>
+<span class="sd">    A packet has the form token1:token2:...:tokenN:terminator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span>
+    <span class="k">if</span> <span class="n">terminator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">terminator</span><span class="p">)</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">query</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="handle_match_connection"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.NetworkProtocoll.handle_match_connection">[docs]</a><span class="k">def</span> <span class="nf">handle_match_connection</span><span class="p">(</span><span class="n">packet</span><span class="p">,</span> <span class="n">queue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Receives a package from connection with a timeout of the defined</span>
+<span class="sd">    seconds per turn. If a packet was received parse it and handle it by</span>
+<span class="sd">    throwing the appropriate events.</span>
+<span class="sd">    If the socket times out the current player is killed.</span>
+<span class="sd">    The same is true if an error occurs while parsing the packet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">packet</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;PICK_JUMON&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles a pick jumon command</span>
+<span class="sd">        PICK_JUMON $name_of_the_jumon_to_pick</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">jumon_to_pick</span> <span class="o">=</span> <span class="n">get_meeple_by_name</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">PACKET_PARSER_ERROR_EVENT</span><span class="p">,</span>
+                    <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Invalid Meeple&quot;</span><span class="p">)</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">jumon_pick_event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">PICK_JUMON_EVENT</span><span class="p">,</span>
+                <span class="n">jumon_to_pick</span><span class="o">=</span><span class="n">jumon_to_pick</span><span class="p">)</span>
+        <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">jumon_pick_event</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;SUMMON_JUMON&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles a summon jumon command</span>
+<span class="sd">        SUMMON_JUMON $name_of_the_jumon_to_summon</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">jumon_to_summon</span> <span class="o">=</span> <span class="n">get_meeple_by_name</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">PACKET_PARSER_ERROR_EVENT</span><span class="p">,</span>
+                    <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Invalid Meeple&quot;</span><span class="p">)</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">jumon_summon_event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">SUMMON_JUMON_EVENT</span><span class="p">,</span>
+                <span class="n">jumon_to_summon</span><span class="o">=</span><span class="n">jumon_to_summon</span><span class="p">)</span>
+        <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">jumon_summon_event</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MOVE_JUMON&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles a move jumon command</span>
+<span class="sd">        MOVE_JUMON $name_of_the_jumon_to_summon $target_position</span>
+<span class="sd">        The target position is in the format $x,$y</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Split the target position string into x an y tokens</span>
+        <span class="n">position_x_str</span><span class="p">,</span> <span class="n">position_y_str</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Convert the x and y tokens into integers</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">position_x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">position_x_str</span><span class="p">)</span>
+            <span class="n">position_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">position_y_str</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">PACKET_PARSER_ERROR_EVENT</span><span class="p">,</span>
+                    <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Invalid Position Data&quot;</span><span class="p">)</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># Get the jumon to move by its name</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">jumon_to_move</span> <span class="o">=</span> <span class="n">get_meeple_by_name</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">PACKET_PARSER_ERROR_EVENT</span><span class="p">,</span>
+                    <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Invalid Meeple&quot;</span><span class="p">)</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># If no error occured the event can be thrown</span>
+        <span class="n">jumon_move_event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">SELECT_JUMON_TO_MOVE_EVENT</span><span class="p">,</span>
+                <span class="n">jumon_to_move</span><span class="o">=</span><span class="n">jumon_to_move</span><span class="p">,</span>
+                <span class="n">current_position</span><span class="o">=</span><span class="n">jumon_to_move</span><span class="o">.</span><span class="n">get_position</span><span class="p">(),</span>
+                <span class="n">target_position</span><span class="o">=</span><span class="n">Position</span><span class="p">(</span><span class="n">position_x</span><span class="p">,</span> <span class="n">position_y</span><span class="p">))</span>
+        <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">jumon_move_event</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;SPECIAL_MOVE_JUMON&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles a move jumon command</span>
+<span class="sd">        MOVE_JUMON $name_of_the_jumon_to_summon $target_position</span>
+<span class="sd">        The target position is in the format $x,$y</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Split the target position string into x an y tokens</span>
+        <span class="n">position_x_str</span><span class="p">,</span> <span class="n">position_y_str</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Convert the x and y tokens into integers</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">position_x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">position_x_str</span><span class="p">)</span>
+            <span class="n">position_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">position_y_str</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">PACKET_PARSER_ERROR_EVENT</span><span class="p">,</span>
+                    <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Invalid Position Data&quot;</span><span class="p">)</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># Get the jumon to move by its name</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">jumon_to_special_move</span> <span class="o">=</span> <span class="n">get_meeple_by_name</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">PACKET_PARSER_ERROR_EVENT</span><span class="p">,</span>
+                    <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Invalid Meeple&quot;</span><span class="p">)</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># If no error occured the event can be thrown</span>
+        <span class="n">jumon_special_move_event</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span>
+            <span class="n">SELECT_JUMON_TO_SPECIAL_MOVE_EVENT</span><span class="p">,</span>
+            <span class="n">jumon_to_move</span><span class="o">=</span><span class="n">jumon_to_special_move</span><span class="p">,</span>
+            <span class="n">current_position</span><span class="o">=</span><span class="n">jumon_to_special_move</span><span class="o">.</span><span class="n">get_position</span><span class="p">(),</span>
+            <span class="n">target_position</span><span class="o">=</span><span class="n">Position</span><span class="p">(</span><span class="n">position_x</span><span class="p">,</span> <span class="n">position_y</span><span class="p">))</span>
+        <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">jumon_special_move_event</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="send_gamestate_to_client"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.NetworkProtocoll.send_gamestate_to_client">[docs]</a><span class="k">def</span> <span class="nf">send_gamestate_to_client</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">game_state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Send all neccessary data from the server game state to build the client</span>
+<span class="sd">    game state. The client game state is an excerpt from the state machiene</span>
+<span class="sd">    as some data should be hidden or is not necessary for the match client</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># First of all send the pick pool</span>
+    <span class="n">pick_pool_data_tokens</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PICK_POOL_DATA&quot;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">jumon</span> <span class="ow">in</span> <span class="n">game_state</span><span class="o">.</span><span class="n">jumon_pick_pool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send the name of the jumon and the</span>
+<span class="sd">        name of its equipment if there is one</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pick_pool_data_tokens</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">jumon</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">jumon</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">jumon</span><span class="o">.</span><span class="n">equipment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+    <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">pick_pool_data_tokens</span><span class="p">)</span>
+
+    <span class="c1"># Now go through all the players and send the jummons per can summon</span>
+    <span class="c1"># and the jumons per has already summoned.</span>
+    <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">game_state</span><span class="o">.</span><span class="n">player_chain</span><span class="o">.</span><span class="n">get_players</span><span class="p">():</span>
+        <span class="n">pld_jumons_to_summon_token</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;PLAYER_DATA_JUMONS_TO_SUMMON&quot;</span><span class="p">,</span>
+            <span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">pld_summoned_jumons</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;PLAYER_DATA_SUMMONED_JUMONS&quot;</span><span class="p">,</span>
+            <span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="c1"># Go through all jumons to summon</span>
+        <span class="k">for</span> <span class="n">jumon</span> <span class="ow">in</span> <span class="n">player</span><span class="o">.</span><span class="n">jumons_to_summon</span><span class="p">:</span>
+            <span class="n">pld_jumons_to_summon_token</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">jumon</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">jumon</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">name</span>
+                <span class="k">if</span> <span class="n">jumon</span><span class="o">.</span><span class="n">equipment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+        <span class="c1"># Go through all summoned jumons</span>
+        <span class="k">for</span> <span class="n">jumon</span> <span class="ow">in</span> <span class="n">player</span><span class="o">.</span><span class="n">summoned_jumons</span><span class="p">:</span>
+            <span class="n">pld_summoned_jumons</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">jumon</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">jumon</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">name</span>
+                <span class="k">if</span> <span class="n">jumon</span><span class="o">.</span><span class="n">equipment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+        <span class="c1"># Send the data</span>
+        <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">pld_jumons_to_summon_token</span><span class="p">)</span>
+        <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">pld_summoned_jumons</span><span class="p">)</span>
+
+    <span class="c1"># Now go through all tiles of the arena and send the meeple occupying</span>
+    <span class="c1"># this tile</span>
+    <span class="c1"># packet format: cmd, (width, height), meeple1, meeple2, ... meepleN, END</span>
+    <span class="n">packet_tokens</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;ARENA_DATA&quot;</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">game_state</span><span class="o">.</span><span class="n">arena</span><span class="o">.</span><span class="n">board_width</span><span class="p">,</span> <span class="n">game_state</span><span class="o">.</span><span class="n">arena</span><span class="o">.</span><span class="n">board_height</span><span class="p">)]</span>
+    <span class="c1"># Go through all tiles of the arena and append</span>
+    <span class="c1"># the names of the occupying meeple</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">game_state</span><span class="o">.</span><span class="n">arena</span><span class="o">.</span><span class="n">board_height</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">game_state</span><span class="o">.</span><span class="n">arena</span><span class="o">.</span><span class="n">board_width</span><span class="p">):</span>
+            <span class="n">meeple</span> <span class="o">=</span> <span class="n">game_state</span><span class="o">.</span><span class="n">arena</span><span class="o">.</span><span class="n">get_unit_at</span><span class="p">(</span><span class="n">Position</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+            <span class="n">packet_tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">meeple</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">meeple</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">packet_tokens</span><span class="p">)</span>
+
+    <span class="c1"># Now go through all jumons summoned and send the interferences</span>
+    <span class="c1"># The interferences has to be sent even if there are none to clear</span>
+    <span class="c1"># the interferences if there where one during the last turn</span>
+    <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">game_state</span><span class="o">.</span><span class="n">player_chain</span><span class="o">.</span><span class="n">get_players</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">jumon</span> <span class="ow">in</span> <span class="n">player</span><span class="o">.</span><span class="n">summoned_jumons</span><span class="p">:</span>
+            <span class="c1"># Both interferences are send as a complete dict</span>
+            <span class="c1"># They can be parsed using the ast.literal_eval function</span>
+            <span class="n">nonpersistent_interference_tokens</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;JUMON_NONPERSISTENT_INTERFERENCE&#39;</span><span class="p">,</span>
+                <span class="n">jumon</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">jumon</span><span class="o">.</span><span class="n">nonpersistent_interf</span><span class="p">]</span>
+            <span class="n">persistent_interference_tokens</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;JUMON_PERSISTENT_INTERFERENCE&#39;</span><span class="p">,</span>
+                <span class="n">jumon</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">jumon</span><span class="o">.</span><span class="n">persistent_interf</span><span class="p">]</span>
+            <span class="c1"># Send the packets</span>
+            <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">nonpersistent_interference_tokens</span><span class="p">)</span>
+            <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">persistent_interference_tokens</span><span class="p">)</span>
+    <span class="c1"># Now send the name of the current player</span>
+    <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;CURRENT_PLAYER&quot;</span><span class="p">,</span>
+        <span class="n">game_state</span><span class="o">.</span><span class="n">player_chain</span><span class="o">.</span><span class="n">get_current_player</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">])</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">Akuga.Player</span> <span class="k">import</span> <span class="n">Player</span>
+    <span class="kn">from</span> <span class="nn">Akuga.PlayerChain</span> <span class="k">import</span> <span class="n">PlayerChain</span>
+    <span class="kn">from</span> <span class="nn">Akuga.ArenaCreator</span> <span class="k">import</span> <span class="n">create_arena</span>
+    <span class="kn">import</span> <span class="nn">Akuga.GlobalDefinitions</span> <span class="k">as</span> <span class="nn">GlobalDefinitions</span>
+    <span class="kn">import</span> <span class="nn">Akuga.AkugaStateMachiene</span> <span class="k">as</span> <span class="nn">AkugaStateMachiene</span>
+
+    <span class="n">pygame</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+    <span class="n">server_socket</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+    <span class="n">server_socket</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">12345</span><span class="p">))</span>
+    <span class="n">server_socket</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">player1</span> <span class="o">=</span> <span class="n">Player</span><span class="p">(</span><span class="s2">&quot;player1&quot;</span><span class="p">)</span>
+    <span class="n">player2</span> <span class="o">=</span> <span class="n">Player</span><span class="p">(</span><span class="s2">&quot;player2&quot;</span><span class="p">)</span>
+    <span class="n">player_chain</span> <span class="o">=</span> <span class="n">PlayerChain</span><span class="p">(</span><span class="n">player1</span><span class="p">,</span> <span class="n">player2</span><span class="p">)</span>
+
+    <span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;Jumon1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set_owner</span><span class="p">(</span><span class="n">player1</span><span class="p">)</span>
+    <span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;Jumon2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set_owner</span><span class="p">(</span><span class="n">player1</span><span class="p">)</span>
+    <span class="n">player1</span><span class="o">.</span><span class="n">add_jumon_to_summon</span><span class="p">(</span><span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;Jumon1&quot;</span><span class="p">))</span>
+    <span class="n">player1</span><span class="o">.</span><span class="n">add_jumon_to_summon</span><span class="p">(</span><span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;Jumon2&quot;</span><span class="p">))</span>
+
+    <span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;Jumon3&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set_owner</span><span class="p">(</span><span class="n">player2</span><span class="p">)</span>
+    <span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;Jumon4&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set_owner</span><span class="p">(</span><span class="n">player2</span><span class="p">)</span>
+    <span class="n">player2</span><span class="o">.</span><span class="n">add_jumon_to_summon</span><span class="p">(</span><span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;Jumon3&quot;</span><span class="p">))</span>
+    <span class="n">player2</span><span class="o">.</span><span class="n">add_jumon_to_summon</span><span class="p">(</span><span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;Jumon4&quot;</span><span class="p">))</span>
+
+    <span class="n">arena</span> <span class="o">=</span> <span class="n">create_arena</span><span class="p">(</span><span class="n">GlobalDefinitions</span><span class="o">.</span><span class="n">BOARD_WIDTH</span><span class="p">,</span>
+                        <span class="n">GlobalDefinitions</span><span class="o">.</span><span class="n">BOARD_HEIGHT</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+    <span class="n">game_state</span> <span class="o">=</span> <span class="n">AkugaStateMachiene</span><span class="o">.</span><span class="n">create_last_man_standing_fsm</span><span class="p">()</span>
+    <span class="n">game_state</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="s2">&quot;arena&quot;</span><span class="p">,</span> <span class="n">arena</span><span class="p">)</span>
+    <span class="n">game_state</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="s2">&quot;player_chain&quot;</span><span class="p">,</span> <span class="n">player_chain</span><span class="p">)</span>
+    <span class="n">game_state</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="s2">&quot;jumon_pick_pool&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;Jumon5&quot;</span><span class="p">)])</span>
+
+    <span class="n">arena</span><span class="o">.</span><span class="n">place_unit_at</span><span class="p">(</span><span class="n">get_meeple_by_name</span><span class="p">(</span><span class="s2">&quot;NeutralJumon1&quot;</span><span class="p">),</span> <span class="n">Position</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">connection</span><span class="p">,</span> <span class="n">address</span> <span class="o">=</span> <span class="n">server_socket</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+        <span class="n">send_gamestate_to_client</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">game_state</span><span class="p">)</span>
+        <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">server_socket</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Akuga</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Akuga.html">Akuga package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, AkugaSphinxDocs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

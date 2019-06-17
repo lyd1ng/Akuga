@@ -1,0 +1,22 @@
+<html>
+	<head>
+		<title>PlayerChain</title>
+	</head>
+	<body>
+		<h1>Player Node</h1>
+		A player node represent a node within the player chain,
+		storing the player, the previous and the next node.
+		It doesnt contain any further logic except getter and setter
+		functions.
+
+		<h1>Player Chain</h1>
+		The playerchain is a circular double linked list out of
+		player nodes. It is used to represent the order of the players turn.
+		As the player chain is a double linked list it is not fixed to a
+		specific amount of players. Players can be added and removed
+		from it on the fly, which is used between every turn cause
+		dead players are removed from the player chain.
+		The player chain is determines if a player has won or the match is
+		drawn, and is used to get the current player.
+	</body>
+</html>

@@ -5,11 +5,13 @@ from Akuga.MatchServer.Position import Position
 class ArenaTile:
     """
     This represents one tile of an arena.
-    It contains six values for six different
-    colors and reference on the jumon or equipment
-    which is placed on the tile.
-    It also has a script which may add special effects on the tile.
-    A tile is blocked if the unit occupying the tile is blocking
+    It stores attack and defense values for the basic colors of jumons
+    as a dictionary of the form {$color: ($attack, $defense)}
+    as well as persistent and nonpersistent interferences.
+    Both are a dict of dicts storing boni like the original boni dict
+    under the name of the interference.
+    An ArenaTile can have two different special functions for the one tile
+    and the two tile battle phase.
     """
     def __init__(self, boni):
         self.boni = boni
@@ -95,6 +97,7 @@ class ArenaTile:
         The very basic ability script which doesnt do anything
         just returns the next_state_and_variables tuple
         state_and_variables: [next_state_to_jump_to, variables_to_pass]
+        Invoked in the boni evaluation state of a one tile battle
         """
         return next_state_and_variables
 
@@ -104,6 +107,7 @@ class ArenaTile:
         The very basic ability script which doesnt do anything
         just returns the next_state_and_variables tuple
         state_and_variables: [next_state_to_jump_to, variables_to_pass]
+        Invoked in the boni evaluation state of a two tile battle
         """
         return next_state_and_variables
 
@@ -123,7 +127,7 @@ class ArenaTile:
 class Arena:
     """
     This represents the arena, which is made of BOARD_WIDTH * BOARD_HEIGHT
-    many ArenaTiles
+    many ArenaTiles stored in a two dimensional array of the form [x][y]
     """
     def __init__(self, tiles, board_width, board_height):
         """

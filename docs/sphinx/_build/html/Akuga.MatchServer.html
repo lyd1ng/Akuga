@@ -1,0 +1,1256 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Akuga.MatchServer package &#8212; Akuga 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Akuga.UserDatabaseServer package" href="Akuga.UserDatabaseServer.html" />
+    <link rel="prev" title="Akuga.GameServer package" href="Akuga.GameServer.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="akuga-matchserver-package">
+<h1>Akuga.MatchServer package<a class="headerlink" href="#akuga-matchserver-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Akuga.MatchServer.AkugaStateMachiene">
+<span id="akuga-matchserver-akugastatemachiene-module"></span><h2>Akuga.MatchServer.AkugaStateMachiene module<a class="headerlink" href="#module-Akuga.MatchServer.AkugaStateMachiene" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Akuga.MatchServer.AkugaStateMachiene.create_last_man_standing_fsm">
+<code class="sig-prename descclassname">Akuga.MatchServer.AkugaStateMachiene.</code><code class="sig-name descname">create_last_man_standing_fsm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStateMachiene.html#create_last_man_standing_fsm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStateMachiene.create_last_man_standing_fsm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates and returns state machiene for a last man standing game, which is
+the only game mode for now</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.AkugaStates">
+<span id="akuga-matchserver-akugastates-module"></span><h2>Akuga.MatchServer.AkugaStates module<a class="headerlink" href="#module-Akuga.MatchServer.AkugaStates" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.ChangePlayerState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">ChangePlayerState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#ChangePlayerState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.ChangePlayerState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>This represents the moment between the turns.</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.ChangePlayerState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#ChangePlayerState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.ChangePlayerState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>update the current player, check for victors or if the match
+is drawn and handle the end of a match with throwing the right
+events.
+update the inner respresentation of the player
+aka check if per is dead or not.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.CheckMoveState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">CheckMoveState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#CheckMoveState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.CheckMoveState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>Checks wheter a draw of a jumon is legal or not</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.CheckMoveState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#CheckMoveState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.CheckMoveState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the shortest path from the current position to the target
+position. Do the move if its legal, or jump back to the idle
+state if its not. Jump to the two tile battle state or the 
+equip artefact state if the target position is occupied by an
+hostile jumon or an artefact</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.CheckSpecialMoveState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">CheckSpecialMoveState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#CheckSpecialMoveState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.CheckSpecialMoveState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>Check if a special move is legal or not and invoke the special move
+function of the ability script of the current jumon.</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.CheckSpecialMoveState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#CheckSpecialMoveState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.CheckSpecialMoveState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the ‘is_special_move_legal’ function of the current jumon
+to check if the move is legal or not. Invoke the special_move
+function of the current jumon if the move is legal.
+Go back to the idle state if its not</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.EquipArtefactToJumonState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">EquipArtefactToJumonState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#EquipArtefactToJumonState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.EquipArtefactToJumonState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>Equips an artefact to a jumon</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.EquipArtefactToJumonState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#EquipArtefactToJumonState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.EquipArtefactToJumonState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attaches an equipment to a jumon</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.IdleState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">IdleState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#IdleState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.IdleState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>The representation of the idle state which is the normal
+state a user idles in until per decides do something.</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.IdleState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#IdleState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.IdleState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>To allow passive special abilities the nonpersistent interference
+of all jumons and all arena tiles has to be cleared. Then
+the special ability script of all jumons (even the neutral ones)
+can be invoked without allowing a state change.
+Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
+as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleAftermathState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">OneTileBattleAftermathState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleAftermathState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleAftermathState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>In this state the jumon which loosed the fight is removed from the
+arena and the summoned jumon list of the player.
+The jumon which won the fight will be placed on the arena tile</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleAftermathState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleAftermathState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleAftermathState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kill the looser jumon, place the victor jumon,
+and swap the artefact from the victor to the looser.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleBeginState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">OneTileBattleBeginState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleBeginState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleBeginState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>The start of a battle on one tile
+This state does nothing on its own, its just an entry point
+for special ability scripts of the fighting jumon</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleBeginState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleBeginState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleBeginState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke the ability scripts of the fighting jumons and jump
+to the OneTileBattleFlipState</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleBoniEvaluationState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">OneTileBattleBoniEvaluationState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleBoniEvaluationState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleBoniEvaluationState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>In this State the bonus of the arena is evaluated and a bonus value
+for both jumons are added to the state variables. Then the state
+machiene jumps to the OneTileBattleFightState</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleBoniEvaluationState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleBoniEvaluationState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleBoniEvaluationState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the boni of the arena tile to the state variables and jump
+to the OneTileBattleFightState</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleFightState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">OneTileBattleFightState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleFightState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleFightState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>In this state both jumons fight the victor and the looser are determined
+Then the state machiene jumps to the OneTileBattleAfterMathState</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleFightState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleFightState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleFightState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fighting is pretty simple, the jumon with less power looses.
+If both jumons have the same power both jumon looses.
+Than the state machiene jumps to OneTileBattleAftermathState</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleFlipState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">OneTileBattleFlipState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleFlipState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleFlipState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>In this state the arena tile at battle position is turned around
+and attached to the state informations. Then the state machiene
+immediatly jumps to the OneTileBattleBoniEvaluationStep</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.OneTileBattleFlipState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#OneTileBattleFlipState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.OneTileBattleFlipState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the arena tile at the battle position and add it to the state
+variables. Then jump to the OneTileBattleBoniEvaluationState</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.PickState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">PickState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#PickState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.PickState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>PickState is the representation of the moment a jumon is picked
+from the jumon pick pool. A picked jumon is removed from the pick pool
+and added to the jumon_to_summon list of the current player.
+This way the player can summon the jumon later on.</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.PickState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#PickState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.PickState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the jumon to pick from the pick pool and add it to the jumons
+the current player can summon. Then check if the player has to
+switch to the summon phase.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.SummonCheckState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">SummonCheckState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#SummonCheckState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.SummonCheckState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>In this state its checked whether the jumon has to be replaced, the
+jummon was summond on a free position and the turn is over or
+a battle is triggererd</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.SummonCheckState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#SummonCheckState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.SummonCheckState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the summon position is free, which makes the summonation
+complete and ends the turn, the summon position is blocked which
+makes the state machiene jump back to the SummonState or the
+summon position is blocked by a hostile jumon which leads to
+a jump to the OneTileBattleState.
+The ability script of the active jumon is only invoked on a succesfull
+summoning. In other case there is a following state in which
+the ability script will be triggered.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.SummonState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">SummonState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#SummonState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.SummonState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>SummonState is the representation of the moment a jumon is summoned.
+In this state a random position if generated and its always jumped
+to the SummonCheckState</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.SummonState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#SummonState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.SummonState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just create a random position and jump to the
+summon_check_state with the position and the summon as
+summon_check_state_variables</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleAftermathState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">TwoTileBattleAftermathState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleAftermathState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleAftermathState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>In this state the jumon which loosed the fight is removed from the
+arena and the summoned jumon list of the player.
+The jumon which won the fight will be placed on the arena tile</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleAftermathState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleAftermathState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleAftermathState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kill the looser, place the victor and swap the artefact from
+the victor to the looser.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleBeginState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">TwoTileBattleBeginState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleBeginState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleBeginState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>The start of a battle on two tiles
+This state does nothing on its own, its just an entry point
+for special ability scripts of the fighting jumon</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleBeginState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleBeginState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleBeginState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke the ability scripts of the fighting jumons and jump
+to the TwoTileBattleFlipState</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleBoniEvaluationState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">TwoTileBattleBoniEvaluationState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleBoniEvaluationState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleBoniEvaluationState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>In this State the bonus of the arena is evaluated and a bonus value
+for both jumons are added to the state variables. Then the state
+machiene jumps to the TwoTileBattleFightState</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleBoniEvaluationState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleBoniEvaluationState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleBoniEvaluationState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the boni of the arena tiles to the state variables and jump
+to the TwoTileBattleFightState</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleFightState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">TwoTileBattleFightState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleFightState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleFightState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>In this state both jumons fight the victor and the looser are determined
+Then the state machiene jumps to the TwoTileBattleAfterMathState</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleFightState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleFightState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleFightState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fighting is pretty simple, the jumon with less power looses.
+If both jumons have the same power both jumon looses.
+Than the state machiene jumps to TwoTileBattleAftermathState</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleFlipState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">TwoTileBattleFlipState</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleFlipState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleFlipState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Akuga.MatchServer.StateMachieneState.StateMachieneState"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.StateMachieneState.StateMachieneState</span></code></a></p>
+<p>In this state the arena tiles at the battle positions are turned around
+and attached to the state informations. Then the state machiene
+immediatly jumps to the TwoTileBattleBoniEvaluationStep</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.AkugaStates.TwoTileBattleFlipState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#TwoTileBattleFlipState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.TwoTileBattleFlipState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the arena tiles at the battle positions and add them to the state
+variables. Then jump to the TwoTileBattleBoniEvaluationState</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.AkugaStates.jumon_fight">
+<code class="sig-prename descclassname">Akuga.MatchServer.AkugaStates.</code><code class="sig-name descname">jumon_fight</code><span class="sig-paren">(</span><em class="sig-param">attacking_jumon</em>, <em class="sig-param">attacking_bonus</em>, <em class="sig-param">defending_jumon</em>, <em class="sig-param">defending_bonus</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/AkugaStates.html#jumon_fight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.AkugaStates.jumon_fight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the winner and the looser as a tupel of the form
+($winner, $looser). If the fight was drawn return None for
+both.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.Arena">
+<span id="akuga-matchserver-arena-module"></span><h2>Akuga.MatchServer.Arena module<a class="headerlink" href="#module-Akuga.MatchServer.Arena" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.Arena.Arena">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.Arena.</code><code class="sig-name descname">Arena</code><span class="sig-paren">(</span><em class="sig-param">tiles</em>, <em class="sig-param">board_width</em>, <em class="sig-param">board_height</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#Arena"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.Arena" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This represents the arena, which is made of BOARD_WIDTH * BOARD_HEIGHT
+many ArenaTiles stored in a two dimensional array of the form [x][y]</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.Arena.get_tile_at">
+<code class="sig-name descname">get_tile_at</code><span class="sig-paren">(</span><em class="sig-param">position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#Arena.get_tile_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.Arena.get_tile_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the arena tile at the given position</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.Arena.get_unit_at">
+<code class="sig-name descname">get_unit_at</code><span class="sig-paren">(</span><em class="sig-param">position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#Arena.get_unit_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.Arena.get_unit_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Unit aka Jumon, Equipment or Trap at position</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.Arena.is_blocked_at">
+<code class="sig-name descname">is_blocked_at</code><span class="sig-paren">(</span><em class="sig-param">position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#Arena.is_blocked_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.Arena.is_blocked_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the tile at position is blocked or not</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.Arena.place_unit_at">
+<code class="sig-name descname">place_unit_at</code><span class="sig-paren">(</span><em class="sig-param">unit</em>, <em class="sig-param">position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#Arena.place_unit_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.Arena.place_unit_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Places unit at position
+Set unit to None to remove a unit from an arena tile</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.Arena.print_out">
+<code class="sig-name descname">print_out</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#Arena.print_out"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.Arena.print_out" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.Arena.ArenaTile">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.Arena.</code><code class="sig-name descname">ArenaTile</code><span class="sig-paren">(</span><em class="sig-param">boni</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This represents one tile of an arena.
+It stores attack and defense values for the basic colors of jumons
+as a dictionary of the form {$color: ($attack, $defense)}
+as well as persistent and nonpersistent interferences.
+Both are a dict of dicts storing boni like the original boni dict
+under the name of the interference.
+An ArenaTile can have two different special functions for the one tile
+and the two tile battle phase.</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.ArenaTile.get_total_attack_bonus">
+<code class="sig-name descname">get_total_attack_bonus</code><span class="sig-paren">(</span><em class="sig-param">jumon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile.get_total_attack_bonus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile.get_total_attack_bonus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum up the attack bonus and all attack interference</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.ArenaTile.get_total_defense_bonus">
+<code class="sig-name descname">get_total_defense_bonus</code><span class="sig-paren">(</span><em class="sig-param">jumon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile.get_total_defense_bonus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile.get_total_defense_bonus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum up the defense bonus and all defense interference</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.ArenaTile.is_blocked">
+<code class="sig-name descname">is_blocked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile.is_blocked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile.is_blocked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether the unit occupying this tile is blocking or not</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.ArenaTile.is_wasted">
+<code class="sig-name descname">is_wasted</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile.is_wasted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile.is_wasted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the wasted predicat of this tile</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.ArenaTile.occupied_by">
+<code class="sig-name descname">occupied_by</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile.occupied_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile.occupied_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the unit aka jumon, equipment ocuppying this tile</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.ArenaTile.one_tile_special_ability">
+<code class="sig-name descname">one_tile_special_ability</code><span class="sig-paren">(</span><em class="sig-param">attacking_jumon</em>, <em class="sig-param">defending_jumon</em>, <em class="sig-param">current_state</em>, <em class="sig-param">next_state_and_variables</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile.one_tile_special_ability"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile.one_tile_special_ability" title="Permalink to this definition">¶</a></dt>
+<dd><p>The very basic ability script which doesnt do anything
+just returns the next_state_and_variables tuple
+state_and_variables: [next_state_to_jump_to, variables_to_pass]
+Invoked in the boni evaluation state of a one tile battle</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.ArenaTile.reset_nonpersistent_interf">
+<code class="sig-name descname">reset_nonpersistent_interf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile.reset_nonpersistent_interf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile.reset_nonpersistent_interf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the nonpersistent interf,
+this will be used to reset the nonpersistent interf before
+the passive abilities of all jumons triggers.
+This way passive abilities can be implemented rather simple by
+adding a new interference to the nonpersistent interference
+dictionary.
+An interference is a dictionary on its own with an attack and defense
+value stored with a color as the key</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.ArenaTile.set_wasted">
+<code class="sig-name descname">set_wasted</code><span class="sig-paren">(</span><em class="sig-param">wasted</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile.set_wasted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile.set_wasted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the wasted predicat of this tile</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Arena.ArenaTile.two_tile_special_ability">
+<code class="sig-name descname">two_tile_special_ability</code><span class="sig-paren">(</span><em class="sig-param">jumon</em>, <em class="sig-param">current_state</em>, <em class="sig-param">next_state_and_variables</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Arena.html#ArenaTile.two_tile_special_ability"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Arena.ArenaTile.two_tile_special_ability" title="Permalink to this definition">¶</a></dt>
+<dd><p>The very basic ability script which doesnt do anything
+just returns the next_state_and_variables tuple
+state_and_variables: [next_state_to_jump_to, variables_to_pass]
+Invoked in the boni evaluation state of a two tile battle</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.ArenaCreator">
+<span id="akuga-matchserver-arenacreator-module"></span><h2>Akuga.MatchServer.ArenaCreator module<a class="headerlink" href="#module-Akuga.MatchServer.ArenaCreator" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Akuga.MatchServer.ArenaCreator.create_arena">
+<code class="sig-prename descclassname">Akuga.MatchServer.ArenaCreator.</code><code class="sig-name descname">create_arena</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">height</em>, <em class="sig-param">min_bonus</em>, <em class="sig-param">max_bonus</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/ArenaCreator.html#create_arena"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.ArenaCreator.create_arena" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just creates an arena out of a 2d array of tiles
+without any ArenaTile special ability</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.GlobalDefinitions">
+<span id="akuga-matchserver-globaldefinitions-module"></span><h2>Akuga.MatchServer.GlobalDefinitions module<a class="headerlink" href="#module-Akuga.MatchServer.GlobalDefinitions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Akuga.MatchServer.MatchServer">
+<span id="akuga-matchserver-matchserver-module"></span><h2>Akuga.MatchServer.MatchServer module<a class="headerlink" href="#module-Akuga.MatchServer.MatchServer" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Akuga.MatchServer.MatchServer.build_last_man_standing_game_state">
+<code class="sig-prename descclassname">Akuga.MatchServer.MatchServer.</code><code class="sig-name descname">build_last_man_standing_game_state</code><span class="sig-paren">(</span><em class="sig-param">player_chain</em>, <em class="sig-param">_queue</em>, <em class="sig-param">options={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/MatchServer.html#build_last_man_standing_game_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.MatchServer.build_last_man_standing_game_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.MatchServer.match_server">
+<code class="sig-prename descclassname">Akuga.MatchServer.MatchServer.</code><code class="sig-name descname">match_server</code><span class="sig-paren">(</span><em class="sig-param">game_mode</em>, <em class="sig-param">users</em>, <em class="sig-param">options={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/MatchServer.html#match_server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.MatchServer.match_server" title="Permalink to this definition">¶</a></dt>
+<dd><p>The actual game runs here and is propagated to the users
+game_mode: string
+users: list of (player_name, player_connection)
+options: A dictionary with options, not used yet</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.Meeple">
+<span id="akuga-matchserver-meeple-module"></span><h2>Akuga.MatchServer.Meeple module<a class="headerlink" href="#module-Akuga.MatchServer.Meeple" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.Meeple.Artefact">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.Meeple.</code><code class="sig-name descname">Artefact</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">position</em>, <em class="sig-param">blocking</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Artefact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Artefact" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The abstraction around an equipment or artifact</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Artefact.attach_to">
+<code class="sig-name descname">attach_to</code><span class="sig-paren">(</span><em class="sig-param">jumon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Artefact.attach_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Artefact.attach_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attach the artefact to jumon</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Artefact.detach_from">
+<code class="sig-name descname">detach_from</code><span class="sig-paren">(</span><em class="sig-param">jumon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Artefact.detach_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Artefact.detach_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detach the artefact from jumon</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Artefact.get_position">
+<code class="sig-name descname">get_position</code><span class="sig-paren">(</span><em class="sig-param">position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Artefact.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Artefact.get_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the position of this artefact</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Artefact.set_position">
+<code class="sig-name descname">set_position</code><span class="sig-paren">(</span><em class="sig-param">position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Artefact.set_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Artefact.set_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the position of this artefact</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Artefact.special_ability">
+<code class="sig-name descname">special_ability</code><span class="sig-paren">(</span><em class="sig-param">jumon</em>, <em class="sig-param">current_state</em>, <em class="sig-param">next_state_and_variables</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Artefact.special_ability"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Artefact.special_ability" title="Permalink to this definition">¶</a></dt>
+<dd><p>The very basic ability script which doesnt do anything
+just returns the next_state_and_variables tuple
+state_and_variables: [next_state_to_jump_to, variables_to_pass]</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.Meeple.Jumon">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.Meeple.</code><code class="sig-name descname">Jumon</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">color</em>, <em class="sig-param">attack</em>, <em class="sig-param">defense</em>, <em class="sig-param">movement</em>, <em class="sig-param">equipment</em>, <em class="sig-param">owned_by</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The abstraction class around the Jumon,
+which is the unit to summon by a player</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Jumon.do_special_move">
+<code class="sig-name descname">do_special_move</code><span class="sig-paren">(</span><em class="sig-param">fsm</em>, <em class="sig-param">current_position</em>, <em class="sig-param">target_position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon.do_special_move"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon.do_special_move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do the special move and return the state change made by the fsm
+after finishing the check_special_move state
+Normaly the turn ends after a special move</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Jumon.get_position">
+<code class="sig-name descname">get_position</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon.get_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Jus get the position of the jumon</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Jumon.get_total_attack">
+<code class="sig-name descname">get_total_attack</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon.get_total_attack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon.get_total_attack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum up the attack and all attack interference</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Jumon.get_total_defense">
+<code class="sig-name descname">get_total_defense</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon.get_total_defense"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon.get_total_defense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum up the defense and all defense interference</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Jumon.is_special_move_legal">
+<code class="sig-name descname">is_special_move_legal</code><span class="sig-paren">(</span><em class="sig-param">current_position</em>, <em class="sig-param">target_position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon.is_special_move_legal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon.is_special_move_legal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether a special move is legal or not</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Jumon.reset_nonpersistent_interf">
+<code class="sig-name descname">reset_nonpersistent_interf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon.reset_nonpersistent_interf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon.reset_nonpersistent_interf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the nonpersistent interf,
+this will be used to reset the nonpersistent interf before
+the passive abilities of all jumons triggers.
+This way passive abilities can be implemented rather simple by
+adding an interference to the nonpersistent interference dictionary.
+An interference is just a tuple with the attack and the defense
+value</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Jumon.set_owner">
+<code class="sig-name descname">set_owner</code><span class="sig-paren">(</span><em class="sig-param">owner</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon.set_owner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon.set_owner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the owner of this meeple.
+Used in the pick state of the fsm if this jumon is picked
+by a player</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Jumon.set_position">
+<code class="sig-name descname">set_position</code><span class="sig-paren">(</span><em class="sig-param">position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon.set_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon.set_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just set the position of the jumon</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.Jumon.special_ability">
+<code class="sig-name descname">special_ability</code><span class="sig-paren">(</span><em class="sig-param">current_state</em>, <em class="sig-param">next_state_and_variables</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#Jumon.special_ability"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.Jumon.special_ability" title="Permalink to this definition">¶</a></dt>
+<dd><p>The very basic ability script which doesnt do anything
+just returns the next_state_and_variables tuple
+state_and_variables: [next_state_to_jump_to, variables_to_pass]</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.Meeple.TestNeutralJumon">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.Meeple.</code><code class="sig-name descname">TestNeutralJumon</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">owned_by</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#TestNeutralJumon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.TestNeutralJumon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.Meeple.Jumon" title="Akuga.MatchServer.Meeple.Jumon"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.Meeple.Jumon</span></code></a></p>
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.TestNeutralJumon.special_ability">
+<code class="sig-name descname">special_ability</code><span class="sig-paren">(</span><em class="sig-param">current_state</em>, <em class="sig-param">next_state_and_variables</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#TestNeutralJumon.special_ability"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.TestNeutralJumon.special_ability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Archieve a state change to the check move state</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Meeple.TestNeutralJumon.wrap">
+<code class="sig-name descname">wrap</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">min_value</em>, <em class="sig-param">max_value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Meeple.html#TestNeutralJumon.wrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Meeple.TestNeutralJumon.wrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wraps x to [min_value, max_value]</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.MeepleDict">
+<span id="akuga-matchserver-meepledict-module"></span><h2>Akuga.MatchServer.MeepleDict module<a class="headerlink" href="#module-Akuga.MatchServer.MeepleDict" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Akuga.MatchServer.MeepleDict.get_meeple_by_name">
+<code class="sig-prename descclassname">Akuga.MatchServer.MeepleDict.</code><code class="sig-name descname">get_meeple_by_name</code><span class="sig-paren">(</span><em class="sig-param">meeple_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/MeepleDict.html#get_meeple_by_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.MeepleDict.get_meeple_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a meeple by its name</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.MeepleDict.get_neutral_meeples">
+<code class="sig-prename descclassname">Akuga.MatchServer.MeepleDict.</code><code class="sig-name descname">get_neutral_meeples</code><span class="sig-paren">(</span><em class="sig-param">amount</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/MeepleDict.html#get_neutral_meeples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.MeepleDict.get_neutral_meeples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of $amount neutral jumons without double occupancies</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.MeepleDict.get_not_neutral_meeples">
+<code class="sig-prename descclassname">Akuga.MatchServer.MeepleDict.</code><code class="sig-name descname">get_not_neutral_meeples</code><span class="sig-paren">(</span><em class="sig-param">amount</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/MeepleDict.html#get_not_neutral_meeples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.MeepleDict.get_not_neutral_meeples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of $amount not neutral jumons without double occupancies</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.NetworkProtocoll">
+<span id="akuga-matchserver-networkprotocoll-module"></span><h2>Akuga.MatchServer.NetworkProtocoll module<a class="headerlink" href="#module-Akuga.MatchServer.NetworkProtocoll" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.NetworkProtocoll.</code><code class="sig-name descname">AsyncCallbackReceiver</code><a class="reference internal" href="_modules/Akuga/MatchServer/NetworkProtocoll.html#AsyncCallbackReceiver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.async_callback_recv">
+<em class="property">static </em><code class="sig-name descname">async_callback_recv</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">nbytes</em>, <em class="sig-param">queue</em>, <em class="sig-param">callback</em>, <em class="sig-param">terminator='END'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/NetworkProtocoll.html#AsyncCallbackReceiver.async_callback_recv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.async_callback_recv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receives bytes from connection until terminator is received.
+Than invoke callback with the received data</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.cached_str">
+<code class="sig-name descname">cached_str</code><em class="property"> = ''</em><a class="headerlink" href="#Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.cached_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.current_connection">
+<code class="sig-name descname">current_connection</code><em class="property"> = None</em><a class="headerlink" href="#Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.current_connection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.refresh_connection">
+<em class="property">static </em><code class="sig-name descname">refresh_connection</code><span class="sig-paren">(</span><em class="sig-param">connection</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/NetworkProtocoll.html#AsyncCallbackReceiver.refresh_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.NetworkProtocoll.AsyncCallbackReceiver.refresh_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop all bytes until no data is received anymore
+(ddos is possible here) and clear the cached_str.
+This is used to reset the connection for the new turn of a player.
+If this function isnt invoked events may be handeld the player send
+while it is not pers turn. Its uncritically, no invalid moves are
+possible, its just for convenients.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.NetworkProtocoll.handle_match_connection">
+<code class="sig-prename descclassname">Akuga.MatchServer.NetworkProtocoll.</code><code class="sig-name descname">handle_match_connection</code><span class="sig-paren">(</span><em class="sig-param">packet</em>, <em class="sig-param">queue</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/NetworkProtocoll.html#handle_match_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.NetworkProtocoll.handle_match_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receives a package from connection with a timeout of the defined
+seconds per turn. If a packet was received parse it and handle it by
+throwing the appropriate events.
+If the socket times out the current player is killed.
+The same is true if an error occurs while parsing the packet.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.NetworkProtocoll.send_gamestate_to_client">
+<code class="sig-prename descclassname">Akuga.MatchServer.NetworkProtocoll.</code><code class="sig-name descname">send_gamestate_to_client</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">game_state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/NetworkProtocoll.html#send_gamestate_to_client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.NetworkProtocoll.send_gamestate_to_client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send all neccessary data from the server game state to build the client
+game state. The client game state is an excerpt from the state machiene
+as some data should be hidden or is not necessary for the match client</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.NetworkProtocoll.send_packet">
+<code class="sig-prename descclassname">Akuga.MatchServer.NetworkProtocoll.</code><code class="sig-name descname">send_packet</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">tokens</em>, <em class="sig-param">terminator='END'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/NetworkProtocoll.html#send_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.NetworkProtocoll.send_packet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a packet containing multiple tokens.
+Every token is converted to a string using the str function
+for better convenients and is encoded using utf-8 encoding.
+A packet has the form token1:token2:…:tokenN:terminator</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.PathFinder">
+<span id="akuga-matchserver-pathfinder-module"></span><h2>Akuga.MatchServer.PathFinder module<a class="headerlink" href="#module-Akuga.MatchServer.PathFinder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.PathFinder.PathNode">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.PathFinder.</code><code class="sig-name descname">PathNode</code><span class="sig-paren">(</span><em class="sig-param">position</em>, <em class="sig-param">predecessor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PathFinder.html#PathNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PathFinder.PathNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A representation of a node within the path</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.PathFinder.PathNode.expand_node">
+<code class="sig-name descname">expand_node</code><span class="sig-paren">(</span><em class="sig-param">tiles</em>, <em class="sig-param">end_pos</em>, <em class="sig-param">frontier</em>, <em class="sig-param">visited</em>, <em class="sig-param">width</em>, <em class="sig-param">height</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PathFinder.html#PathNode.expand_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PathFinder.PathNode.expand_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks all four direct neighbour tiles and add them to the
+expand list if their are free and not yet in the frontier list</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.PathFinder.backtrace_path">
+<code class="sig-prename descclassname">Akuga.MatchServer.PathFinder.</code><code class="sig-name descname">backtrace_path</code><span class="sig-paren">(</span><em class="sig-param">end_node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PathFinder.html#backtrace_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PathFinder.backtrace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Walkes through the predecessors until it is None, thats the start node</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.PathFinder.find_path">
+<code class="sig-prename descclassname">Akuga.MatchServer.PathFinder.</code><code class="sig-name descname">find_path</code><span class="sig-paren">(</span><em class="sig-param">start_position</em>, <em class="sig-param">end_position</em>, <em class="sig-param">arena</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PathFinder.html#find_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PathFinder.find_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.PathFinder.pos_in">
+<code class="sig-prename descclassname">Akuga.MatchServer.PathFinder.</code><code class="sig-name descname">pos_in</code><span class="sig-paren">(</span><em class="sig-param">position</em>, <em class="sig-param">nodes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PathFinder.html#pos_in"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PathFinder.pos_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if position exists within node_list</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.Player">
+<span id="akuga-matchserver-player-module"></span><h2>Akuga.MatchServer.Player module<a class="headerlink" href="#module-Akuga.MatchServer.Player" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.Player.NeutralPlayer">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.Player.</code><code class="sig-name descname">NeutralPlayer</code><span class="sig-paren">(</span><em class="sig-param">arena</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#NeutralPlayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.NeutralPlayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Akuga.MatchServer.Player.Player" title="Akuga.MatchServer.Player.Player"><code class="xref py py-class docutils literal notranslate"><span class="pre">Akuga.MatchServer.Player.Player</span></code></a></p>
+<p>Represents a neutral player which can never win nor loose.
+The neutral player is used to control neutral jumons which agains brings
+a random element to the game. Furthermore neutral jumons can be equiped
+with artefacts which can be stolen by the player bakugans by killing
+the neutral ones.</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.NeutralPlayer.do_a_move">
+<code class="sig-name descname">do_a_move</code><span class="sig-paren">(</span><em class="sig-param">current_state</em>, <em class="sig-param">next_state_and_variables</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#NeutralPlayer.do_a_move"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.NeutralPlayer.do_a_move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do a move by selecting a random jumon and invoke its special
+ability. The special ability has to do the move by creating a state
+change. This way the fsm handels the move correctly and will end
+the turn of the neutral player.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.NeutralPlayer.summon_jumons">
+<code class="sig-name descname">summon_jumons</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#NeutralPlayer.summon_jumons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.NeutralPlayer.summon_jumons" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function has to be invoked before artefacts are placed on
+the arena, this way the summoning can be handeld without the akuga fsm
+THIS IS MAYBE HANDELD WITHIN AN EXTRA INIT STATE IN THE FUTURE</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.Player.Player">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.Player.</code><code class="sig-name descname">Player</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">is_neutral=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents the player of the Akuga game
+A can either be in the summon phase where per is forced to summon
+a Jumon. If every jumon is set the player goes into move phase
+where per is allowed to move one of the jumons</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.add_jumon_to_summon">
+<code class="sig-name descname">add_jumon_to_summon</code><span class="sig-paren">(</span><em class="sig-param">jumon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.add_jumon_to_summon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.add_jumon_to_summon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a jumon to summon</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.can_summon">
+<code class="sig-name descname">can_summon</code><span class="sig-paren">(</span><em class="sig-param">jumon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.can_summon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.can_summon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if a player can summon a jumon
+aka if the jumon is within the jumons_to_summon list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.controls_jumon">
+<code class="sig-name descname">controls_jumon</code><span class="sig-paren">(</span><em class="sig-param">jumon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.controls_jumon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.controls_jumon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns wheter a player controls a jumon or not
+aka if the jumon is within the summoned_jumons list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.handle_jumon_death">
+<code class="sig-name descname">handle_jumon_death</code><span class="sig-paren">(</span><em class="sig-param">jumon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.handle_jumon_death"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.handle_jumon_death" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the death of a jumon, aka removes it from the summoned_jumons
+list an invoke update_player</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.handle_summoning">
+<code class="sig-name descname">handle_summoning</code><span class="sig-paren">(</span><em class="sig-param">jumon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.handle_summoning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.handle_summoning" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is invoked from the state machiene and summons
+a jumon. That means the jumon is moved from
+the jumon_to_summon list to the summone_jumons list and switches
+the phase this player is in if there are no jummons to summon left</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.has_won">
+<code class="sig-name descname">has_won</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.has_won"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.has_won" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if a player has won. If a player has won the match ends
+immediatly</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.in_move_phase">
+<code class="sig-name descname">in_move_phase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.in_move_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.in_move_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent if the player is in the move phase</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.in_pack_phase">
+<code class="sig-name descname">in_pack_phase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.in_pack_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.in_pack_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if the player is in the pick phase</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.in_summon_phase">
+<code class="sig-name descname">in_summon_phase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.in_summon_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.in_summon_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if the player is in the summon phase</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.insta_win">
+<code class="sig-name descname">insta_win</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.insta_win"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.insta_win" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the player the winner, this might be usefull for alternative
+win conditions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.is_dead">
+<code class="sig-name descname">is_dead</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.is_dead"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.is_dead" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if the player is dead or not, dead players are removed
+from the player chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.kill">
+<code class="sig-name descname">kill</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.kill" title="Permalink to this definition">¶</a></dt>
+<dd><p>kill the player, a player is killed if per doesnt own a single jumon
+anymore</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.owns_tile">
+<code class="sig-name descname">owns_tile</code><span class="sig-paren">(</span><em class="sig-param">arena</em>, <em class="sig-param">tile_position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.owns_tile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.owns_tile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if the tile of the arena is already owmed by the player
+Used to check if a move or a summoning is legal for instance</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.set_jumons_to_summon">
+<code class="sig-name descname">set_jumons_to_summon</code><span class="sig-paren">(</span><em class="sig-param">jumons</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.set_jumons_to_summon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.set_jumons_to_summon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the jumons to summon</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.set_to_move_phase">
+<code class="sig-name descname">set_to_move_phase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.set_to_move_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.set_to_move_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the player in the move phase</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.set_to_summon_phase">
+<code class="sig-name descname">set_to_summon_phase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.set_to_summon_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.set_to_summon_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the player in the summon phase</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.Player.Player.update_player">
+<code class="sig-name descname">update_player</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Player.html#Player.update_player"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Player.Player.update_player" title="Permalink to this definition">¶</a></dt>
+<dd><p>updates if the player is dead or not and set the phase of the player</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.PlayerChain">
+<span id="akuga-matchserver-playerchain-module"></span><h2>Akuga.MatchServer.PlayerChain module<a class="headerlink" href="#module-Akuga.MatchServer.PlayerChain" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.PlayerChain.</code><code class="sig-name descname">PlayerChain</code><span class="sig-paren">(</span><em class="sig-param">start_player</em>, <em class="sig-param">end_player</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a circular chain of players
+which is used to determine which player is the current player
+Dead players are removed from this chain for obvious reasons.
+The PlayerChain stores the start, the end as well as the current node.
+The current node is used to determine the current player</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.check_for_drawn">
+<code class="sig-name descname">check_for_drawn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.check_for_drawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.check_for_drawn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if all not neutral players are dead</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.check_for_victory">
+<code class="sig-name descname">check_for_victory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.check_for_victory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.check_for_victory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a player has won and return per
+There are two cases which have to be checked
+1. There is only one not neutral player left
+2. A player has won with an alternative win condition
+1:
+Go throug the whole list and count the number of non neutral
+players, safe the last not neutral player as this will be the
+victor if the number of non neutral players is 1</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.get_current_player">
+<code class="sig-name descname">get_current_player</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.get_current_player"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.get_current_player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current player</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.get_length">
+<code class="sig-name descname">get_length</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.get_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.get_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the absolute length of the player chain</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.get_not_neutral_length">
+<code class="sig-name descname">get_not_neutral_length</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.get_not_neutral_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.get_not_neutral_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the length of the player chain without neutral players</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.get_players">
+<code class="sig-name descname">get_players</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.get_players"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.get_players" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all players in a list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.insert_player">
+<code class="sig-name descname">insert_player</code><span class="sig-paren">(</span><em class="sig-param">player</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.insert_player"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.insert_player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a player a the “end” of the chain. This way the new node
+becomes the end node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.next_players_turn">
+<code class="sig-name descname">next_players_turn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.next_players_turn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.next_players_turn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Go to the next players turn</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.prev_players_turn">
+<code class="sig-name descname">prev_players_turn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.prev_players_turn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.prev_players_turn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Go to the prev players turn</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.remove_node">
+<code class="sig-name descname">remove_node</code><span class="sig-paren">(</span><em class="sig-param">node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.remove_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.remove_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a node from the chain</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.remove_player">
+<code class="sig-name descname">remove_player</code><span class="sig-paren">(</span><em class="sig-param">player</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.remove_player"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.remove_player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a player from the chain</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerChain.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerChain.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerChain.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes dead player from the player chain</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerNode">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.PlayerChain.</code><code class="sig-name descname">PlayerNode</code><span class="sig-paren">(</span><em class="sig-param">player</em>, <em class="sig-param">prev_player_node</em>, <em class="sig-param">next_player_node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a node in a chain of players.</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerNode.get_next">
+<code class="sig-name descname">get_next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerNode.get_next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerNode.get_next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the next node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerNode.get_next_player">
+<code class="sig-name descname">get_next_player</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerNode.get_next_player"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerNode.get_next_player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the player of the next node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerNode.get_player">
+<code class="sig-name descname">get_player</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerNode.get_player"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerNode.get_player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the player of this node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerNode.get_prev">
+<code class="sig-name descname">get_prev</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerNode.get_prev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerNode.get_prev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the prev node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerNode.set_next">
+<code class="sig-name descname">set_next</code><span class="sig-paren">(</span><em class="sig-param">next_player_node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerNode.set_next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerNode.set_next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the next node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.PlayerChain.PlayerNode.set_prev">
+<code class="sig-name descname">set_prev</code><span class="sig-paren">(</span><em class="sig-param">prev_player_node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/PlayerChain.html#PlayerNode.set_prev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.PlayerChain.PlayerNode.set_prev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the prev node</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.Position">
+<span id="akuga-matchserver-position-module"></span><h2>Akuga.MatchServer.Position module<a class="headerlink" href="#module-Akuga.MatchServer.Position" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.Position.Position">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.Position.</code><code class="sig-name descname">Position</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/Position.html#Position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.Position.Position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Just a small abstraction for an integer 2d vector
+This is superior to tupels as the components are alterable</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.StateMachiene">
+<span id="akuga-matchserver-statemachiene-module"></span><h2>Akuga.MatchServer.StateMachiene module<a class="headerlink" href="#module-Akuga.MatchServer.StateMachiene" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.StateMachiene.StateMachiene">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.StateMachiene.</code><code class="sig-name descname">StateMachiene</code><span class="sig-paren">(</span><em class="sig-param">start_state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/StateMachiene.html#StateMachiene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.StateMachiene.StateMachiene" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents the state machiene which will handle most of the
+game logic. It will invoke the the run function of the current
+state and jump to the state the run function of the current
+state has provided. Every entry in the data dict will be used
+globally within the states</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.StateMachiene.StateMachiene.add_data">
+<code class="sig-name descname">add_data</code><span class="sig-paren">(</span><em class="sig-param">data_name</em>, <em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/StateMachiene.html#StateMachiene.add_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.StateMachiene.StateMachiene.add_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add variable data to the fsm under the name data_name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.StateMachiene.StateMachiene.add_state">
+<code class="sig-name descname">add_state</code><span class="sig-paren">(</span><em class="sig-param">state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/StateMachiene.html#StateMachiene.add_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.StateMachiene.StateMachiene.add_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a state to the list of states under its name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.StateMachiene.StateMachiene.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/StateMachiene.html#StateMachiene.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.StateMachiene.StateMachiene.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke the run function of the current state
+and eventually set change the state</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.StateMachieneState">
+<span id="akuga-matchserver-statemachienestate-module"></span><h2>Akuga.MatchServer.StateMachieneState module<a class="headerlink" href="#module-Akuga.MatchServer.StateMachieneState" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.MatchServer.StateMachieneState.StateMachieneState">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.MatchServer.StateMachieneState.</code><code class="sig-name descname">StateMachieneState</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">fsm=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/StateMachieneState.html#StateMachieneState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a state within the statemachiene.
+It will contain a kwarg list of arbirtrary informations
+provided by the previous state and set by the state machiene.
+It also safes the fsm its a part of. This way the data dict of the
+fsm can be used to provide variables which are globally accessable within
+all states</p>
+<dl class="method">
+<dt id="Akuga.MatchServer.StateMachieneState.StateMachieneState.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/StateMachieneState.html#StateMachieneState.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function invoked by the state machiene if the current
+state is active.
+Returns: A tupel containing the state the state machiene should
+jump to and the informations which should be passed to
+the next state</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Akuga.MatchServer.StateMachieneState.StateMachieneState.set_fsm">
+<code class="sig-name descname">set_fsm</code><span class="sig-paren">(</span><em class="sig-param">fsm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/StateMachieneState.html#StateMachieneState.set_fsm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.StateMachieneState.StateMachieneState.set_fsm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the fsm</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer.TestServer">
+<span id="akuga-matchserver-testserver-module"></span><h2>Akuga.MatchServer.TestServer module<a class="headerlink" href="#module-Akuga.MatchServer.TestServer" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Akuga.MatchServer.TestServer.build_last_man_standing_game_state">
+<code class="sig-prename descclassname">Akuga.MatchServer.TestServer.</code><code class="sig-name descname">build_last_man_standing_game_state</code><span class="sig-paren">(</span><em class="sig-param">player_chain</em>, <em class="sig-param">_queue</em>, <em class="sig-param">options={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/TestServer.html#build_last_man_standing_game_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.TestServer.build_last_man_standing_game_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="Akuga.MatchServer.TestServer.match_server">
+<code class="sig-prename descclassname">Akuga.MatchServer.TestServer.</code><code class="sig-name descname">match_server</code><span class="sig-paren">(</span><em class="sig-param">game_mode</em>, <em class="sig-param">users</em>, <em class="sig-param">options={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/MatchServer/TestServer.html#match_server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.MatchServer.TestServer.match_server" title="Permalink to this definition">¶</a></dt>
+<dd><p>The actual game runs here and is propagated to the users
+game_mode: string
+users: list of (player_name, player_connection)
+options: A dictionary with options, not used yet</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.MatchServer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Akuga.MatchServer" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Akuga</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Akuga.html">Akuga package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Akuga.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Akuga.GameServer.html">Akuga.GameServer package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Akuga.MatchServer package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.AkugaStateMachiene">Akuga.MatchServer.AkugaStateMachiene module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.AkugaStates">Akuga.MatchServer.AkugaStates module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.Arena">Akuga.MatchServer.Arena module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.ArenaCreator">Akuga.MatchServer.ArenaCreator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.GlobalDefinitions">Akuga.MatchServer.GlobalDefinitions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.MatchServer">Akuga.MatchServer.MatchServer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.Meeple">Akuga.MatchServer.Meeple module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.MeepleDict">Akuga.MatchServer.MeepleDict module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.NetworkProtocoll">Akuga.MatchServer.NetworkProtocoll module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.PathFinder">Akuga.MatchServer.PathFinder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.Player">Akuga.MatchServer.Player module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.PlayerChain">Akuga.MatchServer.PlayerChain module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.Position">Akuga.MatchServer.Position module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.StateMachiene">Akuga.MatchServer.StateMachiene module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.StateMachieneState">Akuga.MatchServer.StateMachieneState module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer.TestServer">Akuga.MatchServer.TestServer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.MatchServer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Akuga.UserDatabaseServer.html">Akuga.UserDatabaseServer package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Akuga.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Akuga.html#module-Akuga.EventDefinitions">Akuga.EventDefinitions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Akuga.html#module-Akuga">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="Akuga.html">Akuga package</a><ul>
+      <li>Previous: <a href="Akuga.GameServer.html" title="previous chapter">Akuga.GameServer package</a></li>
+      <li>Next: <a href="Akuga.UserDatabaseServer.html" title="next chapter">Akuga.UserDatabaseServer package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, AkugaSphinxDocs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/Akuga.MatchServer.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

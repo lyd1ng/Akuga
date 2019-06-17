@@ -1,0 +1,98 @@
+Jumons:
+=======
+
+Dr. Kerze (600, 400):
+---------------------
+Farbe: Schwarz
+Regel: Hinterlaesst permanenten Schaden
+Flavour: Nicht lethal, aber er macht es nicht mehr lange -
+ich gebe ihm noch drei Runden;
+Der Patient wird an seinen Wunden erliege, dafuer habe
+ich gesorgt
+
+
+Uzurlogh der Saeher(550, 550)
+-----------------------------
+Farbe: Gruen
+Regel: Hinterlaesst einen +30 Bonus fuer Gruen auf jedem
+Arena Tile, das er verlaesst
+Flavour: Ich saehe was was du nicht saehst
+
+
+Stumblestone(350, 680):
+-----------------------
+Neutral!
+Farbe: Blau
+Flavour: Blicke unter jeden Stein, doch blicke nicht zu tief hinein
+
+
+Hagakure(700, 300):
+-------------------
+Farbe: Blau
+Regel: Special Move, kann Gegner auf Reichweite 2 angreifen
+Flavour: Auch eine geschnitte Rose vermag zu stechen
+
+
+Wandernder Haendler(0, 0):
+--------------------------
+Neutral!
+Farbe: Blau
+Regel: Flieht mit Reichweite 2 von allen Gegnern
+Flavour: Vielleicht haette ich einen Umweg nehmen sollen.
+
+
+Showerbringer(500, 500):
+------------------------
+Farbe: Gruen
+Regel: Alle benachbarten blauen Jumons erhalten (+80, +80)
+Flavour: Es sieht nach Regen aus, findest du nicht?
+
+
+
+Handbrand(500, 600):
+--------------------
+Farbe: Schwarz
+Regel: Kann Jumon mit Reichweite 2 oder 3 in eine zufaellige
+       Richtung mit Reichweite 1 laufen lasse.
+Flavour: Eine Hand auf der Suche nach Ihrem Meister, hoffen wir,
+	 dass sie nie aufeinander treffen
+
+
+
+Orgenthor die Zwillingsbrut(800, 700):
+--------------------------------------
+Farbe: Rot
+Flavour: Die gequaelten Schmerzensschrei uebertoente nur
+	 zweistimmiges Lachen
+
+
+
+Instabile Traenengeode (300, 300)
+---------------------------------
+Farbe: Rot
+Regel: Stirbt die Traenengeode verwuestet sie ein Land und toetet
+       die Einheit die sich dort befand
+Flavour: In ihr sind die Traenen der Goetting Dea versiegelt, die
+	 niemals irdischen Boden beruehren duerfen
+
+
+
+Engel des Eisenbaumwaldes(600, 600)
+-----------------------------------
+Farbe: Gruen
+Regel: Reichweite 2
+Flavour: Solange Sie am Himmel steht bleibt der Wald unsterblic
+
+
+
+Raftanel Waechter des Riffst(550, 630):
+---------------------------------------
+Farbe: Gruen
+Regel: Erhaelt (+30, +30) wenn er sich am Rand der Arena aufhaelt
+Flavour: You shell not pass
+
+
+Unkrautjaehter(660, 520)
+------------------------
+Farbe: Gruen
+Flavour: Man muss das Uebel an der Wurzel packen

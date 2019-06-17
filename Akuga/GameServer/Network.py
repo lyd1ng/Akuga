@@ -1,3 +1,6 @@
+"""
+This module contains all functions related to network communication
+"""
 import smtplib
 from ast import literal_eval
 from email.mime.text import MIMEText

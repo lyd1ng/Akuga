@@ -1,0 +1,58 @@
+<html>
+	<head>
+		<title>Meeple</title>
+	</head>
+	<body>
+		<h1>Jumon</h1>
+		The jumon class represent the kind of meeple which can be controlled
+		by a player. A jumon has an attack and defense value which is used
+		for attacking or defending an arena tile, a color which is used
+		to determine the bonus the jumon get from the arena tile he occupies,
+		a movement which allows a jumon to move, a unique name to identify
+		the jumon, a position on which arena tile the jumon stands and
+		persistent as well as nonpersistent interferences.
+		These interferences are used implement special abilities of jumons
+		altering characteristics of other jumons.
+		Both kinds of interferences are a dictionary storing an attack and defense
+		value as a tupel under the name of the interference as the key.
+		Nonpersistent interferences are reset and set every turn, they can
+		be used to implement special abilities which depends on the position
+		of jumons, while persistent interferences arent reset and stay even
+		if the interfering jumon dies.
+		Jumons can have special abilities as well as a special move.
+		The special ability is implemented in a function 'special_ability'
+		and gets the current state of the state machiene and the scheduled
+		state change (the next state and its state variables) as parameters.
+		Now depending on the current state different abilities can trigger
+		and alter the state variables or even the next state the state
+		machiene jumps to.
+		The special move of a jumon is implemented in two functions.
+		First, the 'is_special_move_legal' function is invoked in the
+		check_special_move state of the state machiene and determines
+		if the selected target is a valid target for the special move.
+		If the move is legal the 'do_special_move' function is invoked
+		which works exactly like the 'special_ability' function.
+		Jumons can equipt artefacts which can alter the characteristics
+		of a jumon or add a special ability or a special move.
+		The special_ability functions of artefacts are invoked after
+		at the end of the special_ability function and can overwrite the
+		special ability of the jumon. The same is true for special moves.
+
+		<h1>Artefact</h1>
+		The artefact class represents an artefact within the game.
+		Artefacts can be equipped by jumons and alter their characteristics
+		or add special abilities. Altering the equipped jumon can
+		happen in multiple ways, as a passive special ability invoked within
+		the idle state of the state machiene, or during the attach_to and
+		detach_from function.
+
+		<h1>Neutral Jumon</h1>
+		A neutral jumons isnt a class on its own, its just a jumon with
+		a special ability of a certain kind.
+		Neutral Jumons are controlled by the neutral player, and are selected
+		randomly during its turn. The special ability of neutral jumons
+		has to trigger in the idle state and result in a state change to 
+		the check_move state. This way a neutral jumons moves itself
+		and ends the turn of the neutral player.
+	</body>
+</html>

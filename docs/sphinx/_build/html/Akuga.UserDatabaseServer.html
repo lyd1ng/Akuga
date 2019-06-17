@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Akuga.UserDatabaseServer package &#8212; Akuga 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Akuga.MatchServer package" href="Akuga.MatchServer.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="akuga-userdatabaseserver-package">
+<h1>Akuga.UserDatabaseServer package<a class="headerlink" href="#akuga-userdatabaseserver-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Akuga.UserDatabaseServer.GlobalDefinitions">
+<span id="akuga-userdatabaseserver-globaldefinitions-module"></span><h2>Akuga.UserDatabaseServer.GlobalDefinitions module<a class="headerlink" href="#module-Akuga.UserDatabaseServer.GlobalDefinitions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Akuga.UserDatabaseServer.TestClient">
+<span id="akuga-userdatabaseserver-testclient-module"></span><h2>Akuga.UserDatabaseServer.TestClient module<a class="headerlink" href="#module-Akuga.UserDatabaseServer.TestClient" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.TestClient.SendPacket">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.TestClient.</code><code class="sig-name descname">SendPacket</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">tokens</em>, <em class="sig-param">terminator='END'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/TestClient.html#SendPacket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.TestClient.SendPacket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a packet containing out of multiple tokens
+Every token is converted to a string using the str function
+for better convenients and is encoded using utf-8 encoding.
+A packet has the form token1:token2:…:tokenN:terminator</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.UserDatabaseServer.main">
+<span id="akuga-userdatabaseserver-main-module"></span><h2>Akuga.UserDatabaseServer.main module<a class="headerlink" href="#module-Akuga.UserDatabaseServer.main" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.add_loose">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">add_loose</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">client_address</em>, <em class="sig-param">cmd_queue</em>, <em class="sig-param">username</em>, <em class="sig-param">game_mode</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#add_loose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.add_loose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a loose for the user username in the game mode game_mode
+the date is always today to avoid tempering data in the past</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.add_win">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">add_win</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">client_address</em>, <em class="sig-param">cmd_queue</em>, <em class="sig-param">username</em>, <em class="sig-param">game_mode</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#add_win"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.add_win" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a win for the user username in the game mode game_mode
+the date is always today to avoid tempering data in the past</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.check_user_credentials">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">check_user_credentials</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">client_address</em>, <em class="sig-param">cmd_queue</em>, <em class="sig-param">username</em>, <em class="sig-param">pass_hash</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#check_user_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.check_user_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the credentials of a user</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.check_username">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">check_username</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">client_address</em>, <em class="sig-param">cmd_queue</em>, <em class="sig-param">username</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#check_username"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.check_username" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a username is free or not</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.get_stats">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">get_stats</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">client_address</em>, <em class="sig-param">cmd_queue</em>, <em class="sig-param">username</em>, <em class="sig-param">game_mode</em>, <em class="sig-param">from_year</em>, <em class="sig-param">from_month</em>, <em class="sig-param">from_day</em>, <em class="sig-param">to_year</em>, <em class="sig-param">to_month</em>, <em class="sig-param">to_day</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#get_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.get_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queries all the user stats of a user in a certain game mode between and
+including the from and the to date</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.handle_client">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">handle_client</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">client_address</em>, <em class="sig-param">cmd_queue</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#handle_client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.handle_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.init_database">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">init_database</code><span class="sig-paren">(</span><em class="sig-param">database</em>, <em class="sig-param">cursor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#init_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.init_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just create a userstats table if there is none</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.init_dayly_entry">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">init_dayly_entry</code><span class="sig-paren">(</span><em class="sig-param">cmd_queue</em>, <em class="sig-param">username</em>, <em class="sig-param">game_mode</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#init_dayly_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.init_dayly_entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an empty userstats entry (0 wins, 0 looses)
+for the user named username in the specified game mode.
+The date is always today to avoid tampering entries from the past</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.register_user">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">register_user</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">client_address</em>, <em class="sig-param">cmd_queue</em>, <em class="sig-param">username</em>, <em class="sig-param">pass_hash</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#register_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.register_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers a user with a given name and pers pass hash in the database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.secure_string">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">secure_string</code><span class="sig-paren">(</span><em class="sig-param">string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#secure_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.secure_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if all characters in the string are part of the
+whitelist. Otherwise return False</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.send_packet">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">send_packet</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">tokens</em>, <em class="sig-param">terminator='END'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#send_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.send_packet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a packet containing multiple tokens.
+Every token is converted to a string using the str function
+for better convenients and is encoded using utf-8 encoding.
+A packet has the form token1:token2:…:tokenN:terminator</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.sql_worker">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">sql_worker</code><span class="sig-paren">(</span><em class="sig-param">cmd_queue</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#sql_worker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.sql_worker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads commands from cmd_queue and execute them using cursor
+Terminate if a command is None.
+Send the results directly to the clients, the connection socket
+is part of the event enqueued in the cmd_queue</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.UserDatabaseServer.main.today">
+<code class="sig-prename descclassname">Akuga.UserDatabaseServer.main.</code><code class="sig-name descname">today</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/UserDatabaseServer/main.html#today"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.UserDatabaseServer.main.today" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current date in the format %Y-%m-%-d</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.UserDatabaseServer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Akuga.UserDatabaseServer" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Akuga</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Akuga.html">Akuga package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Akuga.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Akuga.GameServer.html">Akuga.GameServer package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Akuga.MatchServer.html">Akuga.MatchServer package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Akuga.UserDatabaseServer package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.UserDatabaseServer.GlobalDefinitions">Akuga.UserDatabaseServer.GlobalDefinitions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.UserDatabaseServer.TestClient">Akuga.UserDatabaseServer.TestClient module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.UserDatabaseServer.main">Akuga.UserDatabaseServer.main module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.UserDatabaseServer">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Akuga.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Akuga.html#module-Akuga.EventDefinitions">Akuga.EventDefinitions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Akuga.html#module-Akuga">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="Akuga.html">Akuga package</a><ul>
+      <li>Previous: <a href="Akuga.MatchServer.html" title="previous chapter">Akuga.MatchServer package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, AkugaSphinxDocs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/Akuga.UserDatabaseServer.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Akuga.MatchServer.Player &#8212; Akuga 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for Akuga.MatchServer.Player</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">random</span> <span class="k">import</span> <span class="n">randint</span>
+<span class="kn">from</span> <span class="nn">Akuga.MatchServer.Position</span> <span class="k">import</span> <span class="n">Position</span>
+<span class="kn">from</span> <span class="nn">Akuga.MatchServer</span> <span class="k">import</span> <span class="n">GlobalDefinitions</span>
+
+
+<div class="viewcode-block" id="Player"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player">[docs]</a><span class="k">class</span> <span class="nc">Player</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents the player of the Akuga game</span>
+<span class="sd">    A can either be in the summon phase where per is forced to summon</span>
+<span class="sd">    a Jumon. If every jumon is set the player goes into move phase</span>
+<span class="sd">    where per is allowed to move one of the jumons</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">is_neutral</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s2">&quot;pick_phase&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summoned_jumons</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_dead</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_won</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Player.set_jumons_to_summon"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.set_jumons_to_summon">[docs]</a>    <span class="k">def</span> <span class="nf">set_jumons_to_summon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jumons</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the jumons to summon</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span> <span class="o">=</span> <span class="n">jumons</span>
+        <span class="c1"># Set the owner of the jumons</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span><span class="p">:</span>
+            <span class="n">j</span><span class="o">.</span><span class="n">set_owner</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Player.add_jumon_to_summon"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.add_jumon_to_summon">[docs]</a>    <span class="k">def</span> <span class="nf">add_jumon_to_summon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jumon</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a jumon to summon</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">jumon</span><span class="o">.</span><span class="n">set_owner</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jumon</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Player.in_pack_phase"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.in_pack_phase">[docs]</a>    <span class="k">def</span> <span class="nf">in_pack_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns if the player is in the pick phase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">==</span> <span class="s2">&quot;pick_phase&quot;</span></div>
+
+<div class="viewcode-block" id="Player.in_summon_phase"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.in_summon_phase">[docs]</a>    <span class="k">def</span> <span class="nf">in_summon_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns if the player is in the summon phase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">==</span> <span class="s2">&quot;summon_phase&quot;</span></div>
+
+<div class="viewcode-block" id="Player.in_move_phase"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.in_move_phase">[docs]</a>    <span class="k">def</span> <span class="nf">in_move_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Represent if the player is in the move phase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">==</span> <span class="s2">&quot;move_phase&quot;</span></div>
+
+<div class="viewcode-block" id="Player.set_to_summon_phase"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.set_to_summon_phase">[docs]</a>    <span class="k">def</span> <span class="nf">set_to_summon_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the player in the summon phase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s2">&quot;summon_phase&quot;</span></div>
+
+<div class="viewcode-block" id="Player.set_to_move_phase"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.set_to_move_phase">[docs]</a>    <span class="k">def</span> <span class="nf">set_to_move_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the player in the move phase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s2">&quot;move_phase&quot;</span></div>
+
+<div class="viewcode-block" id="Player.owns_tile"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.owns_tile">[docs]</a>    <span class="k">def</span> <span class="nf">owns_tile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">tile_position</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns if the tile of the arena is already owmed by the player</span>
+<span class="sd">        Used to check if a move or a summoning is legal for instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">jumon</span> <span class="o">=</span> <span class="n">arena</span><span class="o">.</span><span class="n">get_unit_at</span><span class="p">(</span><span class="n">tile_position</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">jumon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the tile is free it cant be owned by the player</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">jumon</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">summoned_jumons</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the jumon at this tile is within the list of summoned jumons</span>
+<span class="sd">            the player controls a jumon at this tile which means per owns it</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the tile is neither empty nor the jumon at this tile is a jumon</span>
+<span class="sd">        of the current player an other player has to own this field</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Player.can_summon"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.can_summon">[docs]</a>    <span class="k">def</span> <span class="nf">can_summon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jumon</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns if a player can summon a jumon</span>
+<span class="sd">        aka if the jumon is within the jumons_to_summon list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">jumon</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span></div>
+
+<div class="viewcode-block" id="Player.controls_jumon"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.controls_jumon">[docs]</a>    <span class="k">def</span> <span class="nf">controls_jumon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jumon</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns wheter a player controls a jumon or not</span>
+<span class="sd">        aka if the jumon is within the summoned_jumons list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">jumon</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">summoned_jumons</span></div>
+
+<div class="viewcode-block" id="Player.handle_summoning"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.handle_summoning">[docs]</a>    <span class="k">def</span> <span class="nf">handle_summoning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jumon</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function is invoked from the state machiene and summons</span>
+<span class="sd">        a jumon. That means the jumon is moved from</span>
+<span class="sd">        the jumon_to_summon list to the summone_jumons list and switches</span>
+<span class="sd">        the phase this player is in if there are no jummons to summon left</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_summon_phase</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            This should never happen but handle it anyway with a clear</span>
+<span class="sd">            debug message</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid move, summoning a jumon is only allowed in summon phase&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">jumon</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            This should never happen but handle it anyway with a clear</span>
+<span class="sd">            debug message</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid move, this jumon to summon is not within the&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;list of jumons to summon of the curret player&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># Change the jumon from jumons_to_summon to summoned_jumons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summoned_jumons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jumon</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">jumon</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If there are no more jumons to summon left the player changes into</span>
+<span class="sd">        the move phase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_to_move_phase</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;To summon &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span> <span class="k">if</span> <span class="n">GlobalDefinitions</span><span class="o">.</span><span class="n">DEBUG</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Summoned summon &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">summoned_jumons</span> <span class="k">if</span> <span class="n">GlobalDefinitions</span><span class="o">.</span><span class="n">DEBUG</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Current Phase: &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="k">if</span> <span class="n">GlobalDefinitions</span><span class="o">.</span><span class="n">DEBUG</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Player.handle_jumon_death"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.handle_jumon_death">[docs]</a>    <span class="k">def</span> <span class="nf">handle_jumon_death</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jumon</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles the death of a jumon, aka removes it from the summoned_jumons</span>
+<span class="sd">        list an invoke update_player</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summoned_jumons</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">jumon</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_player</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Player.update_player"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.update_player">[docs]</a>    <span class="k">def</span> <span class="nf">update_player</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        updates if the player is dead or not and set the phase of the player</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">summoned_jumons</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_dead</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If there are no more jumons to summon left the player changes into</span>
+<span class="sd">        the move phase</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_to_move_phase</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_to_summon_phase</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Player.is_dead"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.is_dead">[docs]</a>    <span class="k">def</span> <span class="nf">is_dead</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns if the player is dead or not, dead players are removed</span>
+<span class="sd">        from the player chain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_dead</span></div>
+
+<div class="viewcode-block" id="Player.has_won"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.has_won">[docs]</a>    <span class="k">def</span> <span class="nf">has_won</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns if a player has won. If a player has won the match ends</span>
+<span class="sd">        immediatly</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_won</span></div>
+
+<div class="viewcode-block" id="Player.kill"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.kill">[docs]</a>    <span class="k">def</span> <span class="nf">kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        kill the player, a player is killed if per doesnt own a single jumon</span>
+<span class="sd">        anymore</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_dead</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_won</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Player.insta_win"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.Player.insta_win">[docs]</a>    <span class="k">def</span> <span class="nf">insta_win</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Makes the player the winner, this might be usefull for alternative</span>
+<span class="sd">        win conditions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_dead</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_won</span> <span class="o">=</span> <span class="kc">True</span></div></div>
+
+
+<div class="viewcode-block" id="NeutralPlayer"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.NeutralPlayer">[docs]</a><span class="k">class</span> <span class="nc">NeutralPlayer</span><span class="p">(</span><span class="n">Player</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a neutral player which can never win nor loose.</span>
+<span class="sd">    The neutral player is used to control neutral jumons which agains brings</span>
+<span class="sd">    a random element to the game. Furthermore neutral jumons can be equiped</span>
+<span class="sd">    with artefacts which can be stolen by the player bakugans by killing</span>
+<span class="sd">    the neutral ones.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arena</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arena</span> <span class="o">=</span> <span class="n">arena</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;neutral player&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_to_summon_phase</span><span class="p">()</span>
+
+<div class="viewcode-block" id="NeutralPlayer.summon_jumons"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.NeutralPlayer.summon_jumons">[docs]</a>    <span class="k">def</span> <span class="nf">summon_jumons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function has to be invoked before artefacts are placed on</span>
+<span class="sd">        the arena, this way the summoning can be handeld without the akuga fsm</span>
+<span class="sd">        THIS IS MAYBE HANDELD WITHIN AN EXTRA INIT STATE IN THE FUTURE</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make sure is no summoning on an occupyied tile</span>
+        <span class="n">summon_positions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">GlobalDefinitions</span><span class="o">.</span><span class="n">BOARD_WIDTH</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">GlobalDefinitions</span><span class="o">.</span><span class="n">BOARD_HEIGHT</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">jumon</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">jumons_to_summon</span><span class="p">:</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="n">Position</span><span class="p">(</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">position</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summon_positions</span><span class="p">:</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                If there is no jumon at this position yet summon it there</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_summoning</span><span class="p">(</span><span class="n">jumon</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">arena</span><span class="o">.</span><span class="n">place_unit_at</span><span class="p">(</span><span class="n">jumon</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span>
+                <span class="n">jumon</span><span class="o">.</span><span class="n">set_position</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+                <span class="c1"># Now add the position to positions to make this tile occupied</span>
+                <span class="n">summon_positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">position</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NeutralPlayer.do_a_move"><a class="viewcode-back" href="../../../Akuga.MatchServer.html#Akuga.MatchServer.Player.NeutralPlayer.do_a_move">[docs]</a>    <span class="k">def</span> <span class="nf">do_a_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_state</span><span class="p">,</span> <span class="n">next_state_and_variables</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Do a move by selecting a random jumon and invoke its special</span>
+<span class="sd">        ability. The special ability has to do the move by creating a state</span>
+<span class="sd">        change. This way the fsm handels the move correctly and will end</span>
+<span class="sd">        the turn of the neutral player.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">random_index</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">summoned_jumons</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">state_change</span> <span class="o">=</span> <span class="n">next_state_and_variables</span>
+        <span class="n">state_change</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summoned_jumons</span><span class="p">[</span><span class="n">random_index</span><span class="p">]</span><span class="o">.</span>\
+            <span class="n">special_ability</span><span class="p">(</span><span class="n">current_state</span><span class="p">,</span> <span class="n">next_state_and_variables</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">state_change</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Akuga</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Akuga.html">Akuga package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, AkugaSphinxDocs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

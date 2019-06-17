@@ -27,7 +27,7 @@ class StateMachieneState:
         The function invoked by the state machiene if the current
         state is active.
         Returns: A tupel containing the state the state machiene should
-                 jump to and the informations which should be passed to
-                 the next state
+        jump to and the informations which should be passed to
+        the next state
         """
         pass

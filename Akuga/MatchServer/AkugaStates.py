@@ -35,8 +35,7 @@ def jumon_fight(attacking_jumon, attacking_bonus,
 class IdleState(State):
     """
     The representation of the idle state which is the normal
-    state a user idles in until he or she decides to summon a jumon
-    or make a move
+    state a user idles in until per decides do something.
     """
     def __init__(self, fsm):
         super().__init__("idle_state", fsm)
@@ -378,6 +377,13 @@ class CheckMoveState(State):
         super().__init__("check_move_state", fsm)
 
     def run(self, event):
+        """
+        Get the shortest path from the current position to the target
+        position. Do the move if its legal, or jump back to the idle
+        state if its not. Jump to the two tile battle state or the 
+        equip artefact state if the target position is occupied by an
+        hostile jumon or an artefact
+        """
         # Get the jumon, its current position and the target position
         jumon = self.state_variables["jumon_to_move"]
         current_position = self.state_variables["current_position"]
@@ -460,6 +466,12 @@ class CheckSpecialMoveState(State):
         super().__init__("check_special_move_state", fsm)
 
     def run(self, event):
+        """
+        Use the 'is_special_move_legal' function of the current jumon
+        to check if the move is legal or not. Invoke the special_move
+        function of the current jumon if the move is legal.
+        Go back to the idle state if its not
+        """
         # Get the jumon, its current position and the target position
         jumon = self.state_variables["jumon_to_move"]
         current_position = self.state_variables["current_position"]
@@ -636,6 +648,10 @@ class OneTileBattleAftermathState(State):
         super().__init__("one_tile_battle_aftermath_state", fsm)
 
     def run(self, event):
+        """
+        Kill the looser jumon, place the victor jumon,
+        and swap the artefact from the victor to the looser.
+        """
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
         victor = self.state_variables["victor"]
@@ -863,6 +879,10 @@ class TwoTileBattleAftermathState(State):
         super().__init__("two_tile_battle_aftermath_state", fsm)
 
     def run(self, event):
+        """
+        Kill the looser, place the victor and swap the artefact from
+        the victor to the looser.
+        """
         attacking_jumon = self.state_variables["attacking_jumon"]
         defending_jumon = self.state_variables["defending_jumon"]
         attack_position = self.state_variables["attack_position"]

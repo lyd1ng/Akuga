@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<title>Player</title>
+	</head>
+	<body>
+		<h1>Player Class</h1>
+		The player class represents a player of a match.
+		That includes pers name, which is set from the user
+		playing Akuga, the phase of the game the player is in.
+		A player can be in the pick_phase where per is only allowed
+		to pick a jumon from the pick pool, the summon_phase where per
+		is only allowed to summon one of the jumons per has picked,
+		and the move_phase where a player is allowed to move on of
+		pers summoned jumons per turn.
+		The player class also stores if a player is dead or has won,
+		the jumons per has picked and the jumon per has summoned.
+
+		<h1>Neutral Player</h1>
+		The neutral player is a trick to implement neutral jumons.
+		The neutral player summones picks neutral jumon from the
+		pick pool and summones them before the game starts.
+		If its the neutral players turn one of the neutral jumons is
+		selected randomly and its 'do_a_move' function is invoked.
+		This 'do_a_move' function has to result in a state change to
+		the check move state to do the move of the selected jumon.
+	</body>
+</html>

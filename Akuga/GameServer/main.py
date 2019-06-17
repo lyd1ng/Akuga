@@ -5,7 +5,7 @@ import logging
 from hashlib import md5
 from threading import Thread
 from multiprocessing import Process
-from Akuga.MatchServer.MatchServer import MatchServer
+from Akuga.MatchServer.MatchServer import match_server
 from Akuga.GameServer.User import User
 from Akuga.GameServer.GlobalDefinitions import (
     SERVER_ADDRESS,
@@ -165,7 +165,7 @@ def HandleLMSQueue(lms_queue):
     logger.info("Got two user for a lms match")
     users = {user1.name: user1.connection, user2.name: user2.connection}
     logger.info("Start MatchServer subprocess")
-    MatchServerProcess = Process(target=MatchServer, args=('lms', users, None))
+    MatchServerProcess = Process(target=match_server, args=('lms', users, None))
     MatchServerProcess.start()
     logger.info("Started MatchServer subprocess")
     # Signal that the users has been processed
@@ -185,7 +185,7 @@ def HandleAMMQueue(amm_queue):
     logger.info("Got two user for an amm match")
     users = {user1.name: user1.connection, user2.name: user2.connection}
     logger.info("Start MatchServer subprocess")
-    MatchServerProcess = Process(target=MatchServer, args=('amm', users, None))
+    MatchServerProcess = Process(target=match_server, args=('amm', users, None))
     MatchServerProcess.start()
     logger.info("Started MatchServer subprocess")
     # Signal that the users has been processed

@@ -1,0 +1,473 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Akuga.UserDatabaseServer.main &#8212; Akuga 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for Akuga.UserDatabaseServer.main</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">Akuga.UserDatabaseServer.GlobalDefinitions</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">SERVER_ADDRESS</span><span class="p">,</span>
+    <span class="n">MAX_ACTIVE_CONNECTIONS</span><span class="p">,</span>
+    <span class="n">DATABASE_PATH</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">queue</span> <span class="k">import</span> <span class="n">Queue</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+
+
+<div class="viewcode-block" id="today"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.today">[docs]</a><span class="k">def</span> <span class="nf">today</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the current date in the format %Y-%m-%-d</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="secure_string"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.secure_string">[docs]</a><span class="k">def</span> <span class="nf">secure_string</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return True if all characters in the string are part of the</span>
+<span class="sd">    whitelist. Otherwise return False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">whitelist</span> <span class="o">=</span> <span class="s1">&#39;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&#39;</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">string</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">whitelist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="send_packet"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.send_packet">[docs]</a><span class="k">def</span> <span class="nf">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="s2">&quot;END&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Send a packet containing multiple tokens.</span>
+<span class="sd">    Every token is converted to a string using the str function</span>
+<span class="sd">    for better convenients and is encoded using utf-8 encoding.</span>
+<span class="sd">    A packet has the form token1:token2:...:tokenN:terminator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span>
+    <span class="k">if</span> <span class="n">terminator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">terminator</span><span class="p">)</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">query</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="init_dayly_entry"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.init_dayly_entry">[docs]</a><span class="k">def</span> <span class="nf">init_dayly_entry</span><span class="p">(</span><span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates an empty userstats entry (0 wins, 0 looses)</span>
+<span class="sd">    for the user named username in the specified game mode.</span>
+<span class="sd">    The date is always today to avoid tampering entries from the past</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;&#39;&#39;insert into userstats (name, mode, date, wins, looses)</span>
+<span class="s1">        select :name, :mode, :date, 0, 0</span>
+<span class="s1">        where not exists(select 1 from userstats where name=:name</span>
+<span class="s1">        and mode=:mode and date=:date)&#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">username</span><span class="p">,</span> <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="n">game_mode</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">:</span> <span class="n">today</span><span class="p">()})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Enqueued command from: local</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">cmd_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="add_win"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.add_win">[docs]</a><span class="k">def</span> <span class="nf">add_win</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds a win for the user username in the game mode game_mode</span>
+<span class="sd">    the date is always today to avoid tempering data in the past</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># If on of the parameters are insecure log it and return</span>
+    <span class="k">if</span> <span class="n">secure_string</span><span class="p">(</span><span class="n">username</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">or</span> <span class="n">secure_string</span><span class="p">(</span><span class="n">game_mode</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Username or gamemode where insecure!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Received from: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+        <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;Insecure Parameter&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="c1"># Enqueues to create an empty stats field if none exists</span>
+    <span class="c1"># Cause the queue is a fifo structure this will be executed before</span>
+    <span class="c1"># the update command</span>
+    <span class="n">init_dayly_entry</span><span class="p">(</span><span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">)</span>
+    <span class="c1"># Create the update command</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;&#39;&#39;update userstats set wins=wins+1 where name=? and mode=?</span><span class="se">\</span>
+<span class="s1">        and date=? &#39;&#39;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">,</span> <span class="n">today</span><span class="p">()))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Enqueue command from: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+    <span class="n">cmd_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="add_loose"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.add_loose">[docs]</a><span class="k">def</span> <span class="nf">add_loose</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds a loose for the user username in the game mode game_mode</span>
+<span class="sd">    the date is always today to avoid tempering data in the past</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># If on of the parameters are insecure log it and return</span>
+    <span class="k">if</span> <span class="n">secure_string</span><span class="p">(</span><span class="n">username</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">or</span> <span class="n">secure_string</span><span class="p">(</span><span class="n">game_mode</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Username or gamemode where insecure!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Received from: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+        <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;Insecure Parameter&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="c1"># Enqueues to create an empty stats field if none exists</span>
+    <span class="c1"># Cause the queue is a fifo structure this will be executed before</span>
+    <span class="c1"># the update command</span>
+    <span class="n">init_dayly_entry</span><span class="p">(</span><span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">)</span>
+    <span class="c1"># Create the update command</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;&#39;&#39;update userstats set looses=looses+1 where name=? and mode=?</span><span class="se">\</span>
+<span class="s1">        and date=? &#39;&#39;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">,</span> <span class="n">today</span><span class="p">()))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Enqueue command from: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+    <span class="n">cmd_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="get_stats"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.get_stats">[docs]</a><span class="k">def</span> <span class="nf">get_stats</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">,</span>
+        <span class="n">from_year</span><span class="p">,</span> <span class="n">from_month</span><span class="p">,</span> <span class="n">from_day</span><span class="p">,</span> <span class="n">to_year</span><span class="p">,</span> <span class="n">to_month</span><span class="p">,</span> <span class="n">to_day</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Queries all the user stats of a user in a certain game mode between and</span>
+<span class="sd">    including the from and the to date</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># if on of the parameters are insecure log it and return</span>
+    <span class="k">if</span> <span class="n">secure_string</span><span class="p">(</span><span class="n">username</span> <span class="o">+</span> <span class="n">game_mode</span> <span class="o">+</span> <span class="n">from_year</span> <span class="o">+</span> <span class="n">from_month</span> <span class="o">+</span> <span class="n">from_day</span>
+            <span class="o">+</span> <span class="n">to_year</span> <span class="o">+</span> <span class="n">to_month</span> <span class="o">+</span> <span class="n">to_day</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;One of the parameters where insecure!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Received from: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+        <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;Insecure Parameter&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="c1"># Create the date strings</span>
+    <span class="n">from_date</span> <span class="o">=</span> <span class="n">from_year</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">from_month</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">from_day</span>
+    <span class="n">to_date</span> <span class="o">=</span> <span class="n">to_year</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">to_month</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">to_day</span>
+    <span class="c1"># Create the query command</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;&#39;&#39;select date,wins,looses from userstats where name=? and</span>
+<span class="s1">        mode=? and date &gt;= ? and date &lt;= ?&#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">,</span> <span class="n">from_date</span><span class="p">,</span> <span class="n">to_date</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Enqueue command from: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+    <span class="n">cmd_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="check_username"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.check_username">[docs]</a><span class="k">def</span> <span class="nf">check_username</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if a username is free or not</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">secure_string</span><span class="p">(</span><span class="n">username</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;One of the parameters where insecure!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Received from: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+        <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;Insecure Parameter&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;select name from credentials where name=?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Enqueue command from: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+    <span class="n">cmd_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="register_user"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.register_user">[docs]</a><span class="k">def</span> <span class="nf">register_user</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">pass_hash</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Registers a user with a given name and pers pass hash in the database</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">secure_string</span><span class="p">(</span><span class="n">username</span> <span class="o">+</span> <span class="n">pass_hash</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;One of the parameters where insecure!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Received from: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+        <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;Insecure Parameter&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;insert into credentials(name, pass_hash)</span><span class="se">\</span>
+<span class="s2">        select :name, :pass_hash</span><span class="se">\</span>
+<span class="s2">        where not exists(select 1 from credentials where name= :name)&quot;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">username</span><span class="p">,</span> <span class="s1">&#39;pass_hash&#39;</span><span class="p">:</span> <span class="n">pass_hash</span><span class="p">})</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Enqueue command from: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+    <span class="n">cmd_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="check_user_credentials"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.check_user_credentials">[docs]</a><span class="k">def</span> <span class="nf">check_user_credentials</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span>
+        <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">pass_hash</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks the credentials of a user</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">secure_string</span><span class="p">(</span><span class="n">username</span> <span class="o">+</span> <span class="n">pass_hash</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;One of the parameters where insecure!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Recieved from: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+        <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;Insecure Parameter&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;select name from credentials where name=?</span><span class="se">\</span>
+<span class="s2">            and pass_hash=?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">pass_hash</span><span class="p">))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Enqueue command from: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+    <span class="n">cmd_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="handle_client"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.handle_client">[docs]</a><span class="k">def</span> <span class="nf">handle_client</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">):</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">packet</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">512</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Socket Error&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">packet</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Socket Close&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="n">packet</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;END&#39;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Simply discard the packet if there is not terminator found</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">continue</span>
+        <span class="c1"># Split the packet into tokens with the &quot;:&quot; delim</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">packet</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;ADD_WIN&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the command token is ADD_WIN and enough tokens are received</span>
+<span class="sd">            add a win to the stats of a user in a certain game mode</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">username</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">game_mode</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">add_win</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;ADD_LOOSE&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the command token is ADD_LOOSE and enough tokens are received</span>
+<span class="sd">            add a loose to the stats of a user in a certain game mode</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">username</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">game_mode</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">add_loose</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GET_STATS&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the command token is get_stats and enough tokens are received</span>
+<span class="sd">            request the stats of a user in a certain game mode from a start</span>
+<span class="sd">            to an end date</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">username</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">game_mode</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">from_year</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">from_month</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">from_day</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+            <span class="n">to_year</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+            <span class="n">to_month</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+            <span class="n">to_day</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+            <span class="n">get_stats</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">game_mode</span><span class="p">,</span>
+                     <span class="n">from_year</span><span class="p">,</span> <span class="n">from_month</span><span class="p">,</span> <span class="n">from_day</span><span class="p">,</span>
+                     <span class="n">to_year</span><span class="p">,</span> <span class="n">to_month</span><span class="p">,</span> <span class="n">to_day</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;CHECK_USERNAME&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the command token is check_username and enough tokens</span>
+<span class="sd">            are received check if the username in token[1] is free or not</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">check_username</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;REGISTER_USER&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the command token is register_user and enough tokens are</span>
+<span class="sd">            received insert a new entry into the credentials table</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">register_user</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span>
+                <span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;CHECK_CREDENTIALS&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the command token is check_credentials and enough tokens</span>
+<span class="sd">            are received, check the credentials</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">check_user_credentials</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">,</span>
+                <span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="sql_worker"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.sql_worker">[docs]</a><span class="k">def</span> <span class="nf">sql_worker</span><span class="p">(</span><span class="n">cmd_queue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads commands from cmd_queue and execute them using cursor</span>
+<span class="sd">    Terminate if a command is None.</span>
+<span class="sd">    Send the results directly to the clients, the connection socket</span>
+<span class="sd">    is part of the event enqueued in the cmd_queue</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Open the database (stop having it be close)</span>
+    <span class="n">database</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">DATABASE_PATH</span><span class="p">)</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="c1"># Create a userstats table if non exists</span>
+    <span class="n">init_database</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">cursor</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">command</span> <span class="o">=</span> <span class="n">cmd_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">command</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Received None command. SQL Worker shutting down</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The result can be turned into a string and send to the client</span>
+<span class="sd">        as the ast.literal_eval function can be used to turn this string</span>
+<span class="sd">        into a list safely.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">command</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">command</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Result :&quot;</span> <span class="o">+</span> <span class="n">result</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SQL Error from: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+            <span class="c1"># Set the sql error msg as the result so its send to the user</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># If the command wasnt a locale command send the result</span>
+            <span class="c1"># to the client using the ERROR command token</span>
+            <span class="c1"># to signal the error</span>
+            <span class="k">if</span> <span class="n">connection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Send result to: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+                <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">])</span>
+        <span class="c1"># If the command wasnt a locale command send the result</span>
+        <span class="c1"># to the client using the SUCCESS command token</span>
+        <span class="c1"># to signal the success</span>
+        <span class="k">if</span> <span class="n">connection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Send result to: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">))</span>
+            <span class="n">send_packet</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;SUCCESS&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">])</span>
+        <span class="n">cmd_queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+        <span class="c1"># Commit to the database to make the changes visible</span>
+        <span class="n">database</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">database</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">database</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="init_database"><a class="viewcode-back" href="../../../Akuga.UserDatabaseServer.html#Akuga.UserDatabaseServer.main.init_database">[docs]</a><span class="k">def</span> <span class="nf">init_database</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">cursor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Just create a userstats table if there is none</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Create a userstats table</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;create table userstats</span><span class="se">\</span>
+<span class="s2">            (name text, mode text, date text, wins real, looses real)&quot;</span><span class="p">)</span>
+        <span class="n">database</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Failed to create the table userstats</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Does it already exists?</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Create a credentials table</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;create table credentials (name text, pass_hash text)&quot;</span><span class="p">)</span>
+        <span class="n">database</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Failed to create the table credentials</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Does it already exists?</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Create a logger</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;UserDatabaseServer.log&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="c1"># Build the server socket</span>
+    <span class="n">server_socket</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+    <span class="n">server_socket</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">SERVER_ADDRESS</span><span class="p">)</span>
+    <span class="n">server_socket</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">MAX_ACTIVE_CONNECTIONS</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Server socket listening at &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">SERVER_ADDRESS</span><span class="p">))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Server socket listening for &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">MAX_ACTIVE_CONNECTIONS</span><span class="p">))</span>
+
+    <span class="c1"># Create the cmd queue with a max of 512 entries</span>
+    <span class="n">cmd_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="mi">512</span><span class="p">)</span>
+
+    <span class="c1"># Spawn the sql worker process. It will work on the queue</span>
+    <span class="c1"># containing the sql commands and the socket they where send</span>
+    <span class="c1"># on. The results are directly send to the clients</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Start the sql_worker thread as a daemon&quot;</span><span class="p">)</span>
+    <span class="n">sql_worker_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">sql_worker</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">cmd_queue</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">sql_worker_thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">sql_worker_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Started sql_worker thread as a daemon&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Enter server loop&quot;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># Accept new connections</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span> <span class="o">=</span> <span class="n">server_socket</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Error while accepting connections&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="c1"># And handle them using the handle_client function</span>
+        <span class="n">handle_client_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">handle_client</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">cmd_queue</span><span class="p">))</span>
+        <span class="n">handle_client_thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">handle_client_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Leave the server loop&quot;</span><span class="p">)</span>
+    <span class="c1"># Handle all remaining requests</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wait for the command queue to be processed completly&quot;</span><span class="p">)</span>
+    <span class="n">cmd_queue</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Command queue was processed completly&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Close the server socket to free the address</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Close the server socket, terminate programm&quot;</span><span class="p">)</span>
+    <span class="n">server_socket</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Akuga</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Akuga.html">Akuga package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, AkugaSphinxDocs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

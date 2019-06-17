@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Akuga.GameServer package &#8212; Akuga 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Akuga.MatchServer package" href="Akuga.MatchServer.html" />
+    <link rel="prev" title="Akuga package" href="Akuga.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="akuga-gameserver-package">
+<h1>Akuga.GameServer package<a class="headerlink" href="#akuga-gameserver-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Akuga.GameServer.GlobalDefinitions">
+<span id="akuga-gameserver-globaldefinitions-module"></span><h2>Akuga.GameServer.GlobalDefinitions module<a class="headerlink" href="#module-Akuga.GameServer.GlobalDefinitions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Akuga.GameServer.Network">
+<span id="akuga-gameserver-network-module"></span><h2>Akuga.GameServer.Network module<a class="headerlink" href="#module-Akuga.GameServer.Network" title="Permalink to this headline">¶</a></h2>
+<p>This module contains all functions related to network communication</p>
+<dl class="function">
+<dt id="Akuga.GameServer.Network.receive_dbs_response">
+<code class="sig-prename descclassname">Akuga.GameServer.Network.</code><code class="sig-name descname">receive_dbs_response</code><span class="sig-paren">(</span><em class="sig-param">userdbs_connection</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/GameServer/Network.html#receive_dbs_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.GameServer.Network.receive_dbs_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive up to 512 bytes from the database server
+and parse it using the parse_literal function of the
+ast module. This can be done as the pysqlite module
+return its results as a python list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.GameServer.Network.secure_string">
+<code class="sig-prename descclassname">Akuga.GameServer.Network.</code><code class="sig-name descname">secure_string</code><span class="sig-paren">(</span><em class="sig-param">string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/GameServer/Network.html#secure_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.GameServer.Network.secure_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if all characters in the string are part of the
+whitelist. Otherwise return False</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.GameServer.Network.send_packet">
+<code class="sig-prename descclassname">Akuga.GameServer.Network.</code><code class="sig-name descname">send_packet</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">tokens</em>, <em class="sig-param">terminator='END'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/GameServer/Network.html#send_packet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.GameServer.Network.send_packet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a packet containing multiple tokens.
+Every token is converted to a string using the str function
+for better convenients and is encoded using utf-8 encoding.
+A packet has the form token1:token2:…:tokenN:terminator</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.GameServer.Network.send_password_to_client_email">
+<code class="sig-prename descclassname">Akuga.GameServer.Network.</code><code class="sig-name descname">send_password_to_client_email</code><span class="sig-paren">(</span><em class="sig-param">username</em>, <em class="sig-param">password</em>, <em class="sig-param">user_email</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/GameServer/Network.html#send_password_to_client_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.GameServer.Network.send_password_to_client_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the password to the client via email</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.GameServer.User">
+<span id="akuga-gameserver-user-module"></span><h2>Akuga.GameServer.User module<a class="headerlink" href="#module-Akuga.GameServer.User" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Akuga.GameServer.User.User">
+<em class="property">class </em><code class="sig-prename descclassname">Akuga.GameServer.User.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">pass_hash</em>, <em class="sig-param">connection</em>, <em class="sig-param">client_address</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/GameServer/User.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.GameServer.User.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a registered user aka one of the poor souls doomed to
+play Akuga
+name: name of the player
+pass_hash: the md5 hash of its password
+connection: the connection socket</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.GameServer.main">
+<span id="akuga-gameserver-main-module"></span><h2>Akuga.GameServer.main module<a class="headerlink" href="#module-Akuga.GameServer.main" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Akuga.GameServer.main.HandleAMMQueue">
+<code class="sig-prename descclassname">Akuga.GameServer.main.</code><code class="sig-name descname">HandleAMMQueue</code><span class="sig-paren">(</span><em class="sig-param">amm_queue</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/GameServer/main.html#HandleAMMQueue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.GameServer.main.HandleAMMQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke a amm match between the two uppermost users</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.GameServer.main.HandleLMSQueue">
+<code class="sig-prename descclassname">Akuga.GameServer.main.</code><code class="sig-name descname">HandleLMSQueue</code><span class="sig-paren">(</span><em class="sig-param">lms_queue</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/GameServer/main.html#HandleLMSQueue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.GameServer.main.HandleLMSQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke a lms match between the two uppermost users</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.GameServer.main.generate_random_password">
+<code class="sig-prename descclassname">Akuga.GameServer.main.</code><code class="sig-name descname">generate_random_password</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/GameServer/main.html#generate_random_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.GameServer.main.generate_random_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a random password which is 10 chars long</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Akuga.GameServer.main.handle_client">
+<code class="sig-prename descclassname">Akuga.GameServer.main.</code><code class="sig-name descname">handle_client</code><span class="sig-paren">(</span><em class="sig-param">connection</em>, <em class="sig-param">client_address</em>, <em class="sig-param">lms_queue</em>, <em class="sig-param">amm_queue</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Akuga/GameServer/main.html#handle_client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Akuga.GameServer.main.handle_client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the connection of a user (the connection as well as the
+client address is stored within the user instance)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Akuga.GameServer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Akuga.GameServer" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Akuga</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Akuga.html">Akuga package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Akuga.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Akuga.GameServer package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.GameServer.GlobalDefinitions">Akuga.GameServer.GlobalDefinitions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.GameServer.Network">Akuga.GameServer.Network module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.GameServer.User">Akuga.GameServer.User module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.GameServer.main">Akuga.GameServer.main module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-Akuga.GameServer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Akuga.MatchServer.html">Akuga.MatchServer package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Akuga.UserDatabaseServer.html">Akuga.UserDatabaseServer package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Akuga.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Akuga.html#module-Akuga.EventDefinitions">Akuga.EventDefinitions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Akuga.html#module-Akuga">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="Akuga.html">Akuga package</a><ul>
+      <li>Previous: <a href="Akuga.html" title="previous chapter">Akuga package</a></li>
+      <li>Next: <a href="Akuga.MatchServer.html" title="next chapter">Akuga.MatchServer package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, AkugaSphinxDocs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/Akuga.GameServer.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
