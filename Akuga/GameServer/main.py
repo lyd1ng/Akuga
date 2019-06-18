@@ -6,7 +6,7 @@ from hashlib import md5
 from threading import Thread
 from multiprocessing import Process
 from Akuga.MatchServer.MatchServer import match_server
-from Akuga.GameServer.User import User
+from Akuga.User import User
 from Akuga.GameServer.GlobalDefinitions import (
     SERVER_ADDRESS,
     USER_DBS_ADDRESS,
