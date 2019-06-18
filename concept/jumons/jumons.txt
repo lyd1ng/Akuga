@@ -96,3 +96,45 @@ Unkrautjaehter(660, 520)
 ------------------------
 Farbe: Gruen
 Flavour: Man muss das Uebel an der Wurzel packen
+
+
+
+D4240 rastloser Reperateur (350, 350)
+-------------------------------------
+Farbe: Rot
+Unbeeinflusst von Artefakten
+Reichweite 2 wenn es ein Artefakt equipped.
+Special Move auf ein befr. Jumon, target
+Jumon erhaelt das ausgeruestetes Artefakt.
+Sollte das target Jumon ein Artefakt ausgeruestet
+haben, erhaelt D4240 dieses Artefakt.
+Flavour: Wer zum alten Eisen gehoet entscheide immernoch ich
+
+
+
+Georg (350, 350
+---------------
+Farbe: Blau
+Regel: Bekommt mehr Angriff, wenn er im Angriff gewinnt.
+Bekommt mehr Verteidigung, wenn er verteidigend gewinnt.
+Flavour: Ich sehe endloses Potential in diesem Junge -- Meister Sebenius Confido
+
+
+
+Wachtmeister(530, 720)
+----------------------
+0/40 Bonus fuer alle benachbarten (auch diag.) befreundeten Jumons
+
+
+
+Gieriger Haufen(450, 450)
+-------------------------
+Farbe: Schwarz
+Regel: Wenn der gierige Haufen im Angriff ein anderes Jumons besieft
+wechselt diese Jumon den Besitzer, und erhaelt die Werte und den
+Effekt des gierigen Haufens.
+
+
+Demoss, Krieger des Schattenstamms(660, 630)
+--------------------------------------------
+Farbe: Schwarz
