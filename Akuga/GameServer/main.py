@@ -174,40 +174,42 @@ def handle_lms_queue(lms_queue):
     """
     Invoke a lms match between the two uppermost users
     """
-    # Get two users from the queue
-    user1 = lms_queue.get()
-    user1.in_play = True
-    user2 = lms_queue.get()
-    user2.in_play = True
-    logger.info("Got two user for a lms match")
-    users = {user1.name: user1.connection, user2.name: user2.connection}
-    logger.info("Start MatchServer subprocess")
-    MatchServerProcess = Process(target=match_server, args=('lms', users, None))
-    MatchServerProcess.start()
-    logger.info("Started MatchServer subprocess")
-    # Signal that the users has been processed
-    lms_queue.task_done()
-    lms_queue.task_done()
+    while True:
+        # Get two users from the queue
+        user1 = lms_queue.get()
+        user1.in_play = True
+        user2 = lms_queue.get()
+        user2.in_play = True
+        logger.info("Got two user for a lms match")
+        users = {user1.name: user1.connection, user2.name: user2.connection}
+        logger.info("Start MatchServer subprocess")
+        MatchServerProcess = Process(target=match_server, args=('lms', users, None))
+        MatchServerProcess.start()
+        logger.info("Started MatchServer subprocess")
+        # Signal that the users has been processed
+        lms_queue.task_done()
+        lms_queue.task_done()
 
 
 def handle_amm_queue(amm_queue):
     """
     Invoke a amm match between the two uppermost users
     """
-    # Get two users from the queue
-    user1 = amm_queue.get()
-    user1.in_play = True
-    user2 = amm_queue.get()
-    user2.in_play = True
-    logger.info("Got two user for an amm match")
-    users = {user1.name: user1.connection, user2.name: user2.connection}
-    logger.info("Start MatchServer subprocess")
-    MatchServerProcess = Process(target=match_server, args=('amm', users, None))
-    MatchServerProcess.start()
-    logger.info("Started MatchServer subprocess")
-    # Signal that the users has been processed
-    amm_queue.task_done()
-    amm_queue.task_done()
+    while True:
+        # Get two users from the queue
+        user1 = amm_queue.get()
+        user1.in_play = True
+        user2 = amm_queue.get()
+        user2.in_play = True
+        logger.info("Got two user for an amm match")
+        users = {user1.name: user1.connection, user2.name: user2.connection}
+        logger.info("Start MatchServer subprocess")
+        MatchServerProcess = Process(target=match_server, args=('amm', users, None))
+        MatchServerProcess.start()
+        logger.info("Started MatchServer subprocess")
+        # Signal that the users has been processed
+        amm_queue.task_done()
+        amm_queue.task_done()
 
 
 if __name__ == '__main__':
