@@ -41,30 +41,33 @@ def handle_client(connection, client_address,
     # The instance of the user: None until a succsefully log in
     user = None
     while True:
-        try:
-            packet = connection.recv(512).decode('utf-8')
-        except socket.error:
-            connection.close()
-            logger.info("Connection error")
-            # If the user was logged which means part of the active user list
-            # remove per from it so per can log in again
-            if user is not None:
-                active_users.remove(user.name)
-            break
-        if not packet:
-            connection.close()
-            logger.info("Connection closed")
-            # If the user was logged which means part of the active user list
-            # remove per from it so per can log in again
-            if user is not None:
-                active_users.remove(user.name)
-            break
-        tokens = packet.split(":")
         if user is None:
             """
             If the user is not logged in only logging in and register
             commands are allowed
             """
+            # Receive a packet
+            try:
+                packet = connection.recv(512).decode('utf-8')
+            except socket.error:
+                connection.close()
+                logger.info("Connection error")
+                # If the user was logged which means part of the active user list
+                # remove per from it so per can log in again
+                if user is not None:
+                    active_users.remove(user.name)
+                break
+            # If the connection was closed
+            if not packet:
+                connection.close()
+                logger.info("Connection closed")
+                # If the user was logged which means part of the active user list
+                # remove per from it so per can log in again
+                if user is not None:
+                    active_users.remove(user.name)
+                break
+            tokens = packet.split(":")
+
             if tokens[0] == "REGISTER_USER" and len(tokens) >= 3:
                 """
                 Register the user with a generated password and email
@@ -145,6 +148,28 @@ def handle_client(connection, client_address,
             """
             If the user is logged in an not playing a match
             """
+            # Receive a packet as long as the user is not in play
+            try:
+                packet = connection.recv(512).decode('utf-8')
+            except socket.error:
+                connection.close()
+                logger.info("Connection error")
+                # If the user was logged which means part of the active user list
+                # remove per from it so per can log in again
+                if user is not None:
+                    active_users.remove(user.name)
+                break
+            # If the connection was closed
+            if not packet:
+                connection.close()
+                logger.info("Connection closed")
+                # If the user was logged which means part of the active user list
+                # remove per from it so per can log in again
+                if user is not None:
+                    active_users.remove(user.name)
+                break
+            tokens = packet.split(":")
+
             print("logged in and not in play")
             if tokens[0] == 'ENQUEUE_FOR_MATCH' and len(tokens) >= 2:
                 """
@@ -165,7 +190,9 @@ def handle_client(connection, client_address,
         else:
             """
             If the user is logged in but currently playing a match,
-            do nothing
+            do nothing, not even receive a packet as the connection
+            is temporaly unavailable. It is used by a handle_match
+            thread now.
             """
             pass
 
