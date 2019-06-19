@@ -4,7 +4,6 @@ import random
 import logging
 from hashlib import md5
 from threading import Thread
-from multiprocessing import Process
 from Akuga.MatchServer.MatchServer import match_server
 from Akuga.User import User
 from Akuga.GameServer.GlobalDefinitions import (
@@ -16,6 +15,7 @@ from Akuga.GameServer.Network import (
     send_packet,
     receive_dbs_response,
     send_password_to_client_email)
+from time import sleep
 
 
 def generate_random_password():
@@ -194,6 +194,8 @@ def handle_client(connection, client_address,
             is temporaly unavailable. It is used by a handle_match
             thread now.
             """
+            print('From the GameServer: Currently in play')
+            sleep(1)
             pass
 
 
@@ -208,10 +210,10 @@ def handle_lms_queue(lms_queue):
         user2 = lms_queue.get()
         user2.in_play = True
         logger.info("Got two user for a lms match")
-        users = {user1.name: user1.connection, user2.name: user2.connection}
+        users = [user1, user2]
         logger.info("Start MatchServer subprocess")
-        MatchServerProcess = Process(target=match_server, args=('lms', users, None))
-        MatchServerProcess.start()
+        match_server_thread = Thread(target=match_server, args=('lms', users, None))
+        match_server_thread.start()
         logger.info("Started MatchServer subprocess")
         # Signal that the users has been processed
         lms_queue.task_done()
@@ -229,10 +231,10 @@ def handle_amm_queue(amm_queue):
         user2 = amm_queue.get()
         user2.in_play = True
         logger.info("Got two user for an amm match")
-        users = {user1.name: user1.connection, user2.name: user2.connection}
+        users = [user1, user2]
         logger.info("Start MatchServer subprocess")
-        MatchServerProcess = Process(target=match_server, args=('amm', users, None))
-        MatchServerProcess.start()
+        match_server_thread = Thread(target=match_server, args=('amm', users, None))
+        match_server_thread.start()
         logger.info("Started MatchServer subprocess")
         # Signal that the users has been processed
         amm_queue.task_done()
