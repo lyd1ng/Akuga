@@ -1,3 +1,6 @@
+import threading
+
+
 class User:
     """
     Represents a registered user aka one of the poor souls doomed to
@@ -12,6 +15,16 @@ class User:
         self.connection = connection
         self.client_address = client_address
         self.in_play = False
+        # Make the user class threadsafe even if it should never be altered
+        # by more than one thread
+        self.lock = threading.Lock()
+
+    def set_in_play(self, in_play):
+        """
+        Set the in_play flag. Thread-safe
+        """
+        with self.lock:
+            self.in_play = in_play
 
     def __str__(self):
         """
