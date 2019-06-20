@@ -1,14 +1,7 @@
 """
 This module contains all functions related to network communication
 """
-import smtplib
 from ast import literal_eval
-from email.mime.text import MIMEText
-from Akuga.GameServer.GlobalDefinitions import (
-    EMAIL_SERVER,
-    EMAIL_PORT,
-    EMAIL_ADDRESS,
-    EMAIL_PASSWORD)
 
 whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
@@ -63,16 +56,4 @@ def send_password_to_client_email(username, password, user_email):
     """
     Send the password to the client via email
     """
-    # Create the message to send (will be beautified in the future)
-    msg = MIMEText("Hello {0}, your password is {1}".format(username, password))
-    msg['Subject'] = 'Welcome to Akuga'
-    msg['From'] = EMAIL_ADDRESS
-    msg['To'] = user_email
-    # Connect to the email server
-    server = smtplib.SMTP(EMAIL_SERVER, EMAIL_PORT)
-    import ssl
-    server.starttls(ssl.create_default_context())
-    # Login and send the email
-    server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-    server.sendmail(EMAIL_ADDRESS, user_email, msg.as_string())
-    server.quit()
+    pass
