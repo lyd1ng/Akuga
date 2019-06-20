@@ -1,8 +1,6 @@
 import queue
 import socket
-import random
 import logging
-from hashlib import md5
 from threading import Thread
 from Akuga.MatchServer.MatchServer import match_server
 from Akuga.User import User
@@ -11,21 +9,9 @@ from Akuga.GameServer.GlobalDefinitions import (
     USER_DBS_ADDRESS,
     MAX_ACTIVE_CONNECTIONS)
 from Akuga.GameServer.Network import (
-    whitelist,
     send_packet,
-    receive_dbs_response,
-    send_password_to_client_email)
+    receive_dbs_response)
 from time import sleep
-
-
-def generate_random_password():
-    """
-    Returns a random password which is 10 chars long
-    """
-    password = ""
-    for i in range(10):
-        password += whitelist[random.randint(0, len(whitelist) - 1)]
-    return password
 
 
 def handle_client(connection, client_address,
@@ -70,16 +56,13 @@ def handle_client(connection, client_address,
 
             if tokens[0] == "REGISTER_USER" and len(tokens) >= 3:
                 """
-                Register the user with a generated password and email
-                the user the password
+                Register the user with pers username and pass hash
                 """
                 username = tokens[1]
-                email = tokens[2]
-                print("received a 'register_user'")
+                pass_hash = tokens[2]
                 # Check if the username is free
                 send_packet(userdb_connection, ["CHECK_USERNAME", username])
                 response, error = receive_dbs_response(userdb_connection)
-                print("Received a response from the udbs")
                 if response is None:
                     """
                     If the response is None an error occured
@@ -92,10 +75,7 @@ def handle_client(connection, client_address,
                     send_packet(connection, ["ERROR",
                         "User: " + username + " already exists"])
                 else:
-                    # If the username is free generate a password
-                    # and register the user
-                    password = generate_random_password()
-                    pass_hash = md5(password.encode('utf-8')).hexdigest()
+                    # If the username is free register the user
                     # Register the user with pers username and pers hash
                     send_packet(userdb_connection, ["REGISTER_USER",
                         username, pass_hash])
@@ -109,11 +89,9 @@ def handle_client(connection, client_address,
                         send_packet(connection, ["ERROR", error])
                     else:
                         """
-                        If no error occured email the client
+                        If no error occured send success
                         """
                         logger.info("Register user: " + username)
-                        send_password_to_client_email(username,
-                            password, email)
                         send_packet(connection, ["SUCCESSFULLY_REGISTERED"])
             if tokens[0] == "LOG_IN" and len(tokens) >= 3:
                 """
