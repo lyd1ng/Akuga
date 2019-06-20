@@ -156,12 +156,12 @@ def handle_match_connection(packet, queue):
         MOVE_JUMON $name_of_the_jumon_to_summon $target_position
         The target position is in the format $x,$y
         """
-        # Split the target position string into x an y tokens
-        position_x_str, position_y_str = tokens[2].split(",")
         try:
             """
             Convert the x and y tokens into integers
             """
+            # Split the target position string into x an y tokens
+            position_x_str, position_y_str = tokens[2].split(",")
             position_x = int(position_x_str)
             position_y = int(position_y_str)
         except ValueError:
