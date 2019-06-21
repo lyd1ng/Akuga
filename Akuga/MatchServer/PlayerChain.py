@@ -170,64 +170,6 @@ class PlayerChain:
             # Walk through the list of players
             node_pointer = node_pointer.get_next()
 
-    def check_for_victory(self):
-        """
-        Checks if a player has won and return per
-        There are two cases which have to be checked
-        1. There is only one not neutral player left
-        2. A player has won with an alternative win condition
-        1:
-        Go throug the whole list and count the number of non neutral
-        players, safe the last not neutral player as this will be the
-        victor if the number of non neutral players is 1
-        """
-        not_neutral_player = None
-        not_neutral_player_count = 0
-        node_pointer = self.startNode
-        while True:
-            if type(node_pointer.get_player()) is not NeutralPlayer:
-                not_neutral_player_count += 1
-                # Save this player, if per is the only one per is the victor
-                not_neutral_player = node_pointer.get_player()
-            if node_pointer is self.endNode:
-                """
-                If the whole chane has been walked through break the loop
-                """
-                break
-            # Jump to the next node
-            node_pointer = node_pointer.get_next()
-        if not_neutral_player_count == 1:
-            # Check the result and return the victor if there is one
-            return not_neutral_player
-
-        node_pointer = self.startNode
-        """
-        2:
-        Go through the whole list and check if the current player is non
-        neutral and if the player has won regardless of still existing
-        opponents. This may occure with alternative win conditions
-        """
-        while True:
-            if node_pointer.get_player().has_won() and\
-                    type(node_pointer.get_player()) is not NeutralPlayer:
-                return node_pointer.get_player()
-            # Walk through the list of players
-            node_pointer = node_pointer.get_next()
-            """
-            If node_pointer now is the start node it jumped from the end node
-            to the start node which means all nodes has been walked through
-            """
-            if node_pointer is self.startNode:
-                break
-        return None
-
-    def check_for_drawn(self):
-        """
-        Returns if all not neutral players are dead
-        """
-        return self.len == 0 or (self.len == 1 and type(self.startNode.
-            get_player()) is NeutralPlayer)
-
     def next_players_turn(self):
         """
         Go to the next players turn
