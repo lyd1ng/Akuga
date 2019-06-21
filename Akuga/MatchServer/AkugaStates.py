@@ -324,6 +324,34 @@ class ChangePlayerState(State):
     def __init__(self, fsm):
         super().__init__("change_player_state", fsm)
 
+    def check_for_victory(self):
+        """
+        In the last man standing mode there are two cases in which
+        a player has won:
+        1. Per is the only not neutral player left
+        2. Per has won using an alternative win condition
+        """
+        players = self.fsm.player_chain.get_players()
+        not_neutral_players = list(
+            filter(lambda x: type(x) is not NeutralPlayer, players))
+        # Only one not neutral player is left per has won
+        if len(not_neutral_players) == 1:
+            return not_neutral_players[0]
+        # The first player with the has_won flag set is the victor
+        victors = list(filter(lambda x: x.has_won(), players))
+        if len(victors) > 1:
+            return victors[0]
+        return None
+
+    def check_for_drawn(self):
+        """
+        In the last man standing game mode the game is drawn if there
+        is no non neutral players left
+        """
+        pc = self.fsm.player_chain
+        return pc.len == 0 or (pc.len == 1 and type(pc.startNode.
+            get_player()) is NeutralPlayer)
+
     def run(self, event):
         """
         update the current player, check for victors or if the match
@@ -336,8 +364,7 @@ class ChangePlayerState(State):
         # Remove dead players from the player chain
         self.fsm.player_chain.update()
         # Check if the match is drawn
-        is_drawn = self.fsm.player_chain.check_for_drawn()
-        if is_drawn is True:
+        if self.check_for_drawn():
             """
             After this event has been handeld the state machiene should
             not be updated anymore
@@ -345,7 +372,7 @@ class ChangePlayerState(State):
             drawn_event = pygame.event.Event(MATCH_IS_DRAWN)
             self.fsm.queue.put(drawn_event)
         # Check if a player has won
-        victor = self.fsm.player_chain.check_for_victory()
+        victor = self.check_for_victory()
         if victor is not None:
             """
             After this event has been handeld the state machiene should
