@@ -45,6 +45,7 @@ class AsyncCallbackReceiver:
                           nbytes,
                           queue,
                           callback,
+                          delimiter,
                           terminator="END"):
         """
         Receives bytes from connection until terminator is received.
@@ -87,8 +88,12 @@ class AsyncCallbackReceiver:
             If there is a terminator within this packet invoke the callback
             function with the packet until the terminator
             """
-            callback(AsyncCallbackReceiver.cached_str[:terminator_index],
-                queue)
+            tokens = AsyncCallbackReceiver.cached_str.split(delimiter)
+            if tokens[-1] != terminator:
+                callback(['ERROR', 'No terminator\
+                    found while recv the packet'], queue)
+            else:
+                callback(tokens[0:-1], queue)
             # The string has to be cleared to receive a new packet
             AsyncCallbackReceiver.cached_str = ""
 
@@ -109,16 +114,12 @@ def send_packet(connection, tokens, terminator="END"):
     connection.send(query)
 
 
-def handle_match_connection(packet, queue):
+def handle_match_connection(tokens, queue):
     """
     Receives a package from connection with a timeout of the defined
-    seconds per turn. If a packet was received parse it and handle it by
-    throwing the appropriate events.
-    If the socket times out the current player is killed.
+    seconds per turn. If the socket times out the current player is killed.
     The same is true if an error occurs while parsing the packet.
     """
-    tokens = packet.split(":")
-
     if tokens[0] == "PICK_JUMON" and len(tokens) >= 2:
         """
         Handles a pick jumon command
