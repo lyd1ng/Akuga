@@ -1,9 +1,27 @@
 """
 This module contains all functions related to network communication
 """
+import socket
 from ast import literal_eval
 
 whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+
+
+def recv_packet(connection, nbytes, delimiter, terminator):
+    """
+    Receive a packet and convert it into tokens using the delimiter.
+    Return ['ERROR', $msg] if there no terminator is found,
+    return all tokens except the terminator token otherwise.
+    If the connection was closed raise a socket.error
+    """
+    packet = connection.recv(nbytes)
+    if not packet:
+        raise socket.error
+    packet = packet.decode('utf-8')
+    tokens = packet.split(delimiter)
+    if tokens[-1] == terminator:
+        return tokens[0:-1]
+    return ['ERROR', 'No terminator found while recv the packet']
 
 
 def send_packet(connection, tokens, terminator="END"):
@@ -33,16 +51,14 @@ def secure_string(string):
     return True
 
 
-def receive_dbs_response(userdbs_connection):
+def receive_dbs_response(userdbs_connection, nbytes, delimiter, terminator):
     """
     Receive up to 512 bytes from the database server
     and parse it using the parse_literal function of the
     ast module. This can be done as the pysqlite module
     return its results as a python list
     """
-    response_packet = userdbs_connection.recv(512)
-    response_packet = response_packet.decode('utf-8')
-    tokens = response_packet.split(":")
+    tokens = recv_packet(userdbs_connection, nbytes, delimiter, terminator)
     # If an error is received return None and the error msg received
     if tokens[0] == "ERROR":
         return (None, tokens[1])
