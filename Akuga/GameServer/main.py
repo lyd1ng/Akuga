@@ -9,6 +9,7 @@ from Akuga.GameServer.GlobalDefinitions import (
     USER_DBS_ADDRESS,
     MAX_ACTIVE_CONNECTIONS)
 from Akuga.GameServer.Network import (
+    recv_packet,
     send_packet,
     receive_dbs_response)
 from time import sleep
@@ -34,7 +35,7 @@ def handle_client(connection, client_address,
             """
             # Receive a packet
             try:
-                packet = connection.recv(512).decode('utf-8')
+                tokens = recv_packet(connection, 512, ':', 'END')
             except socket.error:
                 connection.close()
                 logger.info("Connection error")
@@ -43,16 +44,6 @@ def handle_client(connection, client_address,
                 if user is not None:
                     active_users.remove(user.name)
                 break
-            # If the connection was closed
-            if not packet:
-                connection.close()
-                logger.info("Connection closed")
-                # If the user was logged which means part of the active user list
-                # remove per from it so per can log in again
-                if user is not None:
-                    active_users.remove(user.name)
-                break
-            tokens = packet.split(":")
 
             if tokens[0] == "REGISTER_USER" and len(tokens) >= 3:
                 """
@@ -62,7 +53,8 @@ def handle_client(connection, client_address,
                 pass_hash = tokens[2]
                 # Check if the username is free
                 send_packet(userdb_connection, ["CHECK_USERNAME", username])
-                response, error = receive_dbs_response(userdb_connection)
+                response, error = receive_dbs_response(userdb_connection,
+                        512, ':', 'END')
                 if response is None:
                     """
                     If the response is None an error occured
@@ -79,7 +71,8 @@ def handle_client(connection, client_address,
                     # Register the user with pers username and pers hash
                     send_packet(userdb_connection, ["REGISTER_USER",
                         username, pass_hash])
-                    response, error = receive_dbs_response(userdb_connection)
+                    response, error = receive_dbs_response(userdb_connection,
+                        512, ':', 'END')
                     if response is None:
                         """
                         If the response is None an error occured, send the
@@ -101,7 +94,8 @@ def handle_client(connection, client_address,
                 pass_hash = tokens[2]
                 send_packet(userdb_connection,
                     ["CHECK_CREDENTIALS", username, pass_hash])
-                response, error = receive_dbs_response(userdb_connection)
+                response, error = receive_dbs_response(userdb_connection,
+                    512, ':', 'END')
                 if response is None:
                     # An error occured, pass the error to the client
                     logger.info("Database error: " + error)
@@ -128,7 +122,7 @@ def handle_client(connection, client_address,
             """
             # Receive a packet as long as the user is not in play
             try:
-                packet = connection.recv(512).decode('utf-8')
+                tokens = recv_packet(connection, 512, ':', 'END')
             except socket.error:
                 connection.close()
                 logger.info("Connection error")
@@ -137,17 +131,6 @@ def handle_client(connection, client_address,
                 if user is not None:
                     active_users.remove(user.name)
                 break
-            # If the connection was closed
-            if not packet:
-                connection.close()
-                logger.info("Connection closed")
-                # If the user was logged which means part of the active user list
-                # remove per from it so per can log in again
-                if user is not None:
-                    active_users.remove(user.name)
-                break
-            tokens = packet.split(":")
-
             print("logged in and not in play")
             if tokens[0] == 'ENQUEUE_FOR_MATCH' and len(tokens) >= 2:
                 """
