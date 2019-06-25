@@ -123,7 +123,7 @@ class PlayerChain:
                 self.len -= 1
                 if type(node_pointer.get_current_player()) is not NeutralPlayer:
                     self.not_neutral_len -= 1
-                return
+                break
             # Jump to the next node to walk through the chain
             node_pointer = node_pointer.get_next()
             """
