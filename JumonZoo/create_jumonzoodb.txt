@@ -1,4 +1,6 @@
 -- The layout of the jumons are (name text, color text, attack real, defense real, special real, price real)
+drop table jumons;
+create table jumons(name text, color text, attack real, defense real, special real, price real);
 insert into jumons values('Dr. Kerze', 'black', 600, 400, 1, 0);
 insert into jumons values('Uzurlogh der Saeher', 'green', 550, 550, 1, 0);
 insert into jumons values('Stumblestone', 'blue', 350, 680, 0, 0);
@@ -16,3 +18,4 @@ insert into jumons values('Georg', 'blue', 350, 350, 1, 0);
 insert into jumons values('Wachtmeister Croaky', 'blue', 530, 720, 1, 0);
 insert into jumons values('Gieriger Haufen', 'black', 450, 450, 1, 0);
 insert into jumons values('Krieger des Schattenstamms', 'black', 660, 630, 0, 0);
+insert into jumons values('Tricky Trixy', 'black', 420, 440, 1, 0);
