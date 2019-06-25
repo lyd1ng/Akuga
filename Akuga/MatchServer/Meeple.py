@@ -15,12 +15,14 @@ class Artefact():
         """
         Attach the artefact to jumon
         """
+        self.position = jumon.get_position()
         jumon.equipment = self
 
     def detach_from(self, jumon):
         """
         Detach the artefact from jumon
         """
+        self.position = jumon.get_position()
         jumon.equipment = None
 
     def special_ability(self, jumon, current_state, next_state_and_variables):
