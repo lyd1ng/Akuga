@@ -108,21 +108,6 @@ class Player:
         the jumon_to_summon list to the summone_jumons list and switches
         the phase this player is in if there are no jummons to summon left
         """
-        if self.in_summon_phase() is False:
-            """
-            This should never happen but handle it anyway with a clear
-            debug message
-            """
-            print("Invalid move, summoning a jumon is only allowed in summon phase")
-            return None
-        if jumon not in self.jumons_to_summon:
-            """
-            This should never happen but handle it anyway with a clear
-            debug message
-            """
-            print("Invalid move, this jumon to summon is not within the")
-            print("list of jumons to summon of the curret player")
-            return None
         # Change the jumon from jumons_to_summon to summoned_jumons
         self.summoned_jumons.append(jumon)
         self.jumons_to_summon.remove(jumon)
@@ -132,12 +117,6 @@ class Player:
         """
         if len(self.jumons_to_summon) < 1:
             self.set_to_move_phase()
-        print("To summon ", end="")
-        print(self.jumons_to_summon if GlobalDefinitions.DEBUG else "")
-        print("Summoned summon ", end="")
-        print(self.summoned_jumons if GlobalDefinitions.DEBUG else "")
-        print("Current Phase: ", end="")
-        print(self.phase if GlobalDefinitions.DEBUG else "")
 
     def handle_jumon_death(self, jumon):
         """
