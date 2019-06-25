@@ -84,7 +84,7 @@ class IdleState(State):
         print("EVENT TYPE: " + str(event.type))
         if event.type == PICK_JUMON_EVENT\
                 and self.fsm.player_chain.get_current_player().\
-                in_pack_phase():
+                in_pick_phase():
             """
             The event is only valid if the current player is in the pick
             phase, and the jumon within the event is inside the

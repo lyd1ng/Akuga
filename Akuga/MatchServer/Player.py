@@ -34,7 +34,7 @@ class Player:
         jumon.set_owner(self)
         self.jumons_to_summon.append(jumon)
 
-    def in_pack_phase(self):
+    def in_pick_phase(self):
         """
         Returns if the player is in the pick phase
         """
