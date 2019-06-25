@@ -1,4 +1,3 @@
-from Akuga.MatchServer.Meeple import Jumon
 from Akuga.MatchServer.Position import Position
 
 
@@ -151,12 +150,6 @@ class Arena:
             If a unit is placed set its position as well
             """
             unit.set_position(position)
-            if type(unit) is Jumon and unit.equipment is not None:
-                """
-                If the unit is a jumon and it has an artefact equipped
-                set its position as well
-                """
-                unit.equipped.set_position(position)
         # Set the unit to the position
         self.tiles[position.x][position.y]._occupied_by = unit
 

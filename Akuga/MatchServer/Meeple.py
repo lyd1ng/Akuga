@@ -67,9 +67,12 @@ class Jumon():
 
     def set_position(self, position):
         """
-        Just set the position of the jumon
+        Just set the position of the jumon,
+        set the position of its equipment as well
         """
         self.position = position
+        if self.equipment is not None:
+            self.equipment.set_position(position)
 
     def get_position(self):
         """
