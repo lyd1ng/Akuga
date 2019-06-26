@@ -92,7 +92,9 @@ def find_path(start_position, end_position, arena):
     width = arena.board_width
     height = arena.board_height
     tiles = []
+    # The frontier list will hold the nodes to expand
     frontier_nodes = [PathNode(start_position, None)]
+    # The visited nodes list will hold the nodes which has been expanded
     visited_nodes = []
     # Create a boolean map from the arena. True means the tile is free
     for x in range(0, width):
@@ -106,13 +108,21 @@ def find_path(start_position, end_position, arena):
         As long as there are nodes within the frontier list there is hope
         to find a path
         """
-        expand_list = frontier_nodes[0].expand_node(tiles, end_position, frontier_nodes, visited_nodes, width, height)
+        # Expand the first node in the frontier list to find new node
+        # which will be added to the frontier list
+        expand_list = frontier_nodes[0].expand_node(tiles, end_position,
+            frontier_nodes, visited_nodes, width, height)
+        # The node has been expanded so add it to the visited list
         visited_nodes.append(frontier_nodes[0])
+        # Remove the node from the frontier list to avoid looping
         frontier_nodes.remove(frontier_nodes[0])
+        # Check if one of the visited nodes is the target node
         potentiel_end_node = next(filter(lambda x: x.position == end_position,
             visited_nodes), None)
+        # If the target node was found return the backtrace of the path
         if potentiel_end_node:
             return backtrace_path(potentiel_end_node)
+        # If the target node was not found yet expand the frontier list
         frontier_nodes = frontier_nodes + expand_list
     return None
 
