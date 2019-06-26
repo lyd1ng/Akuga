@@ -96,7 +96,7 @@ def match_server(game_mode, users, options={}):
                 is not NeutralPlayer:
             AsyncCallbackReceiver.async_callback_recv(users[game_state.player_chain.
                 get_current_player().name],
-                512, _queue, handle_match_connection)
+                512, _queue, handle_match_connection, ':', 'END')
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
