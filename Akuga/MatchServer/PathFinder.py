@@ -12,9 +12,14 @@ def pos_in(position, nodes):
 class PathNode:
     """
     A representation of a node within the path
+    It is defacto a node of a single linked list in which every
+    node know the previous node
+    A <- B
     """
     def __init__(self, position, predecessor):
+        # The path position stored in the node
         self.position = position
+        # The previous node
         self.predecessor = predecessor
 
     def expand_node(self, tiles, end_pos, frontier, visited, width, height):
@@ -27,26 +32,45 @@ class PathNode:
             new_pos = self.position - Position(1, 0)
             if (not pos_in(new_pos, frontier) and tiles[new_pos.x][new_pos.y])\
                     or new_pos == end_pos:
+                """
+                If the node is not in the frontier list and free or
+                the target position add it to the expand list which might
+                will be part of the found path
+                """
                 expand_list.append(PathNode(new_pos, self))
 
         if self.position.x < width - 1:
             new_pos = self.position + Position(1, 0)
             if (not pos_in(new_pos, frontier) and tiles[new_pos.x][new_pos.y])\
                     or new_pos == end_pos:
+                """
+                If the node is not in the frontier list and free or
+                the target position add it to the expand list which might
+                will be part of the found path
+                """
                 expand_list.append(PathNode(new_pos, self))
 
         if self.position.y > 0:
             new_pos = self.position - Position(0, 1)
             if (not pos_in(new_pos, frontier) and tiles[new_pos.x][new_pos.y])\
                     or new_pos == end_pos:
+                """
+                If the node is not in the frontier list and free or
+                the target position add it to the expand list which might
+                will be part of the found path
+                """
                 expand_list.append(PathNode(new_pos, self))
 
         if self.position.y < height - 1:
             new_pos = self.position + Position(0, 1)
             if (not pos_in(new_pos, frontier) and tiles[new_pos.x][new_pos.y])\
                     or new_pos == end_pos:
+                """
+                If the node is not in the frontier list and free or
+                the target position add it to the expand list which might
+                will be part of the found path
+                """
                 expand_list.append(PathNode(new_pos, self))
-
         return expand_list
 
 
@@ -66,7 +90,7 @@ def backtrace_path(end_node):
 
 def find_path(start_position, end_position, arena):
     width = arena.board_width
-    height = arena.board_width
+    height = arena.board_height
     tiles = []
     frontier_nodes = [PathNode(start_position, None)]
     visited_nodes = []
