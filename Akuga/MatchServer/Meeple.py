@@ -39,7 +39,7 @@ class Artefact():
         """
         self.position = position
 
-    def get_position(self, position):
+    def get_position(self):
         """
         Get the position of this artefact
         """
@@ -180,3 +180,19 @@ class TestNeutralJumon(Jumon):
                 "current_position": self.position,
                 "target_position": random_target})
         return next_state_and_variables
+
+
+class TestArtefact(Artefact):
+    def __init__(self):
+        super().__init__('TA', None)
+        self.cached_name = ''
+
+    def attach_to(self, jumon):
+        self.cached_name = jumon.name
+        jumon.name += ' TA'
+        super().attach_to(jumon)
+
+    def detach_from(self, jumon):
+        jumon.name = self.cached_name
+        self.cached_name = ''
+        super().detach_from(jumon)

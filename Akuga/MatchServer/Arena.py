@@ -1,4 +1,5 @@
 from Akuga.MatchServer.Position import Position
+from Akuga.MatchServer.Meeple import Jumon
 
 
 class ArenaTile:
@@ -157,8 +158,13 @@ class Arena:
         for y in range(0, self.board_height):
             for x in range(0, self.board_width):
                 print("|", end="")
-                if self.get_unit_at(Position(x, y)) is not None:
-                    print(self.get_unit_at(Position(x, y)).name, end=" ")
-                    print(str(self.get_unit_at(Position(x, y)).get_position()), end=' ')
+                meeple = self.get_unit_at(Position(x, y))
+                if meeple is not None:
+                    print(meeple.name, end=" ")
+                    print(meeple.get_position(), end=' ')
+                    if type(meeple) is Jumon:
+                        if self.get_unit_at(Position(x, y)).equipment is not None:
+                            print(str(self.get_unit_at(Position(x, y)).
+                                equipment.get_position()), end=' ')
                 print("\t", end="")
             print("")

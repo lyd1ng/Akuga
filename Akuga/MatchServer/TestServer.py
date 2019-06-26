@@ -5,6 +5,7 @@ from Akuga.MatchServer.Position import Position
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import create_arena
+from Akuga.MatchServer.Meeple import TestArtefact
 from Akuga.MatchServer.MeepleDict import (get_neutral_meeples, get_not_neutral_meeples)
 from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
@@ -28,6 +29,9 @@ def build_last_man_standing_game_state(player_chain, _queue, options={}):
                         GlobalDefinitions.BOARD_HEIGHT,
                         GlobalDefinitions.MIN_TILE_BONUS,
                         GlobalDefinitions.MAX_TILE_BONUS)
+
+    # Place an artefact at 0,0
+    arena.place_unit_at(TestArtefact(), Position(0, 0))
 
     # Add a neutral player to the player chain
     neutral_player = NeutralPlayer(arena)
