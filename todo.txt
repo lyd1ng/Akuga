@@ -1,0 +1,21 @@
+100.	Expand User Class
+101.	Propagate inter turn messages like 'summon_msg, move_msg'.
+	This is used to render actions life.
+200.	Add the possibility to enqueue post turn state changes.
+  	Those could be used to implemenet mass displacements,
+  	which isn`t possible, yet.
+300.	Make the rule building state machine independent of the
+  	current player. By adding a secret id to all events, which
+	specifies the user per has send the event. That makes it
+	neccessary to send the secred id to the clients which will
+	send them in every command to identify them at the server.
+	The secrets if the players should be public within the
+	server architecture so jumons can use them in their special
+	ability to send events to the rule building fsm in the name
+	of an opponent player. E.g: displacement, summoning.
+400.	Use non blocking sockets within the match server and invoke
+  	recv(..) only if the rule building state machiene is in the
+  	idle state, as this is the only state in which an interaction
+  	with the user is required. This should be more elegant
+	cause no pause is needed to keep the cpu from going wild while
+	nothing happens and the rule building fsm can run without delays.
