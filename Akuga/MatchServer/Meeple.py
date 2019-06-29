@@ -168,7 +168,7 @@ class TestNeutralJumon(Jumon):
         """
         Archieve a state change to the check move state
         """
-        if current_state is current_state.fsm.idle_state:
+        if current_state is current_state.fsm.wait_for_user_state:
             width = GlobalDefinitions.BOARD_WIDTH - 1
             height = GlobalDefinitions.BOARD_HEIGHT - 1
             random_target = self.position +\
