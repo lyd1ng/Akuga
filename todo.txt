@@ -3,19 +3,31 @@
 	This is used to render actions life.
 200.	Add the possibility to enqueue post turn state changes.
   	Those could be used to implemenet mass displacements,
-  	which isn`t possible, yet.
+  	which isn`t possible, yet. Therefor it could be neccessary
+	to add a TurnBegin and a TurnEnd State as a state change
+	into the idle state should be possible without resetting the
+	interferences and triggering the passive effects of jumons
+	multiple times.
 300.	Make the rule building state machine independent of the
-  	current player. By adding a secret id to all events, which
-	specifies the user per has send the event. That makes it
-	neccessary to send the secred id to the clients which will
-	send them in every command to identify them at the server.
-	The secrets if the players should be public within the
-	server architecture so jumons can use them in their special
-	ability to send events to the rule building fsm in the name
-	of an opponent player. E.g: displacement, summoning.
+  	current player, by adding a secret id to every player.
+	The player has to send this id with every command as it will
+	be used by the handle_client_connection function to enqueue
+	the events for the rule building fsm with the right player.
+	This way jumons can do moves in the name of opponent players
+	as a part of their special effect.
 400.	Use non blocking sockets within the match server and invoke
   	recv(..) only if the rule building state machiene is in the
   	idle state, as this is the only state in which an interaction
   	with the user is required. This should be more elegant
 	cause no pause is needed to keep the cpu from going wild while
 	nothing happens and the rule building fsm can run without delays.
+401.	Add a timeout branch to the rule building fsm which is used to skip
+	a turn if the player times out. This also kills the player if per
+	has timeout out to often.
+500.	Add a missed_turns counter to each player and kill the player if
+	per has missed to much turns. A turn is missed if the recv() function
+	times out.
+600.	Add the possibility for the user to construct up to three jumon sets
+	of jumons the user owns. That makes it neccessary to add a conto for
+	every user and add the possibility to buy jumons, also the match
+	functions needs the jumon sets as a parameter.
