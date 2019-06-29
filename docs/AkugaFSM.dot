@@ -2,7 +2,7 @@ digraph AkugaFSM {
 	size="8.5"
 	node [shape = circle]
 	// Declare every existing state within the fsm
-	idle_state
+	wait_for_user_state
 	pick_state
 	summon_state
 	check_move_state
@@ -22,13 +22,13 @@ digraph AkugaFSM {
 	equip_artifact_to_jumon_state
 
 	// Change player state
-	change_player_state -> idle_state
+	change_player_state -> wait_for_user_state
 
 	// Idle state
-	idle_state -> pick_state [label="pick event"];
-	idle_state -> summon_state [label="summon event"];
-	idle_state -> check_move_state [label="move event"];
-	idle_state -> check_special_move_state [label="special move event"];
+	wait_for_user_state -> pick_state [label="pick event"];
+	wait_for_user_state -> summon_state [label="summon event"];
+	wait_for_user_state -> check_move_state [label="move event"];
+	wait_for_user_state -> check_special_move_state [label="special move event"];
 
 	// Pick State
 	pick_state -> change_player_state
@@ -43,14 +43,14 @@ digraph AkugaFSM {
 	summon_check_state -> equip_artifact_to_jumon_state[label="Arena tile is occupied by an artifact"]
 
 	// Check move state
-	check_move_state -> idle_state[label="Invalid move"]
+	check_move_state -> wait_for_user_state[label="Invalid move"]
 	check_move_state -> change_player_state[label="Valid move and target tile is free"]
 	check_move_state -> two_tile_battle_begin_state[label="Target tile is occupied by an hostile jumon"]
 	check_move_state -> equip_artifact_to_jumon_state[label="Valid move and target tile is occupied by an equipment"]
 
 	// Check special move state
 	check_special_move_state -> change_player_state[label="is_special_move_legal(..)"]
-	check_special_move_state -> idle_state[label="Move is illegal"]
+	check_special_move_state -> wait_for_user_state[label="Move is illegal"]
 
 	// One tile battle states
 	one_tile_battle_begin_state -> one_tile_battle_flip_state

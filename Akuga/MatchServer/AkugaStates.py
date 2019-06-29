@@ -32,13 +32,13 @@ def jumon_fight(attacking_jumon, attacking_bonus,
         return (None, None)
 
 
-class IdleState(State):
+class WaitForUserState(State):
     """
-    The representation of the idle state which is the normal
+    The representation of the wait_for_user_state which is the normal
     state a user idles in until per decides do something.
     """
     def __init__(self, fsm):
-        super().__init__("idle_state", fsm)
+        super().__init__("wait_for_user_state", fsm)
 
     def run(self, event):
         """
@@ -391,7 +391,7 @@ class ChangePlayerState(State):
         """
         event = pygame.event.Event(TURN_ENDS)
         self.fsm.queue.put(event)
-        return (self.fsm.idle_state, {})
+        return (self.fsm.wait_for_user_state, {})
 
 
 class CheckMoveState(State):
@@ -427,7 +427,7 @@ class CheckMoveState(State):
             If the target move is invalid in length just jump back to the
             idle state.
             """
-            return (self.fsm.idle_state, {})
+            return (self.fsm.wait_for_user_state, {})
         if self.fsm.arena.get_unit_at(target_position) is None:
             """
             If the tile at target position is free just do the move
@@ -452,7 +452,7 @@ class CheckMoveState(State):
             the move is illegal and the a new move has to be defined,
             so jump back to the idle state
             """
-            return (self.fsm.idle_state, {})
+            return (self.fsm.wait_for_user_state, {})
         elif issubclass(type(self.fsm.arena.get_unit_at(target_position)), Akuga.MatchServer.Meeple.Artefact):
             """
             If the target position is occupied by an artefact jump to the
@@ -512,9 +512,9 @@ class CheckSpecialMoveState(State):
         else:
             """
             If there is no special ability script at all the special
-            move is illegal by default, so just jump to the idle_state
+            move is illegal by default, so just jump to the wait_for_user_state
             """
-            return (self.fsm.idle_state, {})
+            return (self.fsm.wait_for_user_state, {})
         # Is never hit but nonetheless
         return None
 
