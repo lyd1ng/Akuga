@@ -32,22 +32,21 @@ def jumon_fight(attacking_jumon, attacking_bonus,
         return (None, None)
 
 
-class WaitForUserState(State):
+class TurnBeginState(State):
     """
-    The representation of the wait_for_user_state which is the normal
-    state a user idles in until per decides do something.
+    This represents the moment a turn begins, in this state
+    the nonpersistent interferences are refreshed
     """
     def __init__(self, fsm):
-        super().__init__("wait_for_user_state", fsm)
+        super().__init__("turn_begin_state", fsm)
 
     def run(self, event):
         """
+        Refresh the interferences and jump to the wait_for_user_state
         To allow passive special abilities the nonpersistent interference
         of all jumons and all arena tiles has to be cleared. Then
         the special ability script of all jumons (even the neutral ones)
         can be invoked without allowing a state change.
-        Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
-        as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
         """
         # Reset the nonpersistent interference of all arena tiles
         for row in self.fsm.arena.tiles:
@@ -64,7 +63,22 @@ class WaitForUserState(State):
             for jumon in player.summoned_jumons:
                 # There is no state change planed nor are there state variables
                 jumon.special_ability(self, None)
+        return (self.fsm.wait_for_user_state, {})
 
+
+class WaitForUserState(State):
+    """
+    The representation of the wait_for_user_state which is the normal
+    state a user idles in until per decides do something.
+    """
+    def __init__(self, fsm):
+        super().__init__("wait_for_user_state", fsm)
+
+    def run(self, event):
+        """
+        Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
+        as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
+        """
         if type(self.fsm.player_chain.get_current_player()) is\
                 NeutralPlayer and self.fsm.player_chain.\
                 get_current_player().in_move_phase():
@@ -391,7 +405,7 @@ class ChangePlayerState(State):
         """
         event = pygame.event.Event(TURN_ENDS)
         self.fsm.queue.put(event)
-        return (self.fsm.wait_for_user_state, {})
+        return (self.fsm.turn_begin_state, {})
 
 
 class CheckMoveState(State):

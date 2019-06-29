@@ -2,6 +2,7 @@ digraph AkugaFSM {
 	size="8.5"
 	node [shape = circle]
 	// Declare every existing state within the fsm
+	turn_begin_state
 	wait_for_user_state
 	pick_state
 	summon_state
@@ -21,8 +22,11 @@ digraph AkugaFSM {
 	two_tile_battle_aftermath_state
 	equip_artifact_to_jumon_state
 
+	// Turn begin state
+	turn_begin_state -> wait_for_user_state
+
 	// Change player state
-	change_player_state -> wait_for_user_state
+	change_player_state -> turn_begin_state
 
 	// Idle state
 	wait_for_user_state -> pick_state [label="pick event"];

@@ -7,7 +7,8 @@ def create_last_man_standing_fsm():
     Creates and returns state machiene for a last man standing game, which is
     the only game mode for now
     """
-    fsm = StateMachiene(AkugaStates.WaitForUserState(None))
+    fsm = StateMachiene(AkugaStates.TurnBeginState(None))
+    fsm.add_state(AkugaStates.WaitForUserState(None))
     fsm.add_state(AkugaStates.PickState(None))
     fsm.add_state(AkugaStates.SummonState(None))
     fsm.add_state(AkugaStates.CheckMoveState(None))
