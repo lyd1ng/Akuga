@@ -8,6 +8,7 @@ def create_last_man_standing_fsm():
     the only game mode for now
     """
     fsm = StateMachiene(AkugaStates.TurnBeginState(None))
+    fsm.add_state(AkugaStates.TurnEndState(None))
     fsm.add_state(AkugaStates.WaitForUserState(None))
     fsm.add_state(AkugaStates.PickState(None))
     fsm.add_state(AkugaStates.SummonState(None))
