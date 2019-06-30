@@ -1,13 +1,6 @@
 100.	Expand User Class
 101.	Propagate inter turn messages like 'summon_msg, move_msg'.
 	This is used to render actions life.
-200.	Add the possibility to enqueue post turn state changes.
-  	Those could be used to implemenet mass displacements,
-  	which isn`t possible, yet. Therefor it could be neccessary
-	to add a TurnBegin and a TurnEnd State as a state change
-	into the idle state should be possible without resetting the
-	interferences and triggering the passive effects of jumons
-	multiple times.
 300.	Make the rule building state machine independent of the
   	current player, by adding a secret id to every player.
 	The player has to send this id with every command as it will
