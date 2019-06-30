@@ -7,6 +7,13 @@ class Position():
         self.x = x
         self.y = y
 
+    @classmethod
+    def copy(cls, position):
+        """
+        A copy constructor
+        """
+        return Position(position.x, position.y)
+
     def __eq__(self, other):
         """
         Just compare x and y coords
@@ -33,6 +40,8 @@ class Position():
 
 
 if __name__ == "__main__":
-    result = Position(1, 1) + Position(1, 1)
-    print(result.x)
-    print(result.y)
+    pos1 = Position(4, 4)
+    pos2 = Position.copy(pos1)
+    pos2.x += 1
+    print(str(pos1))
+    print(str(pos2))
