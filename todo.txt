@@ -10,16 +10,13 @@
 	as a part of their special effect.
 400.	Use non blocking sockets within the match server and invoke
   	recv(..) only if the rule building state machiene is in the
-  	idle state, as this is the only state in which an interaction
+  	wait_for_user_state, as this is the only state in which an interaction
   	with the user is required. This should be more elegant
 	cause no pause is needed to keep the cpu from going wild while
 	nothing happens and the rule building fsm can run without delays.
 401.	Add a timeout branch to the rule building fsm which is used to skip
 	a turn if the player times out. This also kills the player if per
 	has timeout out to often.
-500.	Add a missed_turns counter to each player and kill the player if
-	per has missed to much turns. A turn is missed if the recv() function
-	times out.
 600.	Add the possibility for the user to construct up to three jumon sets
 	of jumons the user owns. That makes it neccessary to add a conto for
 	every user and add the possibility to buy jumons, also the match
