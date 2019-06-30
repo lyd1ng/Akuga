@@ -66,6 +66,24 @@ class TurnBeginState(State):
         return (self.fsm.wait_for_user_state, {})
 
 
+class TurnEndState(State):
+    """
+    This represent the end of a turn, which is used to handle post
+    turn state changes. Those can be used to e.g implement mass displacements
+    """
+    def __init__(self, fsm):
+        super().__init__("turn_end_state", fsm)
+
+    def run(self, event):
+        """
+        As long as their are post turn state changes on the stack execute
+        them and dont jump to the change player state
+        """
+        if len(self.fsm.post_turn_state_changes) > 0:
+            return self.fsm.post_turn_state_changes.pop(0)
+        return (self.fsm.change_player_state, {})
+
+
 class WaitForUserState(State):
     """
     The representation of the wait_for_user_state which is the normal
@@ -199,7 +217,7 @@ class PickState(State):
             """
             self.fsm.player_chain.get_current_player().set_to_summon_phase()
         # The turn ends, so jump to the change player state
-        return (self.fsm.change_player_state, {})
+        return (self.fsm.turn_end_state, {})
 
 
 class SummonState(State):
@@ -279,7 +297,7 @@ class SummonCheckState(State):
             effects can be implemented.
             """
             state_change = jumon.special_ability(self,
-                    (self.fsm.change_player_state, self.state_variables))
+                    (self.fsm.turn_end_state, self.state_variables))
             return state_change
         elif issubclass(type(self.fsm.arena.get_unit_at(summon_position)),
                 Akuga.MatchServer.Meeple.Artefact):
@@ -427,6 +445,10 @@ class CheckMoveState(State):
         jumon = self.state_variables["jumon_to_move"]
         current_position = self.state_variables["current_position"]
         target_position = self.state_variables["target_position"]
+        print("State Variables")
+        print(jumon.name)
+        print(str(current_position))
+        print(str(target_position))
         """
         Get the shortes distance between the current position and the
         target position. Do the move only if the path is not none (aka a
@@ -456,9 +478,13 @@ class CheckMoveState(State):
                 jumon.owned_by.handle_jumon_death(jumon)
             else:
                 """ Place the jumon on the arena tile """
+                print('Moving jumon: ' + jumon.name)
+                print('From: ' + str(current_position))
+                print('To: ' + str(target_position))
+
                 self.fsm.arena.place_unit_at(None, current_position)
                 self.fsm.arena.place_unit_at(jumon, target_position)
-            return (self.fsm.change_player_state, {})
+            return (self.fsm.turn_end_state, {})
         elif self.fsm.player_chain.get_current_player().\
                 owns_tile(self.fsm.arena, target_position):
             """
@@ -742,9 +768,9 @@ class OneTileBattleAftermathState(State):
             # Place the victor on the arena tile
             self.fsm.arena.place_unit_at(victor, battle_position)
 
-        # Now do the state_change (mostly jump to change_player_state)
+        # Now do the state_change (mostly jump to turn_end_state)
         state_change = attacking_jumon.special_ability(self,
-                (self.fsm.change_player_state,
+                (self.fsm.turn_end_state,
                 self.state_variables))
         state_change = defending_jumon.special_ability(self, state_change)
         return state_change
@@ -1001,7 +1027,7 @@ class TwoTileBattleAftermathState(State):
                 self.fsm.arena.place_unit_at(attack_artefact, attack_position)
         # Now the turn ends so do the change
         state_change = attacking_jumon.special_ability(self,
-                (self.fsm.change_player_state,
+                (self.fsm.turn_end_state,
                 self.state_variables))
         state_change = defending_jumon.special_ability(self, state_change)
         return state_change
@@ -1048,6 +1074,6 @@ class EquipArtefactToJumonState(State):
             if last_position is not None:
                 self.fsm.arena.place_unit_at(detached_artefact, last_position)
         # Invoke the special ability of the jumon and do the state change
-        state_change = (self.fsm.change_player_state, {})
+        state_change = (self.fsm.turn_end_state, {})
         state_change = jumon.special_ability(self, state_change)
         return state_change
