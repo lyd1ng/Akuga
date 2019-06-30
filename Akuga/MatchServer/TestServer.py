@@ -1,11 +1,11 @@
 import pygame
 import queue
 import logging
-from Akuga.MatchServer.Position import Position
+import socket
+
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import create_arena
-from Akuga.MatchServer.Meeple import TestArtefact
 from Akuga.MatchServer.MeepleDict import (get_neutral_meeples, get_not_neutral_meeples)
 from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
@@ -17,10 +17,21 @@ from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
         TURN_ENDS,
         MATCH_IS_DRAWN,
         PLAYER_HAS_WON)
+from Akuga.User import User
 from time import sleep
 
 
 logger = logging.getLogger(__name__)
+
+
+def find_user_by_name(username, users):
+    """
+    Find an instance of a user in users by pers name
+    """
+    result = [user for user in users if user.name == username]
+    if len(result) == 1:
+        return result[0]
+    return None
 
 
 def build_last_man_standing_game_state(player_chain, _queue, options={}):
@@ -29,10 +40,6 @@ def build_last_man_standing_game_state(player_chain, _queue, options={}):
                         GlobalDefinitions.BOARD_HEIGHT,
                         GlobalDefinitions.MIN_TILE_BONUS,
                         GlobalDefinitions.MAX_TILE_BONUS)
-
-    # Place an artefact at 0,0
-    arena.place_unit_at(TestArtefact(), Position(0, 0))
-
     # Add a neutral player to the player chain
     neutral_player = NeutralPlayer(arena)
     neutral_player.set_jumons_to_summon(get_neutral_meeples(1))
@@ -44,6 +51,7 @@ def build_last_man_standing_game_state(player_chain, _queue, options={}):
     game_state.add_data("arena", arena)
     game_state.add_data("player_chain", player_chain)
     game_state.add_data("jumon_pick_pool", get_not_neutral_meeples(2))
+    game_state.add_data("post_turn_state_changes", [])
     return game_state
 
 
@@ -56,11 +64,15 @@ def match_server(game_mode, users, options={}):
     """
     # Will hold the victor at the end
     victor_name = None
+    # Set all players to be in play
+    # This will deactivate the game server connection
+    for user in users:
+        user.in_play = True
     # Set all connections to be non blocking
-    for connection in users.values():
-        connection.setblocking(0)
+    for user in users:
+        user.connection.setblocking(0)
     # Build the player chain
-    player_name_list = list(users.keys())
+    player_name_list = list(map(lambda x: x.name, users))
     player1 = Player(player_name_list[0])
     player2 = Player(player_name_list[1])
     player_chain = PlayerChain(player1, player2)
@@ -79,14 +91,14 @@ def match_server(game_mode, users, options={}):
         return
 
     # Signal the clients that the match starts
-    for connection in users.values():
-        send_packet(connection, ["MATCH_START", game_mode])
+    for user in users:
+        send_packet(user.connection, ["MATCH_START", game_mode])
 
     # Initially propagate the game state
     logger.info("Start match between" + str(player_chain) + "\n")
     logger.info("Propagating game state\n")
-    for connection in users.values():
-        send_gamestate_to_client(connection, game_state)
+    for user in users:
+        send_gamestate_to_client(user.connection, game_state)
 
     running = True
     while running:
@@ -98,8 +110,10 @@ def match_server(game_mode, users, options={}):
         """
         if type(game_state.player_chain.get_current_player())\
                 is not NeutralPlayer:
-            AsyncCallbackReceiver.async_callback_recv(users[game_state.player_chain.
-                get_current_player().name],
+            # Receive packets only from the current user
+            user = find_user_by_name(game_state.player_chain.
+                get_current_player().name, users)
+            AsyncCallbackReceiver.async_callback_recv(user.connection,
                 512, _queue, handle_match_connection, ':', 'END')
         # Get an event from the queue and mimic the pygame event behaviour
         try:
@@ -119,8 +133,8 @@ def match_server(game_mode, users, options={}):
             If a turn ends the game_state has to be propagated to all users
             """
             logger.info("Propagating game state\n")
-            for connection in users.values():
-                send_gamestate_to_client(connection, game_state)
+            for user in users:
+                send_gamestate_to_client(user.connection, game_state)
 
         if event.type == MATCH_IS_DRAWN:
             running = False
@@ -140,31 +154,35 @@ def match_server(game_mode, users, options={}):
             userdbs_connection = None
         # Do nothing if the userdatabase server is unreachable
         if userdbs_connection is not None:
-            for user_name in users:
-                logger.info("Logger in player_chain: " + user_name)
-                if user_name == victor_name:
+            for user in users:
+                logger.info("Logger in player_chain: " + user.name)
+                if user.name == victor_name:
                     send_packet(userdbs_connection,
-                        ["ADD_WIN", user_name, game_mode])
+                        ["ADD_WIN", user.name, game_mode])
                     userdbs_connection.recv(128)
                 else:
                     send_packet(userdbs_connection,
-                        ["ADD_LOOSE", user_name, game_mode])
+                        ["ADD_LOOSE", user.name, game_mode])
                     userdbs_connection.recv(128)
             userdbs_connection.close()
     # Signal the end of the match and the victor
-    for connection in users.values():
-        send_packet(connection, ["MATCH_END"])
-        send_packet(connection, ["MATCH_RESULT", victor_name])
+    for user in users:
+        send_packet(user.connection, ["MATCH_END"])
+        send_packet(user.connection, ["MATCH_RESULT", victor_name])
 
     # Set all sockets to blocking again
-    for connection in users.values():
-        connection.setblocking(1)
+    for user in users:
+        user.connection.setblocking(1)
+
+    # Set all players to be out of play
+    # This will activate the game server connection
+    for user in users:
+        user.in_play = False
 
 
 if __name__ == "__main__":
     logging.basicConfig(filename='MatchServer.log', level=logging.INFO)
     logger = logging.getLogger(__name__)
-    import socket
     import random
     from multiprocessing import Process
 
@@ -173,13 +191,14 @@ if __name__ == "__main__":
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('localhost', port))
     server_socket.listen(2)
-    users = {'lyding': None, 'lyding2': None}
+    users = [User('lyding', 'magical_hash', None, None),
+             User('lyding2', 'magical_hash', None, None)]
 
     try:
         print('Waiting for players')
-        users['lyding'], _ = server_socket.accept()
+        users[0].connection, _ = server_socket.accept()
         print('Found player1')
-        users['lyding2'], _ = server_socket.accept()
+        users[1].connection, _ = server_socket.accept()
         print('Found player2')
         print('Start match!')
         match_process = Process(target=match_server,
