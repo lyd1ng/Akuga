@@ -51,6 +51,7 @@ def build_last_man_standing_game_state(player_chain, _queue, options={}):
     game_state.add_data("arena", arena)
     game_state.add_data("player_chain", player_chain)
     game_state.add_data("jumon_pick_pool", get_not_neutral_meeples(2))
+    game_state.add_data("post_turn_state_changes", [])
     return game_state
 
 
