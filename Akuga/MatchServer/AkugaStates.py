@@ -63,7 +63,9 @@ class TurnBeginState(State):
             for jumon in player.summoned_jumons:
                 # There is no state change planed nor are there state variables
                 jumon.special_ability(self, None)
-        return (self.fsm.wait_for_user_state, {})
+        # If the turn starts regularly no jumon is enforced to be the
+        # active jumon
+        return (self.fsm.wait_for_user_state, {"enforced_jumon": None})
 
 
 class TurnEndState(State):
@@ -113,6 +115,17 @@ class WaitForUserState(State):
             if state_change[0] is not None:
                 return state_change
 
+        # If the event type is not a user event dont do anything
+        if event.type < SUMMON_JUMON_EVENT or event.type > PICK_JUMON_EVENT:
+            return None
+
+        # Now its assured that the event is a user event
+        # So it can be tested if the selected jumon is the enforced
+        # jumon, if there is one
+        if self.state_variables["enforced_jumon"] and\
+                (event.jumon is not self.state_variables["enforced_jumon"]):
+            return None
+
         print("EVENT TYPE: " + str(event.type))
         if event.type == PICK_JUMON_EVENT\
                 and self.fsm.player_chain.get_current_player().\
@@ -123,7 +136,7 @@ class WaitForUserState(State):
             jumon_pick_pool list
             """
             # Get the jumon to pick from the event
-            jumon = event.jumon_to_pick
+            jumon = event.jumon
             if jumon in self.fsm.jumon_pick_pool:
                 """
                 Only jump to the pick state if the jumon is
@@ -141,7 +154,7 @@ class WaitForUserState(State):
             jumons_to_summon list.
             """
             # Get the jumon to summon and create the state variables dict
-            jumon = event.jumon_to_summon
+            jumon = event.jumon
             # Only summon the jumon if the player owns the jumon
             if self.fsm.player_chain.get_current_player().\
                     can_summon(jumon):
@@ -156,7 +169,7 @@ class WaitForUserState(State):
             from the event. The CheckMoveState will check if the move is
             legal or not and handles the move
             """
-            jumon = event.jumon_to_move
+            jumon = event.jumon
             current_position = event.current_position
             target_position = event.target_position
             # Only move the jumon if the current player controls the jumon
@@ -175,7 +188,7 @@ class WaitForUserState(State):
             from the event. The CheckSpecialMoveState will check if the
             move is legal or not and handles the move.
             """
-            jumon = event.jumon_to_move
+            jumon = event.jumon
             current_position = event.current_position
             target_position = event.target_position
             check_move_state_variables = {
