@@ -41,6 +41,8 @@ def plot_jumons(jumons):
     plt.xticks(x_indices, rotation=45.0)
     plt.subplots_adjust(bottom=0.25)
     axis.set_xticklabels(list(map(lambda x: x[0], jumons)), ha='right')
+    # Set the y ticks for higher resolution
+    plt.yticks(list(range(0, 1000, 50)))
     # Create the bar chart for the attack and defense values
     axis.bar(x_indices - 0.1, list(map(lambda x: x[1], jumons)), 0.2, color='red')
     axis.bar(x_indices + 0.1, list(map(lambda x: x[2], jumons)), 0.2, color='blue')
