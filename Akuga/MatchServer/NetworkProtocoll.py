@@ -126,14 +126,14 @@ def handle_match_connection(tokens, queue):
         PICK_JUMON $name_of_the_jumon_to_pick
         """
         try:
-            jumon_to_pick = get_meeple_by_name(tokens[1])
+            jumon = get_meeple_by_name(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
             return
         jumon_pick_event = pygame.event.Event(PICK_JUMON_EVENT,
-                jumon_to_pick=jumon_to_pick)
+                jumon=jumon)
         queue.put(jumon_pick_event)
     if tokens[0] == "SUMMON_JUMON" and len(tokens) >= 2:
         """
@@ -141,15 +141,15 @@ def handle_match_connection(tokens, queue):
         SUMMON_JUMON $name_of_the_jumon_to_summon
         """
         try:
-            jumon_to_summon = get_meeple_by_name(tokens[1])
+            jumon = get_meeple_by_name(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
             return
-        jumon_summon_event = pygame.event.Event(SUMMON_JUMON_EVENT,
-                jumon_to_summon=jumon_to_summon)
-        queue.put(jumon_summon_event)
+        jumon = pygame.event.Event(SUMMON_JUMON_EVENT,
+                jumon=jumon)
+        queue.put(jumon)
 
     if tokens[0] == "MOVE_JUMON" and len(tokens) >= 3:
         """
@@ -172,7 +172,7 @@ def handle_match_connection(tokens, queue):
             return
         # Get the jumon to move by its name
         try:
-            jumon_to_move = get_meeple_by_name(tokens[1])
+            jumon = get_meeple_by_name(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -180,8 +180,8 @@ def handle_match_connection(tokens, queue):
             return
         # If no error occured the event can be thrown
         jumon_move_event = pygame.event.Event(SELECT_JUMON_TO_MOVE_EVENT,
-                jumon_to_move=jumon_to_move,
-                current_position=jumon_to_move.get_position(),
+                jumon=jumon,
+                current_position=jumon.get_position(),
                 target_position=Position(position_x, position_y))
         queue.put(jumon_move_event)
 
@@ -206,7 +206,7 @@ def handle_match_connection(tokens, queue):
             return
         # Get the jumon to move by its name
         try:
-            jumon_to_special_move = get_meeple_by_name(tokens[1])
+            jumon = get_meeple_by_name(tokens[1])
         except KeyError:
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
@@ -215,8 +215,8 @@ def handle_match_connection(tokens, queue):
         # If no error occured the event can be thrown
         jumon_special_move_event = pygame.event.Event(
             SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
-            jumon_to_move=jumon_to_special_move,
-            current_position=jumon_to_special_move.get_position(),
+            jumon=jumon,
+            current_position=jumon.get_position(),
             target_position=Position(position_x, position_y))
         queue.put(jumon_special_move_event)
 
