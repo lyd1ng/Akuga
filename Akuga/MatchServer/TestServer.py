@@ -9,16 +9,17 @@ from Akuga.MatchServer.ArenaCreator import create_arena
 from Akuga.MatchServer.MeepleDict import (get_neutral_meeples, get_not_neutral_meeples)
 from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
-from Akuga.MatchServer.NetworkProtocoll import (AsyncCallbackReceiver,
-        handle_match_connection,
-        send_gamestate_to_client,
-        send_packet)
-from Akuga.EventDefinitions import (PACKET_PARSER_ERROR_EVENT,
-        TURN_ENDS,
-        MATCH_IS_DRAWN,
-        PLAYER_HAS_WON)
+from Akuga.MatchServer.NetworkProtocoll import (
+    callback_recv_packet,
+    handle_match_connection,
+    send_gamestate_to_client,
+    send_packet)
+from Akuga.EventDefinitions import (
+    PACKET_PARSER_ERROR_EVENT,
+    TURN_ENDS,
+    MATCH_IS_DRAWN,
+    PLAYER_HAS_WON)
 from Akuga.User import User
-from time import sleep
 
 
 logger = logging.getLogger(__name__)
@@ -68,9 +69,6 @@ def match_server(game_mode, users, options={}):
     # This will deactivate the game server connection
     for user in users:
         user.in_play = True
-    # Set all connections to be non blocking
-    for user in users:
-        user.connection.setblocking(0)
     # Build the player chain
     player_name_list = list(map(lambda x: x.name, users))
     player1 = Player(player_name_list[0])
@@ -109,12 +107,14 @@ def match_server(game_mode, users, options={}):
         Only some events have to be handeld here.
         """
         if type(game_state.player_chain.get_current_player())\
-                is not NeutralPlayer:
+                is not NeutralPlayer and\
+                game_state.current_state is\
+                game_state.wait_for_user_state:
             # Receive packets only from the current user
             user = find_user_by_name(game_state.player_chain.
                 get_current_player().name, users)
-            AsyncCallbackReceiver.async_callback_recv(user.connection,
-                512, _queue, handle_match_connection, ':', 'END')
+            callback_recv_packet(user.connection, 512, handle_match_connection,
+                [_queue])
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
@@ -143,7 +143,6 @@ def match_server(game_mode, users, options={}):
             running = False
             victor_name = event.victor.name
             logger.info("Player: " + victor_name + " has won!\n")
-        sleep(1)
 
     # If the match is not drawn add a victory or loose to the userstats
     if victor_name is not None:
@@ -169,10 +168,6 @@ def match_server(game_mode, users, options={}):
     for user in users:
         send_packet(user.connection, ["MATCH_END"])
         send_packet(user.connection, ["MATCH_RESULT", victor_name])
-
-    # Set all sockets to blocking again
-    for user in users:
-        user.connection.setblocking(1)
 
     # Set all players to be out of play
     # This will activate the game server connection
