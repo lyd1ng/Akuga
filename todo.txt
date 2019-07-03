@@ -4,6 +4,10 @@
 401.	Add a timeout branch to the rule building fsm which is used to skip
 	a turn if the player times out. This also kills the player if per
 	has timeout out to often.
+402.	Add a displacement branch which cant hit initiated with a user event
+	but is used to displace jumons. It differs from the normal movement
+	that way, that a jumon can be displaced outside the arena which
+	kills the displaced jumon.
 600.	Add the possibility for the user to construct up to three jumon sets
 	of jumons the user owns. That makes it neccessary to add a conto for
 	every user and add the possibility to buy jumons, also the match
