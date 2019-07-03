@@ -1,5 +1,4 @@
 import socket
-import errno
 import pygame
 from Akuga.MatchServer.MeepleDict import get_meeple_by_name
 from Akuga.MatchServer.Position import Position
@@ -10,92 +9,20 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     PACKET_PARSER_ERROR_EVENT)
 
 
-class AsyncCallbackReceiver:
-    # Store the bytes until a whole packet is received
-    cached_str = ""
-    current_connection = None
-    @staticmethod
-    def refresh_connection(connection):
-        """
-        Drop all bytes until no data is received anymore
-        (ddos is possible here) and clear the cached_str.
-        This is used to reset the connection for the new turn of a player.
-        If this function isnt invoked events may be handeld the player send
-        while it is not pers turn. Its uncritically, no invalid moves are
-        possible, its just for convenients.
-        """
-        AsyncCallbackReceiver.cached_str = ""
-        while True:
-            try:
-                # Drop the data
-                connection.recv(1024)
-            except socket.error as e:
-                # Leave the while loop if no data is on the socket anymore
-                if e.args[0] == errno.EAGAIN or e.args[0] == errno.EWOULDBLOCK:
-                    break
-                else:
-                    """
-                    If the error is a real error close the connection for now
-                    TODO: Better connection error handling
-                    """
-                    connection.close()
-
-    @staticmethod
-    def async_callback_recv(connection,
-                          nbytes,
-                          queue,
-                          callback,
-                          delimiter,
-                          terminator="END"):
-        """
-        Receives bytes from connection until terminator is received.
-        Than invoke callback with the received data
-        """
-        # If the connection is a new connection refresh it
-        if connection != AsyncCallbackReceiver.current_connection:
-            AsyncCallbackReceiver.refresh_connection(connection)
-            AsyncCallbackReceiver.current_connection = connection
-        try:
-            """
-            Read and decode the packet asynchrounisly
-            """
-            AsyncCallbackReceiver.cached_str += connection.recv(nbytes).decode('utf-8')
-        except socket.error as e:
-            if e.args[0] == errno.EAGAIN or e.args[0] == errno.EWOULDBLOCK:
-                """
-                If the error is just cause by the lack of data do nothin
-                """
-                pass
-            else:
-                """
-                If the error is a real error close the connection for now
-                TODO: Better connection error handling
-                """
-                connection.close()
-        except UnicodeDecodeError:
-            """
-            If an decode error occured clear the string and return the function
-            """
-            event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
-                    msg="Decode Error")
-            queue.put(event)
-            AsyncCallbackReceiver.cached_str = ""
-            return
-        # Search the received string for the terminator
-        terminator_index = AsyncCallbackReceiver.cached_str.find(terminator)
-        if terminator_index > -1:
-            """
-            If there is a terminator within this packet invoke the callback
-            function with the packet until the terminator
-            """
-            tokens = AsyncCallbackReceiver.cached_str.split(delimiter)
-            if tokens[-1] != terminator:
-                callback(['ERROR', 'No terminator\
-                    found while recv the packet'], queue)
-            else:
-                callback(tokens[0:-1], queue)
-            # The string has to be cleared to receive a new packet
-            AsyncCallbackReceiver.cached_str = ""
+def callback_recv_packet(connection, nbytes, callback, args, delimiter=':',
+        terminator="END"):
+    """
+    Receive nbytes and parse them into packets. Than invoke
+    the callback function for every received packet
+    """
+    # Receive the packet an convert it into a string
+    data = connection.recv(nbytes)
+    data = data.decode('utf-8')
+    # Packets are sepereated by their terminator
+    packets = data.split(terminator)
+    # Split the first packet into tokens and invoke the callback function
+    tokens = packets[0].split(delimiter)
+    callback(tokens, *args)
 
 
 def send_packet(connection, tokens, terminator="END"):
