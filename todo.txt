@@ -1,17 +1,6 @@
 100.	Expand User Class
 101.	Propagate inter turn messages like 'summon_msg, move_msg'.
 	This is used to render actions life.
-300.	Make the rule building state machine independent of the
-  	current player, by adding a secret id to every player.
-	The player has to send this id with every command as it will
-	be used by the handle_client_connection function to enqueue
-	the events for the rule building fsm with the right player.
-	This way jumons can do moves in the name of opponent players
-	as a part of their special effect.
-301.	Add the possibility to enforce a jumon to be the active/selected
-	jumon. This can be done by a state_variable for the wait for
-	user state, and events are only accepted if their are targeting
-	the enforced jumon. This allows far more complex special abilities.
 400.	Use non blocking sockets within the match server and invoke
   	recv(..) only if the rule building state machiene is in the
   	wait_for_user_state, as this is the only state in which an interaction
