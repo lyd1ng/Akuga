@@ -2,7 +2,7 @@ import socket
 from ast import literal_eval
 
 
-def SendPacket(connection, tokens, terminator="END"):
+def SendPacket(connection, tokens, terminator="END\n"):
     """
     Send a packet containing out of multiple tokens
     Every token is converted to a string using the str function

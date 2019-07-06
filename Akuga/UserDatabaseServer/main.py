@@ -29,7 +29,7 @@ def secure_string(string):
     return True
 
 
-def send_packet(connection, tokens, terminator="END"):
+def send_packet(connection, tokens, terminator="END\n"):
     """
     Send a packet containing multiple tokens.
     Every token is converted to a string using the str function
@@ -190,7 +190,7 @@ def handle_client(connection, client_address, cmd_queue):
         if not packet:
             logger.info("Socket Close")
             break
-        if packet.find('END') < 0:
+        if packet.find('END\n') < 0:
             """
             Simply discard the packet if there is not terminator found
             """

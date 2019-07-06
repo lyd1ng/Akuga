@@ -10,7 +10,7 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
 
 
 def callback_recv_packet(connection, nbytes, callback, args, delimiter=':',
-        terminator="END"):
+        terminator="END\n"):
     """
     Receive nbytes and parse them into packets. Than invoke
     the callback function for every received packet
@@ -22,10 +22,11 @@ def callback_recv_packet(connection, nbytes, callback, args, delimiter=':',
     packets = data.split(terminator)
     # Split the first packet into tokens and invoke the callback function
     tokens = packets[0].split(delimiter)
+    print(tokens)
     callback(tokens, *args)
 
 
-def send_packet(connection, tokens, terminator="END"):
+def send_packet(connection, tokens, terminator="END\n"):
     """
     Send a packet containing multiple tokens.
     Every token is converted to a string using the str function

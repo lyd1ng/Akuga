@@ -35,7 +35,7 @@ def handle_client(connection, client_address,
             """
             # Receive a packet
             try:
-                tokens = recv_packet(connection, 512, ':', 'END')
+                tokens = recv_packet(connection, 512)
             except socket.error:
                 connection.close()
                 logger.info("Connection error")
@@ -54,7 +54,7 @@ def handle_client(connection, client_address,
                 # Check if the username is free
                 send_packet(userdb_connection, ["CHECK_USERNAME", username])
                 response, error = receive_dbs_response(userdb_connection,
-                        512, ':', 'END')
+                        512)
                 if response is None:
                     """
                     If the response is None an error occured
@@ -72,7 +72,7 @@ def handle_client(connection, client_address,
                     send_packet(userdb_connection, ["REGISTER_USER",
                         username, pass_hash])
                     response, error = receive_dbs_response(userdb_connection,
-                        512, ':', 'END')
+                        512)
                     if response is None:
                         """
                         If the response is None an error occured, send the
@@ -95,7 +95,7 @@ def handle_client(connection, client_address,
                 send_packet(userdb_connection,
                     ["CHECK_CREDENTIALS", username, pass_hash])
                 response, error = receive_dbs_response(userdb_connection,
-                    512, ':', 'END')
+                    512)
                 if response is None:
                     # An error occured, pass the error to the client
                     logger.info("Database error: " + error)
@@ -122,7 +122,7 @@ def handle_client(connection, client_address,
             """
             # Receive a packet as long as the user is not in play
             try:
-                tokens = recv_packet(connection, 512, ':', 'END')
+                tokens = recv_packet(connection, 512)
             except socket.error:
                 connection.close()
                 logger.info("Connection error")

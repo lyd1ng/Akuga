@@ -7,7 +7,7 @@ from ast import literal_eval
 whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
 
-def recv_packet(connection, nbytes, delimiter, terminator):
+def recv_packet(connection, nbytes, delimiter=":", terminator="END\n"):
     """
     Receive a packet and convert it into tokens using the delimiter.
     Return ['ERROR', $msg] if there no terminator is found,
@@ -24,7 +24,7 @@ def recv_packet(connection, nbytes, delimiter, terminator):
     return ['ERROR', 'No terminator found while recv the packet']
 
 
-def send_packet(connection, tokens, terminator="END"):
+def send_packet(connection, tokens, terminator="END\n"):
     """
     Send a packet containing multiple tokens.
     Every token is converted to a string using the str function
@@ -51,14 +51,14 @@ def secure_string(string):
     return True
 
 
-def receive_dbs_response(userdbs_connection, nbytes, delimiter, terminator):
+def receive_dbs_response(userdbs_connection, nbytes):
     """
     Receive up to 512 bytes from the database server
     and parse it using the parse_literal function of the
     ast module. This can be done as the pysqlite module
     return its results as a python list
     """
-    tokens = recv_packet(userdbs_connection, nbytes, delimiter, terminator)
+    tokens = recv_packet(userdbs_connection, nbytes)
     # If an error is received return None and the error msg received
     if tokens[0] == "ERROR":
         return (None, tokens[1])
