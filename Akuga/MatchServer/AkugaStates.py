@@ -64,8 +64,10 @@ class TurnBeginState(State):
                 # There is no state change planed nor are there state variables
                 jumon.special_ability(self, None)
         # If the turn starts regularly no jumon is enforced to be the
-        # active jumon
-        return (self.fsm.wait_for_user_state, {"enforced_jumon": None})
+        # active jumon and no event is enforced to be recieved from the player
+        return (self.fsm.wait_for_user_state, {
+            "enforced_jumon": None,
+            "enforced_event": None})
 
 
 class TurnEndState(State):
@@ -124,6 +126,13 @@ class WaitForUserState(State):
         # jumon, if there is one
         if self.state_variables["enforced_jumon"] and\
                 (event.jumon is not self.state_variables["enforced_jumon"]):
+            return None
+
+        # If the enforced event is not none check if the received event
+        # type matches the enforced event. Return none, so do nothing,
+        # if the event type doesnt match the enforced event
+        if self.state_variables["enforced_event"] and\
+                (event.type != self.state_variables["enforced_event"]):
             return None
 
         print("EVENT TYPE: " + str(event.type))
@@ -483,7 +492,9 @@ class CheckMoveState(State):
             If the target move is invalid in length just jump back to the
             idle state.
             """
-            return (self.fsm.wait_for_user_state, {})
+            return (self.fsm.wait_for_user_state, {
+                "enforced_jumon": None,
+                "enforced_event": None})
         if self.fsm.arena.get_unit_at(target_position) is None:
             """
             If the tile at target position is free just do the move
@@ -512,7 +523,9 @@ class CheckMoveState(State):
             the move is illegal and the a new move has to be defined,
             so jump back to the idle state
             """
-            return (self.fsm.wait_for_user_state, {})
+            return (self.fsm.wait_for_user_state, {
+                "enforced_jumon": None,
+                "enforced_action": None})
         elif issubclass(type(self.fsm.arena.get_unit_at(target_position)), Akuga.MatchServer.Meeple.Artefact):
             """
             If the target position is occupied by an artefact jump to the
@@ -575,7 +588,9 @@ class CheckSpecialMoveState(State):
             If there is no special ability script at all the special
             move is illegal by default, so just jump to the wait_for_user_state
             """
-            return (self.fsm.wait_for_user_state, {})
+            return (self.fsm.wait_for_user_state, {
+                "enforced_jumon": None,
+                "enforced_event": None})
         # Is never hit but nonetheless
         return None
 
