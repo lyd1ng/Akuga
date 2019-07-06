@@ -228,6 +228,8 @@ class PickState(State):
             player in the playerchain the current player wont be able to
             pick another jumon, so per must go into the summon phase
             """
+            print(len(self.fsm.jumon_pick_pool))
+            print(self.fsm.player_chain.get_not_neutral_length())
             self.fsm.player_chain.get_current_player().set_to_summon_phase()
         # The turn ends, so jump to the change player state
         return (self.fsm.turn_end_state, {})
@@ -405,7 +407,12 @@ class ChangePlayerState(State):
         update the inner respresentation of the player
         aka check if per is dead or not.
         """
-        self.fsm.player_chain.get_current_player().update_player()
+        # Dont change the phase of the player if per is in the pick phase
+        # Only the pick state can set a player from the pick phase in
+        # an other phase, but once the pick phase is left it cant be entered
+        # again
+        if self.fsm.player_chain.get_current_player().in_pick_phase() is False:
+            self.fsm.player_chain.get_current_player().update_player()
         # Remove dead players from the player chain
         self.fsm.player_chain.update()
         # Check if the match is drawn
@@ -554,7 +561,8 @@ class CheckSpecialMoveState(State):
         jumon = self.state_variables["jumon_to_move"]
         current_position = self.state_variables["current_position"]
         target_position = self.state_variables["target_position"]
-        if jumon.is_special_move_legal(current_position, target_position):
+        if jumon.is_special_move_legal(self.fsm.arena,
+                current_position, target_position):
             """
             If the special move is legal invoke the special move function
             of the current jumon
