@@ -162,6 +162,8 @@ class Arena:
                 if meeple is not None:
                     print(meeple.name, end=" ")
                     print(meeple.get_position(), end=' ')
+                    print(meeple.nonpersistent_interf, end=' ')
+
                     if type(meeple) is Jumon:
                         if self.get_unit_at(Position(x, y)).equipment is not None:
                             print(str(self.get_unit_at(Position(x, y)).
