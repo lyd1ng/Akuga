@@ -16,3 +16,6 @@ TURN_ENDS = pygame.USEREVENT + 7
 
 # Network Protocoll Events
 PACKET_PARSER_ERROR_EVENT = pygame.USEREVENT + 8
+
+# Serverside events
+TIMEOUT_EVENT = pygame.USEREVENT + 9
