@@ -6,7 +6,8 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_MOVE_EVENT,
                                     SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
                                     PICK_JUMON_EVENT,
-                                    PACKET_PARSER_ERROR_EVENT)
+                                    PACKET_PARSER_ERROR_EVENT,
+                                    TIMEOUT_EVENT)
 
 
 def callback_recv_packet(connection, nbytes, callback, args, delimiter=':',
@@ -16,7 +17,13 @@ def callback_recv_packet(connection, nbytes, callback, args, delimiter=':',
     the callback function for every received packet
     """
     # Receive the packet an convert it into a string
-    data = connection.recv(nbytes)
+    try:
+        data = connection.recv(nbytes)
+    except socket.timeout:
+        # If the socket runs into a timeout the time a user has to make
+        # a decision has passed, so construct a packet which will trigger
+        # the timeout branch within the rule building fsm
+        data = b'TIMEOUT:END\n'
     data = data.decode('utf-8')
     # Packets are sepereated by their terminator
     packets = data.split(terminator)
@@ -147,6 +154,14 @@ def handle_match_connection(tokens, queue):
             current_position=jumon.get_position(),
             target_position=Position(position_x, position_y))
         queue.put(jumon_special_move_event)
+
+    # Non user event which are created on the server side
+    # If the connection timed out enqueue a timeout event
+    # to go through the timeout state branch in the rule building fsm
+    if tokens[0] == "TIMEOUT":
+        event = pygame.event.Event(TIMEOUT_EVENT)
+        queue.put(event)
+        return
 
 
 def send_gamestate_to_client(connection, game_state):

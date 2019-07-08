@@ -88,6 +88,10 @@ def match_server(game_mode, users, options={}):
         logger.info("Game Mode: Unknown...Terminating\n")
         return
 
+    # Set seconds per turn to be the timeout for all user connections
+    for user in users:
+        user.connection.settimeout(GlobalDefinitions.SECONDS_PER_TURN)
+
     # Signal the clients that the match starts
     for user in users:
         send_packet(user.connection, ["MATCH_START", game_mode])

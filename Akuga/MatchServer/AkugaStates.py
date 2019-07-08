@@ -12,7 +12,8 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     PICK_JUMON_EVENT,
                                     PLAYER_HAS_WON,
                                     MATCH_IS_DRAWN,
-                                    TURN_ENDS)
+                                    TURN_ENDS,
+                                    TIMEOUT_EVENT)
 
 
 def jumon_fight(attacking_jumon, attacking_bonus,
@@ -116,6 +117,9 @@ class WaitForUserState(State):
             """
             if state_change[0] is not None:
                 return state_change
+
+        if event.type == TIMEOUT_EVENT:
+            return (self.fsm.timeout_state, {})
 
         # If the event type is not a user event dont do anything
         if event.type < SUMMON_JUMON_EVENT or event.type > PICK_JUMON_EVENT:
@@ -1113,3 +1117,25 @@ class EquipArtefactToJumonState(State):
         state_change = (self.fsm.turn_end_state, {})
         state_change = jumon.special_ability(self, state_change)
         return state_change
+
+
+class TimeoutState(State):
+    """
+    A player can timeout on making pers decisions.
+    A player dies if per times out the third time
+    """
+
+    def __init__(self, fsm):
+        super().__init__("timeout_state", fsm)
+
+    def run(self, event):
+        """
+        Increment the timeout counter of the player.
+        Kill the player if per has timed out to often
+        """
+        print("TIMEOUT!!!")
+        self.fsm.player_chain.get_current_player().increment_timeout_counter()
+        if self.fsm.player_chain.get_current_player().\
+                get_timeout_counter() > 2:
+            self.fsm.player_chain.get_current_player().kill()
+        return (self.fsm.turn_end_state, {})
