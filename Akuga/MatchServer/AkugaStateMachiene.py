@@ -27,4 +27,5 @@ def create_last_man_standing_fsm():
     fsm.add_state(AkugaStates.TwoTileBattleBoniEvaluationState(None))
     fsm.add_state(AkugaStates.TwoTileBattleFightState(None))
     fsm.add_state(AkugaStates.TwoTileBattleAftermathState(None))
+    fsm.add_state(AkugaStates.TimeoutState(None))
     return fsm
