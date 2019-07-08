@@ -8,7 +8,7 @@
 	but is used to displace jumons. It differs from the normal movement
 	that way, that a jumon can be displaced outside the arena which
 	kills the displaced jumon.
-500.	Fix the deadlock bug on malformed packets
+500.	Add a timeout after which a match ends as drawn, if only two jumons are in play
 600.	Add the possibility for the user to construct up to three jumon sets
 	of jumons the user owns. That makes it neccessary to add a conto for
 	every user and add the possibility to buy jumons, also the match
