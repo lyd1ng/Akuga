@@ -118,6 +118,7 @@ class WaitForUserState(State):
             if state_change[0] is not None:
                 return state_change
 
+        # If the player times out jump to the timeout state
         if event.type == TIMEOUT_EVENT:
             return (self.fsm.timeout_state, {})
 
