@@ -17,6 +17,7 @@ class Player:
         self.summoned_jumons = []
         self._is_dead = False
         self._has_won = False
+        self.timeout_counter = 0
 
     def set_jumons_to_summon(self, jumons):
         """
@@ -172,6 +173,18 @@ class Player:
         """
         self._is_dead = False
         self._has_won = True
+
+    def increment_timeout_counter(self):
+        """
+        Increment the timeout counter
+        """
+        self.timeout_counter += 1
+
+    def get_timeout_counter(self):
+        """
+        Get the timeout counter
+        """
+        return self.timeout_counter
 
 
 class NeutralPlayer(Player):
