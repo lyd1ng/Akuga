@@ -96,6 +96,14 @@ def find_path(start_position, end_position, arena):
     frontier_nodes = [PathNode(start_position, None)]
     # The visited nodes list will hold the nodes which has been expanded
     visited_nodes = []
+    # If the start or end position is illegal return None
+    if start_position.x < 0 or start_position.x > width - 1 or\
+            start_position.y < 0 or start_position.y > height - 1:
+        return None
+    if end_position.x < 0 or end_position.x > width - 1 or\
+            end_position.y < 0 or end_position.y > height - 1:
+        return None
+
     # Create a boolean map from the arena. True means the tile is free
     for x in range(0, width):
         row = []
