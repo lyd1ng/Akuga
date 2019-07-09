@@ -1,5 +1,6 @@
 import random
 import pygame
+import time
 from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.Meeple
 from Akuga.MatchServer.PathFinder import find_path
@@ -64,6 +65,10 @@ class TurnBeginState(State):
             for jumon in player.summoned_jumons:
                 # There is no state change planed nor are there state variables
                 jumon.special_ability(self, None)
+        # Start the timeout timer
+        self.fsm.timeout_timer = 0
+        self.fsm.old_time = time.time()
+        self.fsm.current_time = self.fsm.old_time
         # If the turn starts regularly no jumon is enforced to be the
         # active jumon and no event is enforced to be recieved from the player
         return (self.fsm.wait_for_user_state, {
@@ -102,6 +107,12 @@ class WaitForUserState(State):
         Listen on SUMMON_JUMON_EVENT and SELECT_JUMON_TO_MOVE_EVENT as well
         as SELECT_JUMON_TO_SPECIAL_MOVE_EVENT
         """
+        # Get the current time
+        self.fsm.current_time = time.time()
+        self.fsm.timeout_timer += self.fsm.current_time - self.fsm.old_time
+        self.fsm.old_time = self.fsm.current_time
+        if self.fsm.timeout_timer > GlobalDefinitions.SECONDS_PER_TURN:
+            return (self.fsm.timeout_state, {})
         if type(self.fsm.player_chain.get_current_player()) is\
                 NeutralPlayer and self.fsm.player_chain.\
                 get_current_player().in_move_phase():
@@ -1134,9 +1145,8 @@ class TimeoutState(State):
         Increment the timeout counter of the player.
         Kill the player if per has timed out to often
         """
-        print("TIMEOUT!!!")
         self.fsm.player_chain.get_current_player().increment_timeout_counter()
         if self.fsm.player_chain.get_current_player().\
-                get_timeout_counter() > 2:
+                get_timeout_counter() > GlobalDefinitions.MAX_TIMEOUTS:
             self.fsm.player_chain.get_current_player().kill()
         return (self.fsm.turn_end_state, {})
