@@ -395,6 +395,7 @@ class ChangePlayerState(State):
     """
     def __init__(self, fsm):
         super().__init__("change_player_state", fsm)
+        self.remi_counter = 0
 
     def check_for_victory(self):
         """
@@ -418,9 +419,25 @@ class ChangePlayerState(State):
     def check_for_drawn(self):
         """
         In the last man standing game mode the game is drawn if there
-        is no non neutral players left
+        is no non neutral players left, or there are only two jumons left
+        and the match takes to long
         """
         pc = self.fsm.player_chain
+        # If only two jumons are left in the game count the turns of the
+        # match. The match is drawn (remi) if the number of turns with only
+        # two jumons exceed the MAX_REMI_COUNTER variable.
+        jumons_left_in_game = 0
+        for player in pc.get_players():
+            jumons_left_in_game += len(player.jumons_to_summon)
+            jumons_left_in_game += len(player.summoned_jumons)
+        if jumons_left_in_game == 2:
+            self.remi_counter += 1
+            print("REMI COUNTER INCREMENT TO:")
+            print(self.remi_counter)
+            if self.remi_counter > GlobalDefinitions.MAX_REMI_COUNTER:
+                return True
+        # A match is drawn if there is no player
+        # or only the neutral player left
         return pc.len == 0 or (pc.len == 1 and type(pc.startNode.
             get_player()) is NeutralPlayer)
 
