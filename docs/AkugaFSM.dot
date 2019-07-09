@@ -21,6 +21,7 @@ digraph AkugaFSM {
 	two_tile_battle_fight_state
 	two_tile_battle_aftermath_state
 	equip_artifact_to_jumon_state
+	timeout_state
 
 	// Turn begin state
 	turn_begin_state -> wait_for_user_state
@@ -31,11 +32,15 @@ digraph AkugaFSM {
 	// Change player state
 	change_player_state -> turn_begin_state
 
-	// Idle state
+	// wait for user state
 	wait_for_user_state -> pick_state [label="pick event"];
 	wait_for_user_state -> summon_state [label="summon event"];
 	wait_for_user_state -> check_move_state [label="move event"];
 	wait_for_user_state -> check_special_move_state [label="special move event"];
+	wait_for_user_state -> timeout_state[label="timeout event"];
+
+	// timeout state
+	timeout_state -> turn_end_state
 
 	// Pick State
 	pick_state -> turn_end_state
