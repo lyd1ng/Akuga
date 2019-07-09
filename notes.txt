@@ -1,0 +1,31 @@
+Displacement:
+-------------
+Displacements can be implemented with a scheduled post turn
+state change to the CheckMove state. Those state changes must
+lead to a displacement or trigger a fight,
+cause otherwise the state machiene will jump back to the
+idle state, which would lead to an additional turn. 
+Therefor an additional branch could be added to the rule
+building fsm which would be most similar to the move branch
+but without the loop between the idle state and the check move
+state. An other solution would be to set a state variable
+if this movement is a regular move initiated by a user or
+a displacement move initiated by a special effect.
+I suppose this would be more kluge.
+
+Multiple instances of a Jumon:
+------------------------------
+To allow multiple instances of a jumon which
+is the case if both players have the same jumon
+in their set jumons cant be identified by their
+name and the meepledict cant be static anymore.
+For earch entry in the sets of all players a
+jumon is created with a unique id. Now the lists
+of jumons are unioned to the a dictionary of the
+form {id1: jumon1, id2: jumon2... }. This replaces
+the old meeple dict and is the jumon pick pool as
+well. The function get_meeple_by_name has to be
+replaced by get_meeple_by_id. Before the match
+starts all jumons within the new meeple dict
+has to be send to all players, so the clients
+know all ids of all jumons.
