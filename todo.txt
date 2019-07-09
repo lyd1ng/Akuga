@@ -1,9 +1,6 @@
 100.	Expand User Class
 101.	Propagate inter turn messages like 'summon_msg, move_msg'.
 	This is used to render actions life.
-401.	Add a timeout branch to the rule building fsm which is used to skip
-	a turn if the player times out. This also kills the player if per
-	has timeout out to often.
 402.	Add a displacement branch which cant hit initiated with a user event
 	but is used to displace jumons. It differs from the normal movement
 	that way, that a jumon can be displaced outside the arena which
