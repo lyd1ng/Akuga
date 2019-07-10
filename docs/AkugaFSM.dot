@@ -7,6 +7,7 @@ digraph AkugaFSM {
 	pick_state
 	summon_state
 	check_move_state
+	check_displacement_state
 	check_special_move_state
 	summon_check_state
 	change_player_state
@@ -59,6 +60,11 @@ digraph AkugaFSM {
 	check_move_state -> turn_end_state[label="Valid move and target tile is free"]
 	check_move_state -> two_tile_battle_begin_state[label="Target tile is occupied by an hostile jumon"]
 	check_move_state -> equip_artifact_to_jumon_state[label="Valid move and target tile is occupied by an equipment"]
+
+	// Check displacement state
+	check_displacement_state -> turn_end_state[label="Valid move and target tile is free"]
+	check_displacement_state -> one_tile_battle_begin_state[label="Target tile is occupied by an hostile jumon"]
+	check_displacement_state -> equip_artifact_to_jumon_state[label="Valid move and target tile is occupied by an equipment"]
 
 	// Check special move state
 	check_special_move_state -> turn_end_state[label="is_special_move_legal(..)"]
