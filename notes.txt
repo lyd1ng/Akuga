@@ -12,6 +12,9 @@ state. An other solution would be to set a state variable
 if this movement is a regular move initiated by a user or
 a displacement move initiated by a special effect.
 I suppose this would be more kluge.
+Update: While writing a displacement branch multiple differences
+	occured between the move state and the displacement state,
+	so the displacement state is distinct from the move state
 
 Multiple instances of a Jumon:
 ------------------------------
