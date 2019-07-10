@@ -588,6 +588,94 @@ class CheckMoveState(State):
             return (self.fsm.two_tile_battle_begin_state, two_tile_battle_state_variable)
 
 
+class CheckDisplacementState(State):
+    """
+    Checks wheter a draw of a jumon is legal or not
+    """
+    def __init__(self, fsm):
+        super().__init__("check_displacement_state", fsm)
+
+    def run(self, event):
+        """
+        Displace the selected jumon to the target position regardless of
+        its movement. Do nothing, aka jump to the ChangePlayerState if the
+        target position is occupied by a jumon of the same team.
+        Jump to the two tile battle state or the
+        equip artefact state if the target position is occupied by an
+        hostile jumon or an artefact
+        """
+        # Get the jumon, its current position and the target position
+        jumon = self.state_variables["jumon_to_displace"]
+        current_position = self.state_variables["current_position"]
+        target_position = self.state_variables["target_position"]
+
+        # Displacing a jumon outside the arena is allowed, it kills the
+        # jumon instantly
+        if target_position.x < 0 or\
+                target_position.x > self.fsm.arena.board_width - 1:
+            self.fsm.arena.place_unit_at(None, current_position)
+            jumon.owned_by.handle_jumon_death(jumon)
+            return (self.fsm.turn_end_state, {})
+
+        if target_position.y < 0 or\
+                target_position.y > self.fsm.arena.board_height - 1:
+            self.fsm.arena.place_unit_at(None, current_position)
+            jumon.owned_by.handle_jumon_death(jumon)
+            return (self.fsm.turn_end_state, {})
+
+        if self.fsm.arena.get_unit_at(target_position) is None:
+            """
+            If the tile at target position is free just do the displacement
+            and end the turn by jumping to the ChangePlayerState
+            """
+            if self.fsm.arena.get_tile_at(target_position).is_wasted():
+                """
+                If the target position is a wasted arena tile kill the
+                jumon
+                """
+                self.fsm.arena.place_unit_at(None, current_position)
+                jumon.owned_by.handle_jumon_death(jumon)
+            else:
+                """ Place the jumon on the arena tile """
+                self.fsm.arena.place_unit_at(None, current_position)
+                self.fsm.arena.place_unit_at(jumon, target_position)
+            return (self.fsm.turn_end_state, {})
+        elif jumon.owned_by.\
+                owns_tile(self.fsm.arena, target_position):
+            """
+            If the target position is owned by a jumon of the same team
+            the displacement is illegal and cant be done,
+            so jump to the TurnEndState
+            """
+            return (self.fsm.turn_end_state, {})
+        elif issubclass(type(self.fsm.arena.get_unit_at(target_position)), Akuga.MatchServer.Meeple.Artefact):
+            """
+            If the target position is occupied by an artefact jump to the
+            equip artefact to jumon state
+            """
+            # Get the artefact at the target position
+            artefact = self.fsm.arena.get_unit_at(target_position)
+            # Move the jumon
+            self.fsm.arena.place_unit_at(None, current_position)
+            self.fsm.arena.place_unit_at(jumon, target_position)
+            # Jump to the equip artefact to jumon state
+            return (self.fsm.equip_artefact_to_jumon_state, {
+                "jumon": jumon,
+                "artefact": artefact,
+                "last_position": current_position})  # Its right think about it
+        else:
+            """
+            If the target position is not empty and the jumon on target
+            position is not owned by the current player it has to be
+            a hostile jumon, so a OneTileBattle is triggered
+            """
+            one_tile_battle_state_variable = {
+                "battle_position": target_position,
+                "attacking_jumon": jumon,
+                "defending_jumon": self.fsm.arena.get_unit_at(target_position)}
+            return (self.fsm.two_tile_battle_begin_state, one_tile_battle_state_variable)
+
+
 class CheckSpecialMoveState(State):
     """
     Check if a special move is legal or not and invoke the special move
