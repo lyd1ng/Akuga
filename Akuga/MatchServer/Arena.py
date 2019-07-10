@@ -138,8 +138,12 @@ class Arena:
     def get_unit_at(self, position):
         """
         Get the Unit aka Jumon, Equipment or Trap at position
+        Positions outside the arena are always considered free
         """
-        return self.tiles[position.x][position.y].occupied_by()
+        try:
+            return self.tiles[position.x][position.y].occupied_by()
+        except IndexError:
+            return None
 
     def place_unit_at(self, unit, position):
         """
