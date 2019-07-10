@@ -101,7 +101,7 @@ class Jumon():
                     current_state, next_state_and_variables)
         return state_change
 
-    def is_special_move_legal(self, current_position, target_position):
+    def is_special_move_legal(self, arena, current_position, target_position):
         """
         Returns whether a special move is legal or not
         """
