@@ -32,3 +32,5 @@ insert into jumons values('Phoenixkueken', 'blue', 400, 370, 0, 0);
 insert into jumons values('Plodher', 'green', 435, 435, 0, 0);
 insert into jumons values('Diener der Dea', 'red', 580, 625, 1, 0);
 insert into jumons values('Soma Gana', 'blue', 440, 480, 1, 0);
+insert into jumons values('Mantice', 'blue', 520, 490, 1, 0);
+insert into jumons values('Nachtschnecke', 'blue', 550, 505, 1, 0);
