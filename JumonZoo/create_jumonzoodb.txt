@@ -36,3 +36,6 @@ insert into jumons values('Mantice', 'blue', 520, 490, 1, 0, 'Trampelpfade, die 
 insert into jumons values('Nachtschnecke', 'blue', 550, 505, 1, 0, 'Ihr Ruf klingt fuer jedes Tier anders, aber immer nach dem hilflosen Schre eines Neugeborenen. Folgst du ihm, so endet dein Weg in Ihrem Schlund');
 insert into jumons values('Todeschuetze von Ryhum', 'red', 440, 470, 1, 0, 'Ich ziele mit einem Auge immernoch doppelt so gut wie du mit zweien');
 insert into jumons values('Blauta', 'green', 410, 410, 1, 0, 'Sei frei wie ein Bauta und ziehe mit dem Wind -- alter Seefahrergrusz');
+insert into jumons values('Ashumu Shyvor', 'green', 530, 530, 1, 0, 'Goennen wir deiner Seele eine Pause');
+insert into jumons values('Werkezurn der Schlachtunhold', 'black', 600, 600, 1, 0, 'Deine Staerke ist bei mir deutlich besser aufgehoben');
+
