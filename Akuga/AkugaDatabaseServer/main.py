@@ -14,6 +14,9 @@ from Akuga.AkugaDatabaseServer.UserCharacteristics import (
     check_username,
     register_user,
     check_user_credentials)
+from Akuga.AkugaDatabaseServer.Jumon import (
+    get_all_jumon_names,
+    get_all_basic_jumon_names)
 from queue import Queue
 from threading import Thread
 
@@ -97,6 +100,16 @@ def handle_client(connection, client_address, cmd_queue):
             """
             check_user_credentials(connection, client_address, cmd_queue,
                 tokens[1], tokens[2])
+        if tokens[0] == "GET_JUMON_NAMES" and len(tokens) >= 1:
+            """
+            Get the names of of all jumons
+            """
+            get_all_jumon_names(connection, client_address, cmd_queue)
+        if tokens[0] == "GET_BASIC_JUMON_NAMES" and len(tokens) >= 1:
+            """
+            Get the name of all basic jumons
+            """
+            get_all_basic_jumon_names(connection, client_address, cmd_queue)
 
 
 def sql_worker(cmd_queue):
