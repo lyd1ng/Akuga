@@ -5,179 +5,17 @@ from Akuga.AkugaDatabaseServer.GlobalDefinitions import (
     SERVER_ADDRESS,
     MAX_ACTIVE_CONNECTIONS,
     DATABASE_PATH)
+from Akuga.AkugaDatabaseServer.Network import (send_packet)
+from Akuga.AkugaDatabaseServer.UserStats import (
+    add_win,
+    add_loose,
+    get_stats)
+from Akuga.AkugaDatabaseServer.UserCharacteristics import (
+    check_username,
+    register_user,
+    check_user_credentials)
 from queue import Queue
 from threading import Thread
-from datetime import datetime
-
-
-def today():
-    """
-    Get the current date in the format %Y-%m-%-d
-    """
-    return datetime.today().strftime("%Y-%m-%d")
-
-
-def secure_string(string):
-    """
-    Return True if all characters in the string are part of the
-    whitelist. Otherwise return False
-    """
-    whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    for s in string:
-        if s not in whitelist:
-            return False
-    return True
-
-
-def send_packet(connection, tokens, terminator="END\n"):
-    """
-    Send a packet containing multiple tokens.
-    Every token is converted to a string using the str function
-    for better convenients and is encoded using utf-8 encoding.
-    A packet has the form token1:token2:...:tokenN:terminator
-    """
-    query = ""
-    for t in tokens:
-        query += str(t) + ":"
-    if terminator is not None:
-        query += str(terminator)
-    query = query.encode('utf-8')
-    connection.send(query)
-
-
-def init_dayly_entry(cmd_queue, username, game_mode):
-    """
-    Creates an empty userstats entry (0 wins, 0 looses)
-    for the user named username in the specified game mode.
-    The date is always today to avoid tampering entries from the past
-    """
-    command = ('''insert into userstats (name, mode, date, wins, looses)
-        select :name, :mode, :date, 0, 0
-        where not exists(select 1 from userstats where name=:name
-        and mode=:mode and date=:date)''',
-        {'name': username, 'mode': game_mode, 'date': today()})
-    print(command)
-    logger.info("Enqueued command from: local\n")
-    cmd_queue.put((None, "local", command))
-
-
-def add_win(connection, client_address, cmd_queue, username, game_mode):
-    """
-    Adds a win for the user username in the game mode game_mode
-    the date is always today to avoid tempering data in the past
-    """
-    # If on of the parameters are insecure log it and return
-    if secure_string(username) is False or secure_string(game_mode) is False:
-        logger.info("Username or gamemode where insecure!\n")
-        logging.info("Received from: " + str(client_address))
-        send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
-    # Enqueues to create an empty stats field if none exists
-    # Cause the queue is a fifo structure this will be executed before
-    # the update command
-    init_dayly_entry(cmd_queue, username, game_mode)
-    # Create the update command
-    command = ('''update userstats set wins=wins+1 where name=? and mode=?\
-        and date=? ''', (username, game_mode, today()))
-    logging.info('Enqueue command from: ' + str(client_address))
-    cmd_queue.put((connection, client_address, command))
-    return 0
-
-
-def add_loose(connection, client_address, cmd_queue, username, game_mode):
-    """
-    Adds a loose for the user username in the game mode game_mode
-    the date is always today to avoid tempering data in the past
-    """
-    # If on of the parameters are insecure log it and return
-    if secure_string(username) is False or secure_string(game_mode) is False:
-        logger.info("Username or gamemode where insecure!\n")
-        logging.info("Received from: " + str(client_address))
-        send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
-    # Enqueues to create an empty stats field if none exists
-    # Cause the queue is a fifo structure this will be executed before
-    # the update command
-    init_dayly_entry(cmd_queue, username, game_mode)
-    # Create the update command
-    command = ('''update userstats set looses=looses+1 where name=? and mode=?\
-        and date=? ''', (username, game_mode, today()))
-    logging.info('Enqueue command from: ' + str(client_address))
-    cmd_queue.put((connection, client_address, command))
-    return 0
-
-
-def get_stats(connection, client_address, cmd_queue, username, game_mode,
-        from_year, from_month, from_day, to_year, to_month, to_day):
-    """
-    Queries all the user stats of a user in a certain game mode between and
-    including the from and the to date
-    """
-    # if on of the parameters are insecure log it and return
-    if secure_string(username + game_mode + from_year + from_month + from_day
-            + to_year + to_month + to_day) is False:
-        logger.info("One of the parameters where insecure!\n")
-        logging.info("Received from: " + str(client_address))
-        send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
-    # Create the date strings
-    from_date = from_year + '-' + from_month + '-' + from_day
-    to_date = to_year + '-' + to_month + '-' + to_day
-    # Create the query command
-    command = ('''select date,wins,looses from userstats where name=? and
-        mode=? and date >= ? and date <= ?''',
-        (username, game_mode, from_date, to_date))
-    print(command)
-    logging.info('Enqueue command from: ' + str(client_address))
-    cmd_queue.put((connection, client_address, command))
-    return 0
-
-
-def check_username(connection, client_address, cmd_queue, username):
-    """
-    Checks if a username is free or not
-    """
-    if secure_string(username) is False:
-        logger.info("One of the parameters where insecure!\n")
-        logging.info("Received from: " + str(client_address))
-        send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
-    command = ("select name from credentials where name=?", (username, ))
-    logging.info('Enqueue command from: ' + str(client_address))
-    cmd_queue.put((connection, client_address, command))
-
-
-def register_user(connection, client_address, cmd_queue, username, pass_hash):
-    """
-    Registers a user with a given name and pers pass hash in the database
-    """
-    if secure_string(username + pass_hash) is False:
-        logger.info("One of the parameters where insecure!\n")
-        logging.info("Received from: " + str(client_address))
-        send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
-    command = ("insert into credentials(name, pass_hash)\
-        select :name, :pass_hash\
-        where not exists(select 1 from credentials where name= :name)",
-        {'name': username, 'pass_hash': pass_hash})
-    logging.info('Enqueue command from: ' + str(client_address))
-    cmd_queue.put((connection, client_address, command))
-
-
-def check_user_credentials(connection, client_address,
-        cmd_queue, username, pass_hash):
-    """
-    Checks the credentials of a user
-    """
-    if secure_string(username + pass_hash) is False:
-        logger.info("One of the parameters where insecure!\n")
-        logging.info("Recieved from: " + str(client_address))
-        send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
-    command = ("select name from credentials where name=?\
-            and pass_hash=?", (username, pass_hash))
-    logging.info('Enqueue command from: ' + str(client_address))
-    cmd_queue.put((connection, client_address, command))
 
 
 def handle_client(connection, client_address, cmd_queue):
@@ -282,20 +120,20 @@ def sql_worker(cmd_queue):
             result = str(cursor.fetchall())
             print("Result :" + result)
         except sqlite3.Error as e:
-            logging.info("SQL Error from: " + str(client_address))
+            logger.info("SQL Error from: " + str(client_address))
             # Set the sql error msg as the result so its send to the user
             result = e.args[0]
             # If the command wasnt a locale command send the result
             # to the client using the ERROR command token
             # to signal the error
             if connection is not None:
-                logging.info("Send result to: " + str(client_address))
+                logger.info("Send result to: " + str(client_address))
                 send_packet(connection, ["ERROR", result])
         # If the command wasnt a locale command send the result
         # to the client using the SUCCESS command token
         # to signal the success
         if connection is not None:
-            logging.info("Send result to: " + str(client_address))
+            logger.info("Send result to: " + str(client_address))
             send_packet(connection, ["SUCCESS", result])
         cmd_queue.task_done()
         # Commit to the database to make the changes visible
@@ -328,14 +166,14 @@ def init_database(database, cursor):
 if __name__ == "__main__":
     # Create a logger
     logging.basicConfig(filename='AkugaDatabaseServer.log', level=logging.INFO)
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('AkugaDatabaseServer')
 
     # Build the server socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(SERVER_ADDRESS)
     server_socket.listen(MAX_ACTIVE_CONNECTIONS)
-    logging.info("Server socket listening at " + str(SERVER_ADDRESS))
-    logging.info("Server socket listening for " + str(MAX_ACTIVE_CONNECTIONS))
+    logger.info("Server socket listening at " + str(SERVER_ADDRESS))
+    logger.info("Server socket listening for " + str(MAX_ACTIVE_CONNECTIONS))
 
     # Create the cmd queue with a max of 512 entries
     cmd_queue = Queue(512)
@@ -354,7 +192,7 @@ if __name__ == "__main__":
         try:
             connection, client_address = server_socket.accept()
         except socket.error:
-            logging.info("Error while accepting connections")
+            logger.info("Error while accepting connections")
             break
         # And handle them using the handle_client function
         handle_client_thread = Thread(target=handle_client,
