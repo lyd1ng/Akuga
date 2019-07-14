@@ -14,7 +14,7 @@ from Akuga.AkugaDatabaseServer.UserCharacteristics import (
     check_username,
     register_user,
     check_user_credentials)
-from Akuga.AkugaDatabaseServer.Jumon import (
+from Akuga.AkugaDatabaseServer.Jumons import (
     get_all_jumon_names,
     get_all_basic_jumon_names)
 from queue import Queue
