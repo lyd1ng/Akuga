@@ -16,12 +16,13 @@ def check_username(connection, client_address, cmd_queue, username):
         logger.info("Received from: " + str(client_address))
         send_packet(connection, ["ERROR", "Insecure Parameter"])
         return -1
-    command = ("select name from credentials where name=?", (username, ))
+    command = ("select name from user_accounts where name=?", (username, ))
     logger.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
 
 
-def register_user(connection, client_address, cmd_queue, username, pass_hash):
+def register_user(connection, client_address, cmd_queue,
+        username, pass_hash, credits, collection):
     """
     Registers a user with a given name and pers pass hash in the database
     """
@@ -30,10 +31,16 @@ def register_user(connection, client_address, cmd_queue, username, pass_hash):
         logger.info("Received from: " + str(client_address))
         send_packet(connection, ["ERROR", "Insecure Parameter"])
         return -1
-    command = ("insert into credentials(name, pass_hash)\
-        select :name, :pass_hash\
-        where not exists(select 1 from credentials where name= :name)",
-        {'name': username, 'pass_hash': pass_hash})
+    command = ("insert into user_accounts(name, pass_hash, credits, collection, set1, set2, set3)\
+        select :name, :pass_hash, :credits, :collection, :set1, :set2, :set3\
+        where not exists(select 1 from user_accounts where name= :name)", {
+        'name': username,
+        'pass_hash': pass_hash,
+        'credits': credits,
+        'collection': collection,
+        'set1': "",
+        'set2': "",
+        'set3': ""})
     logger.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
 
@@ -48,7 +55,7 @@ def check_user_credentials(connection, client_address,
         logger.info("Recieved from: " + str(client_address))
         send_packet(connection, ["ERROR", "Insecure Parameter"])
         return -1
-    command = ("select name from credentials where name=?\
+    command = ("select name from user_accounts where name=?\
             and pass_hash=?", (username, pass_hash))
     logger.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))

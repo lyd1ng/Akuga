@@ -74,13 +74,22 @@ def handle_client(connection, client_address, cmd_queue):
             are received check if the username in token[1] is free or not
             """
             check_username(connection, client_address, cmd_queue, tokens[1])
-        if tokens[0] == "REGISTER_USER" and len(tokens) >= 3:
+        if tokens[0] == "REGISTER_USER" and len(tokens) >= 5:
             """
             If the command token is register_user and enough tokens are
-            received insert a new entry into the credentials table
+            received insert a new entry into the user_accounts table
             """
+            try:
+                credits = int(tokens[3])
+            except ValueError:
+                send_packet(connection,
+                    ["ERROR", "Credits token cant be converted to integer"])
+                logger.info("Received invalid credit token from: " +
+                    str(client_address))
+                continue
+
             register_user(connection, client_address, cmd_queue,
-                tokens[1], tokens[2])
+                tokens[1], tokens[2], credits, tokens[4])
         if tokens[0] == "CHECK_CREDENTIALS" and len(tokens) >= 3:
             """
             If the command token is check_credentials and enough tokens
@@ -155,11 +164,12 @@ def init_database(database, cursor):
         logger.info("Failed to create the table userstats\n")
         logger.info("Does it already exists?\n")
     try:
-        logger.info("Create a credentials table\n")
-        cursor.execute("create table credentials (name text, pass_hash text)")
+        logger.info("Create a user_accounts table\n")
+        cursor.execute("create table user_accounts (name text, pass_hash text,\
+            credits real, collection text, set1 text, set2 text, set3 text)")
         database.commit()
     except sqlite3.Error:
-        logger.info("Failed to create the table credentials\n")
+        logger.info("Failed to create the table user_accounts\n")
         logger.info("Does it already exists?\n")
 
 
