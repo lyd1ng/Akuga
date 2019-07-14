@@ -1,7 +1,7 @@
 import socket
 import sqlite3
 import logging
-from Akuga.UserDatabaseServer.GlobalDefinitions import (
+from Akuga.AkugaDatabaseServer.GlobalDefinitions import (
     SERVER_ADDRESS,
     MAX_ACTIVE_CONNECTIONS,
     DATABASE_PATH)
@@ -327,7 +327,7 @@ def init_database(database, cursor):
 
 if __name__ == "__main__":
     # Create a logger
-    logging.basicConfig(filename='UserDatabaseServer.log', level=logging.INFO)
+    logging.basicConfig(filename='AkugaDatabaseServer.log', level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     # Build the server socket
