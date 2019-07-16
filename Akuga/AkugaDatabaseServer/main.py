@@ -13,7 +13,12 @@ from Akuga.AkugaDatabaseServer.UserStats import (
 from Akuga.AkugaDatabaseServer.UserCharacteristics import (
     check_username,
     register_user,
-    check_user_credentials)
+    get_user_by_name,
+    check_user_credentials,
+    get_jumon_collection,
+    get_jumon_set,
+    set_jumon_set,
+    update_user)
 from Akuga.AkugaDatabaseServer.Jumons import (
     get_all_jumon_names,
     get_all_basic_jumon_names)
@@ -71,7 +76,12 @@ def handle_client(connection, client_address, cmd_queue):
             get_stats(connection, client_address, cmd_queue, username, game_mode,
                      from_year, from_month, from_day,
                      to_year, to_month, to_day)
-        if tokens[0] == "CHECK_USERNAME" and len(tokens) >= 2:
+        if tokens[0] == "GET_USER_BY_NAME" and len(tokens) >= 1:
+            """
+            Query for the whole user datastructure
+            """
+            get_user_by_name(connection, client_address, cmd_queue, tokens[1])
+        if tokens[0] == "CHECK_USERNAME" and len(tokens) >= 1:
             """
             If the command token is check_username and enough tokens
             are received check if the username in token[1] is free or not
@@ -100,6 +110,31 @@ def handle_client(connection, client_address, cmd_queue):
             """
             check_user_credentials(connection, client_address, cmd_queue,
                 tokens[1], tokens[2])
+        if tokens[0] == "GET_JUMON_COLLECTION" and len(tokens) > 2:
+            """
+            Get all jumons a user owns
+            """
+            get_jumon_collection(connection, client_address,
+                cmd_queue, tokens[1])
+        if tokens[0] == "GET_JUMON_SET" and len(tokens) >= 3:
+            """
+            Get all jumon of the specified set of a user
+            """
+            get_jumon_set(connection, client_address, cmd_queue,
+                tokens[1], tokens[2])
+        if tokens[0] == "SET_JUMON_SET" and len(tokens) >= 4:
+            """
+            Set all jumon of the specified set of a user
+            """
+            set_jumon_set(connection, client_address, cmd_queue,
+                tokens[1], tokens[2], tokens[3])
+        if tokens[0] == "UPDATE_USER" and len(tokens) >= 8:
+            """
+            Update all fields except the name and the pass_hash of a user
+            """
+            update_user(connection, client_address, cmd_queue,
+                tokens[1], tokens[2], tokens[3], tokens[4],
+                tokens[5], tokens[6])
         if tokens[0] == "GET_JUMON_NAMES" and len(tokens) >= 1:
             """
             Get the names of of all jumons
