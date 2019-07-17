@@ -1,6 +1,23 @@
 import threading
 
 
+def user_from_database_response(response, connection, client_address):
+    """
+    Create and return a user instance created from
+    a databse response
+    """
+    # The response is a list containing a tuple
+    # The tuple contains the data of the user
+    resp = response[0]
+    # Convert the collection and all three sets to lists
+    collection = resp[3].split(',')
+    set1 = resp[4].split(',')
+    set2 = resp[5].split(',')
+    set3 = resp[6].split(',')
+    return User(resp[0], resp[1], resp[2], collection,
+        set1, set2, set3, connection, client_address)
+
+
 class User:
     """
     Represents a registered user aka one of the poor souls doomed to
@@ -9,9 +26,16 @@ class User:
     pass_hash: the md5 hash of its password
     connection: the connection socket
     """
-    def __init__(self, name, pass_hash, connection, client_address):
+    def __init__(self, name, pass_hash, credits, collection, set0, set1, set2,
+            connection, client_address):
         self.name = name
         self.pass_hash = pass_hash
+        # The credits of the user
+        self.credits = credits
+        # The users jumon collection
+        self.collection = collection
+        # The three sets
+        self.sets = (set0, set1, set2)
         self.connection = connection
         self.client_address = client_address
         self.in_play = False
@@ -31,4 +55,5 @@ class User:
         Returns the user as a string
         """
         return "User: " + self.name + " " + self.pass_hash\
-            + " " + str(self.client_address)
+            + " " + str(self.credits) + " " + str(self.collection) + " " +\
+            str(self.sets) + " " + str(self.client_address)

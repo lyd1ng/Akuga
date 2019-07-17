@@ -1,13 +1,15 @@
 import queue
 import socket
 import logging
+from functools import reduce
 from threading import Thread
 from Akuga.MatchServer.MatchServer import match_server
-from Akuga.User import User
+from Akuga.User import user_from_database_response
 from Akuga.GameServer.GlobalDefinitions import (
     SERVER_ADDRESS,
     USER_DBS_ADDRESS,
-    MAX_ACTIVE_CONNECTIONS)
+    MAX_ACTIVE_CONNECTIONS,
+    START_CREDITS)
 from Akuga.GameServer.Network import (
     recv_packet,
     send_packet,
@@ -67,10 +69,24 @@ def handle_client(connection, client_address,
                     send_packet(connection, ["ERROR",
                         "User: " + username + " already exists"])
                 else:
-                    # If the username is free register the user
-                    # Register the user with pers username and pers hash
+                    # If the username is free the user can be registeres
+                    # Therefor the names of all basic jumons have to be
+                    # requested as the user will start with all basic jumons
+                    # in pers collection
+                    send_packet(userdb_connection, ["GET_BASIC_JUMON_NAMES"])
+                    response, error = receive_dbs_response(userdb_connection,
+                        512)
+                    # The python list stores tuples instead of the strings
+                    # itself so their have to be removed
+                    jumon_collection = list(map(lambda x: x[0],
+                        response))
+                    # Now the list only stores jumon names to it can be
+                    # reduced to a string of ',' delimited jumon names
+                    # to register the user
+                    jumon_collection = reduce(lambda x, y: x + ',' + y,
+                        jumon_collection)
                     send_packet(userdb_connection, ["REGISTER_USER",
-                        username, pass_hash])
+                        username, pass_hash, START_CREDITS, jumon_collection])
                     response, error = receive_dbs_response(userdb_connection,
                         512)
                     if response is None:
@@ -108,9 +124,19 @@ def handle_client(connection, client_address,
                     of usernames already logged in so users cant log in
                     multiple times
                     """
-                    # Unlock the logged in functionalities
-                    user = User(username, pass_hash,
-                        connection, client_address)
+                    # Request the whole user structure
+                    send_packet(userdb_connection, ['GET_USER_BY_NAME', username])
+                    response, error = receive_dbs_response(userdb_connection,
+                        512)
+                    if response is None:
+                        logger.info("Unexpected error occured: " + error)
+                        send_packet(connection, ["ERROR", error])
+                        continue
+                    # Create a user instance from the database response
+                    user = user_from_database_response(response, connection,
+                        client_address)
+                    print(str(user))
+
                     # Add the user to the active users so per cant
                     # log in a second time
                     active_users.append(username)
@@ -132,17 +158,27 @@ def handle_client(connection, client_address,
                     active_users.remove(user.name)
                 break
             print("logged in and not in play")
-            if tokens[0] == 'ENQUEUE_FOR_MATCH' and len(tokens) >= 2:
+            if tokens[0] == 'ENQUEUE_FOR_MATCH' and len(tokens) >= 3:
                 """
                 Enqueue the user in the queue for the specified game mode
                 """
+                try:
+                    active_set = int(tokens[2])
+                    if active_set < 0 or active_set > 2:
+                        raise ValueError
+                except ValueError:
+                    send_packet(connection, ['ERROR',
+                        'One of the parameters where malformed'])
+                    logger.info('One of the parameters where malformed')
+                    logger.info('Received from: ' + str(client_address))
+                    continue
                 if tokens[1] == 'lms':
                     logger.info("Enqueue " + user.name + "for lms")
-                    lms_queue.put(user)
+                    lms_queue.put((user, active_set))
                     send_packet(connection, ["SUCCESFULLY_ENQUEUED", "lms"])
                 elif tokens[1] == 'amm':
                     logger.info("Enqueue " + user.name + "for amm")
-                    amm_queue.put(user)
+                    amm_queue.put((user, active_set))
                     send_packet(connection, ["SUCCESFULLY_ENQUEUED", "amm"])
                 else:
                     logger.info("Invalid game mode: " + tokens[1])
@@ -166,14 +202,14 @@ def handle_lms_queue(lms_queue):
     """
     while True:
         # Get two users from the queue
-        user1 = lms_queue.get()
+        user1, user1_active_set = lms_queue.get()
         user1.in_play = True
-        user2 = lms_queue.get()
+        user2, user2_active_set = lms_queue.get()
         user2.in_play = True
         logger.info("Got two user for a lms match")
-        users = [user1, user2]
         logger.info("Start MatchServer subprocess")
-        match_server_thread = Thread(target=match_server, args=('lms', users, None))
+        match_server_thread = Thread(target=match_server, args=('lms',
+            [(user1, user1_active_set), (user2, user2_active_set)], None))
         match_server_thread.start()
         logger.info("Started MatchServer subprocess")
         # Signal that the users has been processed
@@ -187,14 +223,14 @@ def handle_amm_queue(amm_queue):
     """
     while True:
         # Get two users from the queue
-        user1 = amm_queue.get()
+        user1, user1_active_set = amm_queue.get()
         user1.in_play = True
-        user2 = amm_queue.get()
+        user2, user2_active_set = amm_queue.get()
         user2.in_play = True
         logger.info("Got two user for an amm match")
-        users = [user1, user2]
         logger.info("Start MatchServer subprocess")
-        match_server_thread = Thread(target=match_server, args=('amm', users, None))
+        match_server_thread = Thread(target=match_server, args=('amm',
+            [(user1, user1_active_set), (user2, user2_active_set)], None))
         match_server_thread.start()
         logger.info("Started MatchServer subprocess")
         # Signal that the users has been processed
