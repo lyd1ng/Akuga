@@ -1,4 +1,5 @@
 import threading
+from functools import reduce
 
 
 def user_from_database_response(response, connection, client_address):
@@ -35,7 +36,7 @@ class User:
         # The users jumon collection
         self.collection = collection
         # The three sets
-        self.sets = (set0, set1, set2)
+        self.sets = [set0, set1, set2]
         self.connection = connection
         self.client_address = client_address
         self.in_play = False
@@ -49,6 +50,29 @@ class User:
         """
         with self.lock:
             self.in_play = in_play
+
+    def get_collection_serialized(self):
+        """
+        Return all elements of the collection list as a ',' seperated string.
+        This way it can be send to the database server
+        """
+        try:
+            collection_string = reduce(lambda x, y: x + ',' + y,
+                self.collection)
+        except TypeError:
+            # Should never be the case
+            collection_string = ''
+        return collection_string
+
+    def get_set_serialized(self, index):
+        if index < 0 or index > 3:
+            return ''
+        try:
+            set_string = reduce(lambda x, y: x + ',' + y, self.sets[index])
+        except TypeError:
+            # Should never be the case
+            set_string = ''
+        return set_string
 
     def __str__(self):
         """
