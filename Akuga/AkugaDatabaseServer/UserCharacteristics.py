@@ -7,6 +7,17 @@ from Akuga.AkugaDatabaseServer.Network import (
 logger = logging.getLogger('AkugaDatabaseServer.UserCharacteristics')
 
 
+def weak_secure_string(string):
+    """
+    Checks the string again a bit weeker defined whitelist
+    """
+    whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,'
+    for s in string:
+        if s not in whitelist:
+            return False
+    return True
+
+
 def get_user_by_name(connection, client_address, cmd_queue, username):
     """
     Query for the whole user datastructure
@@ -43,7 +54,8 @@ def register_user(connection, client_address, cmd_queue,
     """
     Registers a user with a given name and pers pass hash in the database
     """
-    if secure_string(username + pass_hash) is False:
+    if secure_string(username + pass_hash) is False or\
+            weak_secure_string(collection) is False:
         logger.info("One of the parameters where insecure!\n")
         logger.info("Received from: " + str(client_address))
         # If its not a local command
@@ -105,7 +117,8 @@ def update_user(connection, client_address, cmd_queue,
     The name of a user cant be changed cause it it used as the id
     and the pass hash should not be send over the network unneccesarily
     """
-    if secure_string(username + credits) is False:
+    if secure_string(username + credits) is False or\
+            weak_secure_string(collection + set1 + set2 + set3) is False:
         logger.info("One of the parameters where insecure!\n")
         logger.info("Recieved from: " + str(client_address))
         # As long as the command is not a locale command
@@ -170,7 +183,8 @@ def set_jumon_set(connection, client_address, cmd_queue,
     jumon_set is a string containing the names of all jumons delimited by
     a comma
     """
-    if secure_string(username + index) is False:
+    if secure_string(username + index) is False or\
+            weak_secure_string(jumon_set) is False:
         logger.info("One of the parameters where insecure!\n")
         logger.info("Recieved from: " + str(client_address))
         # If its not a local command
