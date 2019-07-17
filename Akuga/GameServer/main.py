@@ -184,6 +184,92 @@ def handle_client(connection, client_address,
                     logger.info("Invalid game mode: " + tokens[1])
                     send_packet(connection, ["ERROR", "Invalid game mode: "
                         + tokens[1]])
+            if tokens[0] == "GET_JUMON_NAMES" and len(tokens) >= 1:
+                """
+                Query the database for all jumons and forward the result
+                """
+                send_packet(userdb_connection, ["GET_JUMON_NAMES"])
+                response, error = receive_dbs_response(userdb_connection, 1024)
+                if response is None:
+                    send_packet(connection, ['ERROR', error])
+                    logger.info("An unexpected error occured: " + error)
+                    continue
+                send_packet(connection, ['SUCCESS', str(response)])
+            if tokens[0] == "GET_JUMON_COLLECTION" and len(tokens) >= 1:
+                """
+                Convert the collection of the user into a ',' seperated
+                string and send it to the client
+                """
+                try:
+                    collection = reduce(lambda x, y: x + ',' + y,
+                        user.collection)
+                except TypeError:
+                    # Should never be the case
+                    collection = ""
+                send_packet(connection, ['SUCCESS', collection])
+            if tokens[0] == "GET_JUMON_SET" and len(tokens) >= 1:
+                """
+                Convert the requestes jumon set of the user into a ','
+                seperated string and send it to the client
+                """
+                try:
+                    index = int(tokens[1])
+                    if index < 0 or index > 2:
+                        raise ValueError
+                except ValueError:
+                    logger.info("One of the parameter where malformed")
+                    logger.info("Received from: " + str(client_address))
+                    send_packet(connection, ['ERROR',
+                        'One of the paramter where malformed'])
+                    continue
+                try:
+                    collection = reduce(lambda x, y: x + ',' + y,
+                        user.sets[index])
+                except TypeError:
+                    # Should never be the case
+                    collection = ""
+                send_packet(connection, ['SUCCESS', collection])
+            if tokens[0] == "SET_JUMON_SET" and len(tokens) >= 2:
+                """
+                Receive a jumon set and its index. Update the specified set
+                if all jumons in the set are part of the users collection
+                """
+                try:
+                    index = int(tokens[1])
+                    if index < 0 or index > 2:
+                        raise ValueError
+                except ValueError:
+                    logger.info("One of the parameter where malformed")
+                    logger.info("Received from: " + str(client_address))
+                    send_packet(connection, ['ERROR',
+                        'One of the paramter where malformed'])
+                    continue
+                # Convert the string into a list of jumon names
+                jumon_set = tokens[2].split(',')
+                # Check if all jumons in the set are part of the collection
+                is_set_valid = True
+                for jumon in jumon_set:
+                    if jumon not in user.collection:
+                        is_set_valid = False
+                if is_set_valid is False:
+                    logger.info('Invalid Set')
+                    logger.info('Received from: ' + str(client_address))
+                    send_packet(connection, ['ERROR', 'Invalid Set'])
+                    continue
+                # Set the jumon set
+                user.sets[index] = jumon_set
+                # And update the user datastructure in the database
+                send_packet(userdb_connection, ['UPDATE_USER', user.name,
+                    int(user.credits), user.get_collection_serialized(),
+                    user.get_set_serialized(0),
+                    user.get_set_serialized(1),
+                    user.get_set_serialized(2)])
+                response, error = receive_dbs_response(userdb_connection, 512)
+                if response is None:
+                    logger.info('Unexpected error: ' + error)
+                    send_packet(connection, ['ERROR', error])
+                    continue
+                send_packet(connection, ['SUCCESS'])
         else:
             """
             If the user is logged in but currently playing a match,
