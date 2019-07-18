@@ -21,7 +21,8 @@ from Akuga.AkugaDatabaseServer.UserCharacteristics import (
     update_user)
 from Akuga.AkugaDatabaseServer.Jumons import (
     get_all_jumon_names,
-    get_all_basic_jumon_names)
+    get_all_basic_jumon_names,
+    get_jumon_by_name)
 from queue import Queue
 from threading import Thread
 
@@ -145,6 +146,13 @@ def handle_client(connection, client_address, cmd_queue):
             Get the name of all basic jumons
             """
             get_all_basic_jumon_names(connection, client_address, cmd_queue)
+        if tokens[0] == "GET_JUMON_BY_NAME" and len(tokens) >= 2:
+            """
+            Get the whole datastructure of a jumon and send it to
+            the client
+            """
+            get_jumon_by_name(connection, client_address, cmd_queue,
+                tokens[1])
 
 
 def sql_worker(cmd_queue):
