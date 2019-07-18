@@ -1,6 +1,6 @@
 import logging
 from Akuga.AkugaDatabaseServer.Network import (
-    secure_string,
+    weak_secure_string,
     send_packet)
 
 # Get the logger
@@ -31,7 +31,7 @@ def get_jumon_by_name(connection, client_address, cmd_queue, jumon_name):
     """
     Query the database for a jumon by its name
     """
-    if secure_string(jumon_name) is False:
+    if weak_secure_string(jumon_name, ' ') is False:
         send_packet(connection, ['ERROR', 'Insecure Parameter'])
         return
     command = ("select * from jumons where name=?", (jumon_name, ))
