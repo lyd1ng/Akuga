@@ -80,4 +80,5 @@ class User:
         """
         return "User: " + self.name + " " + self.pass_hash\
             + " " + str(self.credits) + " " + str(self.collection) + " " +\
-            str(self.sets) + " " + str(self.client_address)
+            str(self.sets) + " " + str(self.client_address) + " " + \
+            str(self.in_play)
