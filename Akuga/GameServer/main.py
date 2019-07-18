@@ -270,6 +270,62 @@ def handle_client(connection, client_address,
                     send_packet(connection, ['ERROR', error])
                     continue
                 send_packet(connection, ['SUCCESS'])
+            if tokens[0] == 'BUY_JUMON' and len(tokens) >= 2:
+                """
+                If the jumon is not already owned, the jumons exists and the
+                user has enough money decrement the credits of the user by
+                the jumons price, add the jumon to the collection of the user
+                and update the user in the database
+                """
+                # First, get the jumons datastructure
+                send_packet(userdb_connection, ['GET_JUMON_BY_NAME', tokens[1]])
+                response, error = receive_dbs_response(userdb_connection, 512)
+                # If the length of the response tuple is zero
+                # the queried jumon doesnt exists
+                if response is None or len(response) == 0:
+                    logger.info("An error occured getting the jumon." + error)
+                    logger.info("Received from: " + str(client_address))
+                    # If the error message is '' the length
+                    # of the tuple was zero cause no jumon was found
+                    # State this clearly in the error message
+                    if error == '':
+                        error = 'Invalid jumonname'
+                    send_packet(connection, ['ERROR', error])
+                    continue
+                # The price is the 6th element of the tuple so at index 5
+                jumon_tuple = response[0]
+                jumon_price = jumon_tuple[5]
+                if user.credits < jumon_price:
+                    """
+                    The user cant affort to buy the jumon
+                    """
+                    send_packet(connection, ['ERROR', 'To expansive'])
+                    continue
+                # Check if the jumons is already owned the name is the very
+                # first element of the tuple
+                jumon_name = jumon_tuple[0]
+                if jumon_name in user.collection:
+                    send_packet(connection, ['ERROR', 'Already owned'])
+                    continue
+                # At this point in the code the jumon exists, it isnt owned
+                # already and the user can afford to buy the jumon
+                # so decrement the credits by the jumon price, add the jumon
+                # to the collection and update the database
+                user.credits -= jumon_price
+                user.collection.append(jumon_name)
+                send_packet(userdb_connection, ['UPDATE_USER',
+                    user.name,
+                    int(user.credits),
+                    user.get_collection_serialized(),
+                    user.get_set_serialized(0),
+                    user.get_set_serialized(1),
+                    user.get_set_serialized(2)])
+                response, error = receive_dbs_response(userdb_connection, 512)
+                if response is None:
+                    logger.info('An unexpected error occured: ' + error)
+                    send_packet(connection, ['ERROR', error])
+                    continue
+                send_packet(connection, ['SUCCESS', 'Bought jumon'])
         else:
             """
             If the user is logged in but currently playing a match,
