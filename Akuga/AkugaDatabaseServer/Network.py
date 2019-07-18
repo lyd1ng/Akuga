@@ -10,6 +10,18 @@ def secure_string(string):
     return True
 
 
+def weak_secure_string(string, exceptions):
+    """
+    Checks the string again a bit weeker defined whitelist
+    """
+    whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'\
+        + exceptions
+    for s in string:
+        if s not in whitelist:
+            return False
+    return True
+
+
 def send_packet(connection, tokens, terminator="END\n"):
     """
     Send a packet containing multiple tokens.
