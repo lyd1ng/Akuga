@@ -1,5 +1,5 @@
 import threading
-from functools import reduce
+from Akuga.JumonSet import jumon_set_from_list, serialize_set
 
 
 def user_from_database_response(response, connection, client_address):
@@ -10,11 +10,11 @@ def user_from_database_response(response, connection, client_address):
     # The response is a list containing a tuple
     # The tuple contains the data of the user
     resp = response[0]
-    # Convert the collection and all three sets to lists
-    collection = resp[3].split(',')
-    set1 = resp[4].split(',')
-    set2 = resp[5].split(',')
-    set3 = resp[6].split(',')
+    # Convert the coma delimited strings into jumon sets
+    collection = jumon_set_from_list(resp[3].split(','))
+    set1 = jumon_set_from_list(resp[4].split(','))
+    set2 = jumon_set_from_list(resp[5].split(','))
+    set3 = jumon_set_from_list(resp[6].split(','))
     return User(resp[0], resp[1], resp[2], collection,
         set1, set2, set3, connection, client_address)
 
@@ -56,23 +56,14 @@ class User:
         Return all elements of the collection list as a ',' seperated string.
         This way it can be send to the database server
         """
-        try:
-            collection_string = reduce(lambda x, y: x + ',' + y,
-                self.collection)
-        except TypeError:
-            # Should never be the case
-            collection_string = ''
-        return collection_string
+        return serialize_set(self.collection)
 
     def get_set_serialized(self, index):
-        if index < 0 or index > 3:
-            return ''
-        try:
-            set_string = reduce(lambda x, y: x + ',' + y, self.sets[index])
-        except TypeError:
-            # Should never be the case
-            set_string = ''
-        return set_string
+        """
+        Return all elements of the set as a ',' seperated string.
+        This way it can be send to the database server
+        """
+        return serialize_set(self.sets[index])
 
     def __str__(self):
         """
