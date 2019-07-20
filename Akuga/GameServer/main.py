@@ -14,6 +14,10 @@ from Akuga.GameServer.Network import (
     recv_packet,
     send_packet,
     receive_dbs_response)
+from Akuga.JumonSet import (
+    is_subset,
+    insert_name,
+    jumon_set_from_list)
 from time import sleep
 
 
@@ -200,12 +204,7 @@ def handle_client(connection, client_address,
                 Convert the collection of the user into a ',' seperated
                 string and send it to the client
                 """
-                try:
-                    collection = reduce(lambda x, y: x + ',' + y,
-                        user.collection)
-                except TypeError:
-                    # Should never be the case
-                    collection = ""
+                collection = user.get_collection_serialized()
                 send_packet(connection, ['SUCCESS', collection])
             if tokens[0] == "GET_JUMON_SET" and len(tokens) >= 1:
                 """
@@ -222,13 +221,8 @@ def handle_client(connection, client_address,
                     send_packet(connection, ['ERROR',
                         'One of the paramter where malformed'])
                     continue
-                try:
-                    collection = reduce(lambda x, y: x + ',' + y,
-                        user.sets[index])
-                except TypeError:
-                    # Should never be the case
-                    collection = ""
-                send_packet(connection, ['SUCCESS', collection])
+                jumon_set = user.get_set_serialized(index)
+                send_packet(connection, ['SUCCESS', jumon_set])
             if tokens[0] == "SET_JUMON_SET" and len(tokens) >= 2:
                 """
                 Receive a jumon set and its index. Update the specified set
@@ -242,16 +236,12 @@ def handle_client(connection, client_address,
                     logger.info("One of the parameter where malformed")
                     logger.info("Received from: " + str(client_address))
                     send_packet(connection, ['ERROR',
-                        'One of the paramter where malformed'])
+                        'One of the parameters where malformed'])
                     continue
                 # Convert the string into a list of jumon names
-                jumon_set = tokens[2].split(',')
+                jumon_set = jumon_set_from_list(tokens[2].split(','))
                 # Check if all jumons in the set are part of the collection
-                is_set_valid = True
-                for jumon in jumon_set:
-                    if jumon not in user.collection:
-                        is_set_valid = False
-                if is_set_valid is False:
+                if is_subset(jumon_set, user.collection) is False:
                     logger.info('Invalid Set')
                     logger.info('Received from: ' + str(client_address))
                     send_packet(connection, ['ERROR', 'Invalid Set'])
@@ -301,18 +291,13 @@ def handle_client(connection, client_address,
                     """
                     send_packet(connection, ['ERROR', 'To expansive'])
                     continue
-                # Check if the jumons is already owned the name is the very
-                # first element of the tuple
-                jumon_name = jumon_tuple[0]
-                if jumon_name in user.collection:
-                    send_packet(connection, ['ERROR', 'Already owned'])
-                    continue
-                # At this point in the code the jumon exists, it isnt owned
-                # already and the user can afford to buy the jumon
+                # At this point in the code the jumon exists
+                # and the user can afford to buy the jumon
                 # so decrement the credits by the jumon price, add the jumon
                 # to the collection and update the database
+                jumon_name = jumon_tuple[0]
                 user.credits -= jumon_price
-                user.collection.append(jumon_name)
+                user.collection = insert_name(user.collection, jumon_name)
                 send_packet(userdb_connection, ['UPDATE_USER',
                     user.name,
                     int(user.credits),
