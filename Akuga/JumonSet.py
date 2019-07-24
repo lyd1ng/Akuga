@@ -2,6 +2,7 @@
 This module defines the JumonSet class which represents both the jumon
 collection and all jumon sets a user creates.
 """
+from functools import reduce
 
 
 def jumon_set_from_list(jumon_name_list):
@@ -13,6 +14,8 @@ def jumon_set_from_list(jumon_name_list):
         return {}
     jumon_set = {}
     for name in jumon_name_list:
+        if name == '':
+            continue
         try:
             # If the there is alredy a record for this jumon
             # just increment the amount
@@ -37,6 +40,7 @@ def insert_name(jumon_set, jumon_name):
         # If there is no record for this name a KeyError is thrown
         # add a new record with an amount of 1
         jumon_set[jumon_name] = 1
+    return jumon_set
 
 
 def is_subset(smaller_set, larger_set):
@@ -78,7 +82,15 @@ def serialize_set(jumon_set):
     return serialized_string[:-1]
 
 
+def get_set_size(jumon_set):
+    """
+    Returns the length of a set aka a the sum of all amounts of all elements
+    """
+    return reduce(lambda x, y: x + y, jumon_set.values(), 0)
+
+
 if __name__ == '__main__':
     setA = jumon_set_from_list(['jumon1', 'jumon2', 'jumon2', 'jumon4'])
     setB = jumon_set_from_list(['jumon1', 'jumon2', 'jumon2', 'jumon4'])
     print(serialize_set(setA))
+    print(get_set_size(setA))
