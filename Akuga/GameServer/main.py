@@ -17,8 +17,25 @@ from Akuga.GameServer.Network import (
 from Akuga.JumonSet import (
     is_subset,
     insert_name,
-    jumon_set_from_list)
+    jumon_set_from_list,
+    get_set_size)
 from time import sleep
+
+
+def check_set_for_lms(active_set):
+    """
+    Checks if a set is legal for the lms mode
+    Every jumon is allowed exactly three times
+    and a set must contain exactly seven jumons
+    """
+    if get_set_size(active_set) != 7:
+        print('Invalid set size')
+        return False
+    for record in active_set.items():
+        if record[1] > 3:
+            print('To many jumons of the same type')
+            return False
+    return True
 
 
 def handle_client(connection, client_address,
@@ -178,6 +195,10 @@ def handle_client(connection, client_address,
                     continue
                 if tokens[1] == 'lms':
                     logger.info("Enqueue " + user.name + "for lms")
+                    if not check_set_for_lms(user.sets[active_set]):
+                        send_packet(user.connection, ['ERROR', 'Illegal set'])
+                        continue
+                    # At this point in the code the set is proofed to be valid
                     lms_queue.put((user, active_set))
                     send_packet(connection, ["SUCCESFULLY_ENQUEUED", "lms"])
                 elif tokens[1] == 'amm':
@@ -297,7 +318,7 @@ def handle_client(connection, client_address,
                 # to the collection and update the database
                 jumon_name = jumon_tuple[0]
                 user.credits -= jumon_price
-                user.collection = insert_name(user.collection, jumon_name)
+                insert_name(user.collection, jumon_name)
                 send_packet(userdb_connection, ['UPDATE_USER',
                     user.name,
                     int(user.credits),
