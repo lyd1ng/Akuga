@@ -32,3 +32,22 @@ replaced by get_meeple_by_id. Before the match
 starts all jumons within the new meeple dict
 has to be send to all players, so the clients
 know all ids of all jumons.
+
+
+Neutral Player:
+---------------
+The neutral player and its jumons could be downgraded
+to static meeps which arent moving. In conclusion this
+could mean that there is no need for a neutral player
+at all, all neutral jumons could be placed on the arena
+preequipped with artefacts. But even with moving jumons
+there is no need for special neutral jumons, the neutral
+player could generate the right events for the rule-building
+state machiene. This would be a great hook for an ai later on.
+
+
+Neutral Jumons:
+---------------
+The preequipped artefacts for the neutral jumons should stay
+the same over the matches. This way users can build up there
+strategies around certain artefacts in play.
