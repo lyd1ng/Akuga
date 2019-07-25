@@ -1,71 +1,37 @@
-import random
-from Akuga.MatchServer.Meeple import (Jumon, TestNeutralJumon)
-
 """
-This module contains a dictionary with all meeples in the game
-stored under their name. Every other part of the program will
-reference this meeples. This is used to translate the meeple names
-within the commands send over the internet to a the meeple references.
+This module contain the name_constructor dict and other functions
+to build up the pickpool and translate the active sets of all users
+to a list of jumon instances
 """
+from Akuga.MatchServer.Meeple import Jumon
 
-MeepleDict = {
-    "Jumon1": Jumon("Jumon1", "red", 400, 400, 1, None, None),
-    "Jumon2": Jumon("Jumon2", "blue", 400, 400, 1, None, None),
-    "Jumon3": Jumon("Jumon3", "green", 400, 400, 1, None, None),
-    "Jumon4": Jumon("Jumon4", "black", 400, 400, 1, None, None),
-    "NJ1__neutral": TestNeutralJumon("NeutralJumon1", None)
+
+JUMON_NAME_CONSTRUCTOR_DICT = {
+    'Stumblestone':
+        lambda _id: Jumon('Stumblestone', _id, 'blue', 350, 680, 1),
+    'Orgenthor die Zwillingsbrut':
+        lambda _id: Jumon('Orgenthor die Zwillingsbrut', _id, 'red', 800, 700, 1),
+    'Engel des Eisenbaumwaldes':
+        lambda _id: Jumon('Engel des Eisenbaumwaldes', _id, 'green', 600, 600, 2),
+    'Unkrautjaehter':
+        lambda _id: Jumon('Unkrautjaehter', _id, 'green', 660, 520, 1),
+    'Krieger des Schattenstamms':
+        lambda _id: Jumon('Krieger des Schattenstamms', _id, 'black', 660, 630, 1),
+    'Steppenlaeufer':
+        lambda _id: Jumon('Steppenlaeufer', _id, 'blue', 410, 450),
+    'Kriselkrabbe':
+        lambda _id: Jumon('Kriselkrabbe', _id, 'red', 440, 430),
+    'Kopfgeldjaegerin Saphira':
+        lambda _id: Jumon('Kopfgeldjaeger Saphira', _id, 'red', 600, 575, 1),
+    'Wandersproessling':
+        lambda _id: Jumon('Wandersproessling', _id, 'green', 370, 370, 1),
+    'Erenorg Koenig der Wueste':
+        lambda _id: Jumon('Erenorg Koenig der Wueste', _id, 'black', 750, 750, 1),
+    'Phoenixkueken':
+        lambda _id: Jumon('Phoenixkueken', _id, 'blue', 400, 370, 1),
+    'Plodher':
+        lambda _id: Jumon('Plodher', _id, 'green', 435, 435, 1)
 }
 
-
-def get_meeple_by_name(meeple_name):
-    """
-    Get a meeple by its name
-    """
-    return MeepleDict[meeple_name]
-
-
-def get_neutral_meeples(amount):
-    """
-    Get a list of $amount neutral jumons without double occupancies
-    """
-    neutral_meeples = []
-    pool = []
-    # Filter for all neutral jumons (all jumons with a name including __neutral)
-    for neutral_meeple_name in filter(lambda x: x.find("__neutral") > 1,
-            list(MeepleDict.keys())):
-        neutral_meeples.append(MeepleDict[neutral_meeple_name])
-    # Get random jumons from the list without double occupancies
-    indices_cached = []
-    for i in range(0, min(amount, len(neutral_meeples))):
-        random_index = random.randint(0, len(neutral_meeples) - 1)
-        while random_index in indices_cached:
-            random_index = random.randint(0, len(neutral_meeples) - 1)
-        pool.append(neutral_meeples[random_index])
-        indices_cached.append(random_index)
-    return pool
-
-
-def get_not_neutral_meeples(amount):
-    """
-    Get a list of $amount not neutral jumons without double occupancies
-    """
-    not_neutral_meeples = []
-    pool = []
-    # Filter for all non neutral jumons (all jumons with a name not including __neutral)
-    for not_neutral_meeple_name in filter(lambda x: x.find("__neutral") < 0,
-            list(MeepleDict.keys())):
-        not_neutral_meeples.append(MeepleDict[not_neutral_meeple_name])
-    # Get random jumons from the list
-    indices_cached = []
-    for i in range(0, min(amount, len(not_neutral_meeples))):
-        random_index = random.randint(0, len(not_neutral_meeples) - 1)
-        while random_index in indices_cached:
-            random_index = random.randint(0, len(not_neutral_meeples) - 1)
-        pool.append(not_neutral_meeples[random_index])
-        indices_cached.append(random_index)
-    return pool
-
-
-if __name__ == "__main__":
-    print(get_not_neutral_meeples(10))
-    print(get_neutral_meeples(10))
+if __name__ == '__main__':
+    print(JUMON_NAME_CONSTRUCTOR_DICT['Jumon1'])
