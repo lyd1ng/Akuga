@@ -31,7 +31,9 @@ well. The function get_meeple_by_name has to be
 replaced by get_meeple_by_id. Before the match
 starts all jumons within the new meeple dict
 has to be send to all players, so the clients
-know all ids of all jumons.
+know all ids of all jumons. Also there has to be a
+dictionary storing all meeples by their ids.
+I say meeples, as artefacts got an id as well.
 
 
 Neutral Player:
@@ -51,3 +53,20 @@ Neutral Jumons:
 The preequipped artefacts for the neutral jumons should stay
 the same over the matches. This way users can build up there
 strategies around certain artefacts in play.
+
+
+Graphical Events:
+-----------------
+Graphical Events are send from the MatchServer to all the users,
+to keep track about the things happens in an opponents turn.
+Until know following graphical events are needes:
+
+gevent_summoning:id:pos
+gevent_burrying:id:pos
+gevent_moving:id:posA:posB
+gevent_special_ability:id:pos
+gevent_special_move:id:posA:posB
+gevent_fighting:id1:pos1:id2:pos2
+gevent_attackbonus:value:color:pos
+gevent_defensebonus:value:color:pos
+gevent_equipped:jumon_id:artefact_id:pos
