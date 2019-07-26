@@ -57,7 +57,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
     if tokens[0] == "PICK_JUMON" and len(tokens) >= 2:
         """
         Handles a pick jumon command
-        PICK_JUMON $name_of_the_jumon_to_pick
+        PICK_JUMON $id_of_the_jumon_to_pick
         """
         try:
             jumon = jumons_in_play[int(tokens[1])]
@@ -72,7 +72,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
     if tokens[0] == "SUMMON_JUMON" and len(tokens) >= 2:
         """
         Handles a summon jumon command
-        SUMMON_JUMON $name_of_the_jumon_to_summon
+        SUMMON_JUMON $id_of_the_jumon_to_summon
         """
         try:
             jumon = jumons_in_play[int(tokens[1])]
@@ -88,7 +88,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
     if tokens[0] == "MOVE_JUMON" and len(tokens) >= 3:
         """
         Handles a move jumon command
-        MOVE_JUMON $name_of_the_jumon_to_summon $target_position
+        MOVE_JUMON $id $target_position
         The target position is in the format $x,$y
         """
         try:
@@ -104,7 +104,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
                     msg="Invalid Position Data")
             queue.put(event)
             return
-        # Get the jumon to move by its name
+        # Get the jumon to move by its id
         try:
             jumon = jumons_in_play[int(tokens[1])]
         except (KeyError, ValueError):
@@ -122,7 +122,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
     if tokens[0] == "SPECIAL_MOVE_JUMON" and len(tokens) >= 3:
         """
         Handles a move jumon command
-        MOVE_JUMON $name_of_the_jumon_to_summon $target_position
+        MOVE_JUMON $id $target_position
         The target position is in the format $x,$y
         """
         try:
@@ -138,7 +138,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
                     msg="Invalid Position Data")
             queue.put(event)
             return
-        # Get the jumon to move by its name
+        # Get the jumon to move by its id
         try:
             jumon = jumons_in_play[int(tokens[1])]
         except (KeyError, ValueError):
@@ -173,10 +173,10 @@ def send_gamestate_to_client(connection, game_state):
     pick_pool_data_tokens = ["PICK_POOL_DATA"]
     for jumon in game_state.jumon_pick_pool:
         """
-        Send the name of the jumon and the
-        name of its equipment if there is one
+        Send the id of the jumon and the
+        id of its equipment if there is one
         """
-        pick_pool_data_tokens.append((str(jumon.id), jumon.equipment.name
+        pick_pool_data_tokens.append((jumon.id, jumon.equipment.id
             if jumon.equipment is not None
             else ""))
     send_packet(connection, pick_pool_data_tokens)
@@ -192,12 +192,12 @@ def send_gamestate_to_client(connection, game_state):
             player.name]
         # Go through all jumons to summon
         for jumon in player.jumons_to_summon:
-            pld_jumons_to_summon_token.append((jumon.name, jumon.equipment.name
+            pld_jumons_to_summon_token.append((jumon.id, jumon.equipment.id
                 if jumon.equipment is not None
                 else ""))
         # Go through all summoned jumons
         for jumon in player.summoned_jumons:
-            pld_summoned_jumons.append((jumon.name, jumon.equipment.name
+            pld_summoned_jumons.append((jumon.id, jumon.equipment.id
                 if jumon.equipment is not None
                 else ""))
         # Send the data
@@ -211,11 +211,11 @@ def send_gamestate_to_client(connection, game_state):
         "ARENA_DATA",
         (game_state.arena.board_width, game_state.arena.board_height)]
     # Go through all tiles of the arena and append
-    # the names of the occupying meeple
+    # the ids of the occupying meeple
     for y in range(game_state.arena.board_height):
         for x in range(game_state.arena.board_width):
             meeple = game_state.arena.get_unit_at(Position(x, y))
-            packet_tokens.append(meeple.name if meeple is not None else "")
+            packet_tokens.append(meeple.id if meeple is not None else "")
     send_packet(connection, packet_tokens)
 
     # Now go through all jumons summoned and send the interferences
@@ -227,11 +227,11 @@ def send_gamestate_to_client(connection, game_state):
             # They can be parsed using the ast.literal_eval function
             nonpersistent_interference_tokens = [
                 'JUMON_NONPERSISTENT_INTERFERENCE',
-                jumon.name,
+                jumon.id,
                 jumon.nonpersistent_interf]
             persistent_interference_tokens = [
                 'JUMON_PERSISTENT_INTERFERENCE',
-                jumon.name,
+                jumon.id,
                 jumon.persistent_interf]
             # Send the packets
             send_packet(connection, nonpersistent_interference_tokens)
