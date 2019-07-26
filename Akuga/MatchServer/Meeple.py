@@ -9,6 +9,10 @@ class Artefact():
     """
     def __init__(self, name, position):
         self.name = name
+        # This is only needed to make
+        # the interface of the jumon and
+        # the artefact class equivilant
+        self.id = self.name
         self.position = position
 
     def attach_to(self, jumon):
@@ -52,7 +56,7 @@ class Jumon():
     which is the unit to summon by a player
     """
     def __init__(self, name, _id, color, attack, defense, movement,
-                 equipment, owned_by):
+                 equipment=None, owned_by=None):
         super().__init__()
         self.name = name
         self.id = _id
