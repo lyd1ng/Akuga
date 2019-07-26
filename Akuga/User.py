@@ -39,6 +39,8 @@ class User:
         self.sets = [set0, set1, set2]
         self.connection = connection
         self.client_address = client_address
+        # The active set (will always set before the user is enqueued)
+        self.active_set = 0
         self.in_play = False
         # Make the user class threadsafe even if it should never be altered
         # by more than one thread
