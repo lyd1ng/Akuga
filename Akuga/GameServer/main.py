@@ -184,8 +184,8 @@ def handle_client(connection, client_address,
                 Enqueue the user in the queue for the specified game mode
                 """
                 try:
-                    active_set = int(tokens[2])
-                    if active_set < 0 or active_set > 2:
+                    active_set_index = int(tokens[2])
+                    if active_set_index < 0 or active_set_index > 2:
                         raise ValueError
                 except ValueError:
                     send_packet(connection, ['ERROR',
@@ -193,17 +193,20 @@ def handle_client(connection, client_address,
                     logger.info('One of the parameters where malformed')
                     logger.info('Received from: ' + str(client_address))
                     continue
+                # At this point int the code it is proofen that the
+                # active set index is valid so set the users active set
+                user.active_set = user.sets[active_set_index]
                 if tokens[1] == 'lms':
                     logger.info("Enqueue " + user.name + "for lms")
-                    if not check_set_for_lms(user.sets[active_set]):
+                    if not check_set_for_lms(user.active_set):
                         send_packet(user.connection, ['ERROR', 'Illegal set'])
                         continue
                     # At this point in the code the set is proofed to be valid
-                    lms_queue.put((user, active_set))
+                    lms_queue.put(user)
                     send_packet(connection, ["SUCCESFULLY_ENQUEUED", "lms"])
                 elif tokens[1] == 'amm':
                     logger.info("Enqueue " + user.name + "for amm")
-                    amm_queue.put((user, active_set))
+                    amm_queue.put(user)
                     send_packet(connection, ["SUCCESFULLY_ENQUEUED", "amm"])
                 else:
                     logger.info("Invalid game mode: " + tokens[1])
@@ -350,14 +353,14 @@ def handle_lms_queue(lms_queue):
     """
     while True:
         # Get two users from the queue
-        user1, user1_active_set = lms_queue.get()
+        user1 = lms_queue.get()
         user1.in_play = True
-        user2, user2_active_set = lms_queue.get()
+        user2 = lms_queue.get()
         user2.in_play = True
         logger.info("Got two user for a lms match")
         logger.info("Start MatchServer subprocess")
         match_server_thread = Thread(target=match_server, args=('lms',
-            [(user1, user1_active_set), (user2, user2_active_set)], None))
+            [user1, user2], None))
         match_server_thread.start()
         logger.info("Started MatchServer subprocess")
         # Signal that the users has been processed
