@@ -1,6 +1,5 @@
 import socket
 import pygame
-from Akuga.MatchServer.MeepleDict import get_meeple_by_name
 from Akuga.MatchServer.Position import Position
 from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_MOVE_EVENT,
@@ -49,7 +48,7 @@ def send_packet(connection, tokens, terminator="END\n"):
     connection.send(query)
 
 
-def handle_match_connection(tokens, queue):
+def handle_match_connection(tokens, queue, jumons_in_play):
     """
     Receives a package from connection with a timeout of the defined
     seconds per turn. If the socket times out the current player is killed.
@@ -61,8 +60,8 @@ def handle_match_connection(tokens, queue):
         PICK_JUMON $name_of_the_jumon_to_pick
         """
         try:
-            jumon = get_meeple_by_name(tokens[1])
-        except KeyError:
+            jumon = jumons_in_play[int(tokens[1])]
+        except (KeyError, ValueError):
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
@@ -76,8 +75,8 @@ def handle_match_connection(tokens, queue):
         SUMMON_JUMON $name_of_the_jumon_to_summon
         """
         try:
-            jumon = get_meeple_by_name(tokens[1])
-        except KeyError:
+            jumon = jumons_in_play[int(tokens[1])]
+        except (KeyError, ValueError):
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
@@ -107,8 +106,8 @@ def handle_match_connection(tokens, queue):
             return
         # Get the jumon to move by its name
         try:
-            jumon = get_meeple_by_name(tokens[1])
-        except KeyError:
+            jumon = jumons_in_play[int(tokens[1])]
+        except (KeyError, ValueError):
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
@@ -141,8 +140,8 @@ def handle_match_connection(tokens, queue):
             return
         # Get the jumon to move by its name
         try:
-            jumon = get_meeple_by_name(tokens[1])
-        except KeyError:
+            jumon = jumons_in_play[int(tokens[1])]
+        except (KeyError, ValueError):
             event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
@@ -177,7 +176,7 @@ def send_gamestate_to_client(connection, game_state):
         Send the name of the jumon and the
         name of its equipment if there is one
         """
-        pick_pool_data_tokens.append((jumon.name, jumon.equipment.name
+        pick_pool_data_tokens.append((str(jumon.id), jumon.equipment.name
             if jumon.equipment is not None
             else ""))
     send_packet(connection, pick_pool_data_tokens)
