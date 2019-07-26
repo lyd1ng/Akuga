@@ -72,7 +72,7 @@ def is_subset(smaller_set, larger_set):
 def serialize_set(jumon_set):
     """
     Return the set as a plain string of coma delimited jumon names.
-    The amount of a jumos is representes by repetitions of the name
+    The amount of a jumos is represented by repetitions of the name
     """
     serialized_string = ''
     for record in jumon_set.items():
@@ -80,6 +80,18 @@ def serialize_set(jumon_set):
             serialized_string += record[0] + ','
     # Skip the last character its a superfluous coma
     return serialized_string[:-1]
+
+
+def serialize_set_to_list(jumon_set):
+    """
+    Return the set as a list of jumon names.
+    The amount of a jumos is represented by repetitions of the item
+    """
+    result = []
+    for record in jumon_set.items():
+        for i in range(record[1]):
+            result.append(record[0])
+    return result
 
 
 def get_set_size(jumon_set):
@@ -93,4 +105,5 @@ if __name__ == '__main__':
     setA = jumon_set_from_list(['jumon1', 'jumon2', 'jumon2', 'jumon4'])
     setB = jumon_set_from_list(['jumon1', 'jumon2', 'jumon2', 'jumon4'])
     print(serialize_set(setA))
+    print(serialize_set_to_list(setA))
     print(get_set_size(setA))
