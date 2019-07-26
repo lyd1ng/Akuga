@@ -17,10 +17,10 @@ JUMON_NAME_CONSTRUCTOR_DICT = {
         lambda _id: Jumon('Unkrautjaehter', _id, 'green', 660, 520, 1),
     'Krieger des Schattenstamms':
         lambda _id: Jumon('Krieger des Schattenstamms', _id, 'black', 660, 630, 1),
-    'Steppenlaeufer':
-        lambda _id: Jumon('Steppenlaeufer', _id, 'blue', 410, 450),
+    'Steppenlauefer':
+        lambda _id: Jumon('Steppenlauefer', _id, 'blue', 410, 450, 1),
     'Kriselkrabbe':
-        lambda _id: Jumon('Kriselkrabbe', _id, 'red', 440, 430),
+        lambda _id: Jumon('Kriselkrabbe', _id, 'red', 440, 430, 1),
     'Kopfgeldjaegerin Saphira':
         lambda _id: Jumon('Kopfgeldjaeger Saphira', _id, 'red', 600, 575, 1),
     'Wandersproessling':
@@ -30,7 +30,9 @@ JUMON_NAME_CONSTRUCTOR_DICT = {
     'Phoenixkueken':
         lambda _id: Jumon('Phoenixkueken', _id, 'blue', 400, 370, 1),
     'Plodher':
-        lambda _id: Jumon('Plodher', _id, 'green', 435, 435, 1)
+        lambda _id: Jumon('Plodher', _id, 'green', 435, 435, 1),
+    'Blauta':
+        lambda _id: Jumon('Blauta', _id, 'green', 410, 410, 1)
 }
 
 if __name__ == '__main__':
