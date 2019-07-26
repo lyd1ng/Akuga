@@ -6,7 +6,7 @@ import socket
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import create_arena
-from Akuga.MatchServer.MeepleDict import (get_neutral_meeples, get_not_neutral_meeples)
+from Akuga.MatchServer.MeepleDict import JUMON_NAME_CONSTRUCTOR_DICT
 from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
 from Akuga.MatchServer.NetworkProtocoll import (
@@ -19,6 +19,7 @@ from Akuga.EventDefinitions import (
     TURN_ENDS,
     MATCH_IS_DRAWN,
     PLAYER_HAS_WON)
+from Akuga.JumonSet import serialize_set_to_list
 from Akuga.User import User
 
 
@@ -35,28 +36,53 @@ def find_user_by_name(username, users):
     return None
 
 
-def build_last_man_standing_game_state(player_chain, _queue, options={}):
+def build_last_man_standing_game_state(player_chain, jumon_sets,
+        _queue, options={}):
     # Build the arena
     arena = create_arena(GlobalDefinitions.BOARD_WIDTH,
                         GlobalDefinitions.BOARD_HEIGHT,
                         GlobalDefinitions.MIN_TILE_BONUS,
                         GlobalDefinitions.MAX_TILE_BONUS)
-    # Add a neutral player to the player chain
-    neutral_player = NeutralPlayer(arena)
-    neutral_player.set_jumons_to_summon(get_neutral_meeples(1))
-    neutral_player.summon_jumons()
-    player_chain.insert_player(neutral_player)
+    # Create the jumon pick pool out of the users active sets
+    # Every jumon in the match will have a unique id
+    jumon_id = 0
+    jumon_pick_pool = []
+    # Go through all jumon sets
+    for jumon_set in jumon_sets:
+        # Convert the set to a list for easier processing
+        jumon_set_as_name_list = serialize_set_to_list(jumon_set)
+        # Now generate the correct jumon instance for every name
+        # in the list of jumon names representing the set of a player
+        for jumon_name in jumon_set_as_name_list:
+            # The JUMON_NAME_CONSTRUCTOR_DICT is a dictionary storing
+            # the right constructor under the name of the jumon, only the
+            # id has to be passed
+            jumon_pick_pool.append(
+                JUMON_NAME_CONSTRUCTOR_DICT[jumon_name](jumon_id))
+            # Simply increment the jumon id to make sure every jumon
+            # has a unique id
+            jumon_id += 1
+
+    # Beside the jumon pick pool a dictionary mapping the id of a jumon to
+    # its instance is needed. So go through the pick pool and add every jumon
+    # to this dictionary when a neutral player is added all of its jumons
+    # should be added to this dictionary as well
+    jumons_in_play = {}
+    for jumon in jumon_pick_pool:
+        jumons_in_play[jumon.id] = jumon
+
     # Build the state machiene which represents the whole game state
     game_state = AkugaStateMachiene.create_last_man_standing_fsm()
     game_state.add_data("queue", _queue)
     game_state.add_data("arena", arena)
     game_state.add_data("player_chain", player_chain)
-    game_state.add_data("jumon_pick_pool", get_not_neutral_meeples(2))
+    game_state.add_data("jumons_in_play", jumons_in_play)
+    game_state.add_data("jumon_pick_pool", jumon_pick_pool)
     game_state.add_data("post_turn_state_changes", [])
     game_state.add_data("timeout_timer", 0)
     game_state.add_data("old_time", 0)
     game_state.add_data("current_time", 0)
-
+    print('succsessfully passed the build lms game state function!')
     return game_state
 
 
@@ -64,7 +90,7 @@ def match_server(game_mode, users, options={}):
     """
     The actual game runs here and is propagated to the users
     game_mode: string
-    users: list of (player_name, player_connection)
+    users: list of user instances
     options: A dictionary with options, not used yet
     """
     # Will hold the victor at the end
@@ -83,11 +109,16 @@ def match_server(game_mode, users, options={}):
     # Create the queue
     _queue = queue.Queue()
 
+    # Get the active jumon sets as a list
+    jumon_sets = []
+    for user in users:
+        jumon_sets.append(user.active_set)
+
     game_state = None
     if game_mode == "lms":
         logger.info("Game Mode: LastManStanding\n")
         game_state = build_last_man_standing_game_state(player_chain,
-                _queue, options)
+                jumon_sets, _queue, options)
     else:
         logger.info("Game Mode: Unknown...Terminating\n")
         return
@@ -122,7 +153,7 @@ def match_server(game_mode, users, options={}):
             user = find_user_by_name(game_state.player_chain.
                 get_current_player().name, users)
             callback_recv_packet(user.connection, 512, handle_match_connection,
-                [_queue])
+                [_queue, game_state.jumons_in_play])
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
