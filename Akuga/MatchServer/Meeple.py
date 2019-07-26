@@ -7,12 +7,9 @@ class Artefact():
     """
     The abstraction around an equipment or artifact
     """
-    def __init__(self, name, position):
+    def __init__(self, name, _id, position):
         self.name = name
-        # This is only needed to make
-        # the interface of the jumon and
-        # the artefact class equivilant
-        self.id = self.name
+        self._id = self.id
         self.position = position
 
     def attach_to(self, jumon):
