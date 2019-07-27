@@ -225,8 +225,18 @@ if __name__ == "__main__":
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('localhost', port))
     server_socket.listen(2)
-    users = [User('lyding', 'magical_hash', None, None),
-             User('lyding2', 'magical_hash', None, None)]
+
+    # Create the two sets the players are going to play with
+    set1 = {'Blauta': 3, 'Plodher': 3, 'Steppenlauefer': 1}
+    set2 = {'Blauta': 3, 'Plodher': 3, 'Steppenlauefer': 1}
+    # Create both users with only the first jumon set specified
+    # Their dont need a collection cause the set if checked for
+    # legality at the game server side
+    users = [User('lyding', 'magical_hash', 0, [], set1, [], [], None, None),
+             User('lyding2', 'magical_hash', 0, [], set2, [], [], None, None)]
+    # Now set the active set to be the first one
+    users[0].active_set = set1
+    users[1].active_set = set2
 
     try:
         print('Waiting for players')
