@@ -520,7 +520,7 @@ class CheckMoveState(State):
         """
         move_path = find_path(current_position, target_position, self.fsm.arena)
         if move_path is None or len(move_path) == 0\
-                or len(move_path) - 1 > jumon.movement:
+                or len(move_path) - 1 > jumon.get_total_movement():
             """
             If the target move is invalid in length just jump back to the
             idle state.
