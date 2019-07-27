@@ -64,6 +64,13 @@ class Jumon():
         self.equipment = equipment
         self.owned_by = owned_by
         self.position = None
+        # Two dictionaries of the form
+        # interfering_jumon_name: (attack_intf, defense_int, movement_int)
+        # The nonpersisten interferences are cleared in the turn_begin
+        # state of the rule building fsm while the persisten interferences
+        # have to be cleared manually
+        # These interferences will be used to get the total attack, defense
+        # an movement value of the jumon
         self.persistent_interf = {}
         self.nonpersistent_interf = {}
 
@@ -150,6 +157,17 @@ class Jumon():
         for interf in self.persistent_interf.values():
             total_defense += interf[1]
         return total_defense
+
+    def get_total_movement(self):
+        """
+        Sum up the movement and all movement interferences
+        """
+        total_movement = self.movement
+        for interf in self.nonpersistent_interf.values():
+            total_movement += interf[2]
+        for interf in self.persistent_interf.values():
+            total_movement += interf[2]
+        return total_movement
 
 
 class TestNeutralJumon(Jumon):
