@@ -2,6 +2,7 @@ import pygame
 import queue
 import logging
 import socket
+from time import sleep
 
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
@@ -170,13 +171,8 @@ def match_server(game_mode, users, options={}):
                     handle_match_connection,
                     [_queue, game_state.jumons_in_play])
             except SocketClosed:
-                # If the foreign side closed the socket kill the player,
-                # remove the user from the users list and construct a
-                # timeout event for the rule building fsm
-                game_state.player_chain.get_current_player().kill()
-                remove_user_by_name(game_state.player_chain.
-                    get_current_player().name, users)
-                _queue.put(pygame.event.Event(TIMEOUT_EVENT))
+                # _queue.put(pygame.event.Event(TIMEOUT_EVENT))
+                sleep(1)
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
