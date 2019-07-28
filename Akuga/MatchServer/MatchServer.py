@@ -10,6 +10,7 @@ from Akuga.MatchServer.MeepleDict import JUMON_NAME_CONSTRUCTOR_DICT
 from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
 from Akuga.MatchServer.NetworkProtocoll import (
+    SocketClosed,
     callback_recv_packet,
     handle_match_connection,
     send_gamestate_to_client,
@@ -18,7 +19,8 @@ from Akuga.EventDefinitions import (
     PACKET_PARSER_ERROR_EVENT,
     TURN_ENDS,
     MATCH_IS_DRAWN,
-    PLAYER_HAS_WON)
+    PLAYER_HAS_WON,
+    TIMEOUT_EVENT)
 from Akuga.JumonSet import serialize_set_to_list
 from Akuga.User import User
 
@@ -34,6 +36,17 @@ def find_user_by_name(username, users):
     if len(result) == 1:
         return result[0]
     return None
+
+
+def remove_user_by_name(username, users):
+    '''
+    Remove an instance of a user in users by pers name
+    This will be used if a player disconnects from the server
+    to avoid sending data to a broken pipe
+    '''
+    user = find_user_by_name(username, users)
+    if user is not None:
+        users.remove(user)
 
 
 def build_last_man_standing_game_state(player_chain, jumon_sets,
@@ -152,8 +165,18 @@ def match_server(game_mode, users, options={}):
             # Receive packets only from the current user
             user = find_user_by_name(game_state.player_chain.
                 get_current_player().name, users)
-            callback_recv_packet(user.connection, 512, handle_match_connection,
-                [_queue, game_state.jumons_in_play])
+            try:
+                callback_recv_packet(user.connection, 512,
+                    handle_match_connection,
+                    [_queue, game_state.jumons_in_play])
+            except SocketClosed:
+                # If the foreign side closed the socket kill the player,
+                # remove the user from the users list and construct a
+                # timeout event for the rule building fsm
+                game_state.player_chain.get_current_player().kill()
+                remove_user_by_name(game_state.player_chain.
+                    get_current_player().name, users)
+                _queue.put(pygame.event.Event(TIMEOUT_EVENT))
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
@@ -162,7 +185,6 @@ def match_server(game_mode, users, options={}):
 
         game_state.run(event)
         # Handle the events which are not handeld by the gamestate itself
-
         game_state.arena.print_out()
         if event.type == PACKET_PARSER_ERROR_EVENT:
             # Print the event msg but ignore the packet
