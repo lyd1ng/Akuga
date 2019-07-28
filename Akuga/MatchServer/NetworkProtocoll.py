@@ -9,6 +9,15 @@ from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
                                     TIMEOUT_EVENT)
 
 
+class SocketClosed(Exception):
+    '''
+    The socket module does not raise an error, if the foreign site
+    closes the socket unexpectatly, the SocketClosed error will be raised
+    to signal this situation
+    '''
+    pass
+
+
 def callback_recv_packet(connection, nbytes, callback, args, delimiter=':',
         terminator="END\n"):
     """
@@ -23,6 +32,9 @@ def callback_recv_packet(connection, nbytes, callback, args, delimiter=':',
         # a decision has passed, so construct a packet which will trigger
         # the timeout branch within the rule building fsm
         data = b'TIMEOUT:END\n'
+    if not data:
+        # If the client closed the connection raise the SocketClosed error
+        raise SocketClosed()
     data = data.decode('utf-8')
     # Packets are sepereated by their terminator
     packets = data.split(terminator)
