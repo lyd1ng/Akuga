@@ -65,7 +65,7 @@ def handle_client(connection, client_address,
                 # If the user was logged which means part of the active user list
                 # remove per from it so per can log in again
                 if user is not None:
-                    active_users.remove(user.name)
+                    active_users.remove(user)
                 break
 
             if tokens[0] == "REGISTER_USER" and len(tokens) >= 3:
@@ -137,7 +137,8 @@ def handle_client(connection, client_address,
                     # An error occured, pass the error to the client
                     logger.info("Database error: " + error)
                     send_packet(connection, ["ERROR", error])
-                if len(response) > 0 and username not in active_users:
+                if len(response) > 0 and username not in\
+                        list(map(lambda x: x.name, active_users)):
                     """
                     If there is a result (there should never be one than more
                     but keep > 0 for safety) the credentials are correct.
@@ -160,9 +161,29 @@ def handle_client(connection, client_address,
 
                     # Add the user to the active users so per cant
                     # log in a second time
-                    active_users.append(username)
+                    active_users.append(user)
                     logger.info("Logging in: " + username)
                     send_packet(connection, ["SUCCESSFULLY_LOGGED_IN"])
+                elif len(response) > 0:
+                    """
+                    If the user is in the active user list check if per is in
+                    play. If the user is in play per disconnected and this
+                    is pers reconnection attempt, so just set the user
+                    instance to the already stored user instance
+                    """
+                    # Get the user instance of the given name
+                    user_index = list(map(lambda x: x.name, active_users)).\
+                        index(username)
+                    tmp_user = active_users[user_index]
+                    if tmp_user.in_play is True:
+                        # This is a reconnect attempt, so set the user
+                        # instance to the already pers old user instance
+                        # in the active user list
+                        tmp_user.connection = connection
+                        tmp_user.client_address = client_address
+                        logger.info("Logging in: " + username)
+                        send_packet(connection, ["SUCCESSFULLY_LOGGED_IN"])
+                        return
         elif user.in_play is False:
             """
             If the user is logged in an not playing a match
@@ -176,7 +197,7 @@ def handle_client(connection, client_address,
                 # If the user was logged which means part of the active user list
                 # remove per from it so per can log in again
                 if user is not None:
-                    active_users.remove(user.name)
+                    active_users.remove(user)
                 break
             print("logged in and not in play")
             if tokens[0] == 'ENQUEUE_FOR_MATCH' and len(tokens) >= 3:
@@ -406,7 +427,7 @@ if __name__ == '__main__':
     lms_queue = queue.Queue()
     amm_queue = queue.Queue()
 
-    # A list of all usernames currently logged in
+    # A list of all users currently logged in
     active_users = []
 
     # Create and start the handle game mode queue threads for each game mode
