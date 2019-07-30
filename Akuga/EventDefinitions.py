@@ -40,3 +40,9 @@ class Event:
         Only the event type is compared
         '''
         return self.type == other
+
+
+if __name__ == '__main__':
+    e = Event(SUMMON_JUMON_EVENT, jumon='test_abc')
+    if e == SUMMON_JUMON_EVENT:
+        print(e.jumon)
