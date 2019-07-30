@@ -1,5 +1,4 @@
 import random
-import pygame
 import time
 from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.Meeple
@@ -7,7 +6,8 @@ from Akuga.MatchServer.PathFinder import find_path
 from Akuga.MatchServer.Position import Position
 from Akuga.MatchServer.Player import NeutralPlayer
 from Akuga.MatchServer.StateMachieneState import StateMachieneState as State
-from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
+from Akuga.EventDefinitions import (Event,
+                                    SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_MOVE_EVENT,
                                     SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
                                     PICK_JUMON_EVENT,
@@ -463,7 +463,7 @@ class ChangePlayerState(State):
             After this event has been handeld the state machiene should
             not be updated anymore
             """
-            drawn_event = pygame.event.Event(MATCH_IS_DRAWN)
+            drawn_event = Event(MATCH_IS_DRAWN)
             self.fsm.queue.put(drawn_event)
         # Check if a player has won
         victor = self.check_for_victory()
@@ -472,7 +472,7 @@ class ChangePlayerState(State):
             After this event has been handeld the state machiene should
             not be updated anymore
             """
-            won_event = pygame.event.Event(PLAYER_HAS_WON, victor=victor)
+            won_event = Event(PLAYER_HAS_WON, victor=victor)
             self.fsm.queue.put(won_event)
         """
         If no one has won and its not drawn change the player and
@@ -483,7 +483,7 @@ class ChangePlayerState(State):
         Throw an turn ends event to refresh the gamestate for the clients
         and propagate the changes on the gamestate.
         """
-        event = pygame.event.Event(TURN_ENDS)
+        event = Event(TURN_ENDS)
         self.fsm.queue.put(event)
         return (self.fsm.turn_begin_state, {})
 

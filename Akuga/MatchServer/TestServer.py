@@ -1,7 +1,7 @@
-import pygame
 import queue
 import logging
 import socket
+from time import sleep
 
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
@@ -10,11 +10,14 @@ from Akuga.MatchServer.MeepleDict import JUMON_NAME_CONSTRUCTOR_DICT
 from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
 from Akuga.MatchServer.NetworkProtocoll import (
+    SocketClosed,
     callback_recv_packet,
     handle_match_connection,
     send_gamestate_to_client,
     send_packet)
 from Akuga.EventDefinitions import (
+    Event,
+    NOEVENT,
     PACKET_PARSER_ERROR_EVENT,
     TURN_ENDS,
     MATCH_IS_DRAWN,
@@ -34,6 +37,17 @@ def find_user_by_name(username, users):
     if len(result) == 1:
         return result[0]
     return None
+
+
+def remove_user_by_name(username, users):
+    '''
+    Remove an instance of a user in users by pers name
+    This will be used if a player disconnects from the server
+    to avoid sending data to a broken pipe
+    '''
+    user = find_user_by_name(username, users)
+    if user is not None:
+        users.remove(user)
 
 
 def build_last_man_standing_game_state(player_chain, jumon_sets,
@@ -152,17 +166,21 @@ def match_server(game_mode, users, options={}):
             # Receive packets only from the current user
             user = find_user_by_name(game_state.player_chain.
                 get_current_player().name, users)
-            callback_recv_packet(user.connection, 512, handle_match_connection,
-                [_queue, game_state.jumons_in_play])
+            try:
+                callback_recv_packet(user.connection, 512,
+                    handle_match_connection,
+                    [_queue, game_state.jumons_in_play])
+            except SocketClosed:
+                # _queue.put(Event(TIMEOUT_EVENT))
+                sleep(1)
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
         except queue.Empty:
-            event = pygame.event.Event(pygame.NOEVENT)
+            event = Event(NOEVENT)
 
         game_state.run(event)
         # Handle the events which are not handeld by the gamestate itself
-
         game_state.arena.print_out()
         if event.type == PACKET_PARSER_ERROR_EVENT:
             # Print the event msg but ignore the packet

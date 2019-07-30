@@ -1,7 +1,7 @@
 import socket
-import pygame
 from Akuga.MatchServer.Position import Position
-from Akuga.EventDefinitions import (SUMMON_JUMON_EVENT,
+from Akuga.EventDefinitions import (Event,
+                                    SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_MOVE_EVENT,
                                     SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
                                     PICK_JUMON_EVENT,
@@ -77,11 +77,11 @@ def handle_match_connection(tokens, queue, jumons_in_play):
         try:
             jumon = jumons_in_play[int(tokens[1])]
         except (KeyError, ValueError):
-            event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
+            event = Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
             return
-        jumon_pick_event = pygame.event.Event(PICK_JUMON_EVENT,
+        jumon_pick_event = Event(PICK_JUMON_EVENT,
                 jumon=jumon)
         queue.put(jumon_pick_event)
     if tokens[0] == "SUMMON_JUMON" and len(tokens) >= 2:
@@ -92,11 +92,11 @@ def handle_match_connection(tokens, queue, jumons_in_play):
         try:
             jumon = jumons_in_play[int(tokens[1])]
         except (KeyError, ValueError):
-            event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
+            event = Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
             return
-        jumon = pygame.event.Event(SUMMON_JUMON_EVENT,
+        jumon = Event(SUMMON_JUMON_EVENT,
                 jumon=jumon)
         queue.put(jumon)
 
@@ -115,7 +115,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
             position_x = int(position_x_str)
             position_y = int(position_y_str)
         except ValueError:
-            event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
+            event = Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Position Data")
             queue.put(event)
             return
@@ -123,12 +123,12 @@ def handle_match_connection(tokens, queue, jumons_in_play):
         try:
             jumon = jumons_in_play[int(tokens[1])]
         except (KeyError, ValueError):
-            event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
+            event = Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
             return
         # If no error occured the event can be thrown
-        jumon_move_event = pygame.event.Event(SELECT_JUMON_TO_MOVE_EVENT,
+        jumon_move_event = Event(SELECT_JUMON_TO_MOVE_EVENT,
                 jumon=jumon,
                 current_position=jumon.get_position(),
                 target_position=Position(position_x, position_y))
@@ -149,7 +149,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
             position_x = int(position_x_str)
             position_y = int(position_y_str)
         except ValueError:
-            event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
+            event = Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Position Data")
             queue.put(event)
             return
@@ -157,12 +157,12 @@ def handle_match_connection(tokens, queue, jumons_in_play):
         try:
             jumon = jumons_in_play[int(tokens[1])]
         except (KeyError, ValueError):
-            event = pygame.event.Event(PACKET_PARSER_ERROR_EVENT,
+            event = Event(PACKET_PARSER_ERROR_EVENT,
                     msg="Invalid Meeple")
             queue.put(event)
             return
         # If no error occured the event can be thrown
-        jumon_special_move_event = pygame.event.Event(
+        jumon_special_move_event = Event(
             SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
             jumon=jumon,
             current_position=jumon.get_position(),
@@ -173,7 +173,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
     # If the connection timed out enqueue a timeout event
     # to go through the timeout state branch in the rule building fsm
     if tokens[0] == "TIMEOUT":
-        event = pygame.event.Event(TIMEOUT_EVENT)
+        event = Event(TIMEOUT_EVENT)
         queue.put(event)
         return
 
@@ -254,47 +254,3 @@ def send_gamestate_to_client(connection, game_state):
     # Now send the name of the current player
     send_packet(connection, ["CURRENT_PLAYER",
         game_state.player_chain.get_current_player().name])
-
-
-if __name__ == "__main__":
-    from Akuga.Player import Player
-    from Akuga.PlayerChain import PlayerChain
-    from Akuga.ArenaCreator import create_arena
-    import Akuga.GlobalDefinitions as GlobalDefinitions
-    import Akuga.AkugaStateMachiene as AkugaStateMachiene
-
-    pygame.init()
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(("localhost", 12345))
-    server_socket.listen(1)
-
-    player1 = Player("player1")
-    player2 = Player("player2")
-    player_chain = PlayerChain(player1, player2)
-
-    get_meeple_by_name("Jumon1").set_owner(player1)
-    get_meeple_by_name("Jumon2").set_owner(player1)
-    player1.add_jumon_to_summon(get_meeple_by_name("Jumon1"))
-    player1.add_jumon_to_summon(get_meeple_by_name("Jumon2"))
-
-    get_meeple_by_name("Jumon3").set_owner(player2)
-    get_meeple_by_name("Jumon4").set_owner(player2)
-    player2.add_jumon_to_summon(get_meeple_by_name("Jumon3"))
-    player2.add_jumon_to_summon(get_meeple_by_name("Jumon4"))
-
-    arena = create_arena(GlobalDefinitions.BOARD_WIDTH,
-                        GlobalDefinitions.BOARD_HEIGHT,
-                        0, 255)
-    game_state = AkugaStateMachiene.create_last_man_standing_fsm()
-    game_state.add_data("arena", arena)
-    game_state.add_data("player_chain", player_chain)
-    game_state.add_data("jumon_pick_pool", [get_meeple_by_name("Jumon5")])
-
-    arena.place_unit_at(get_meeple_by_name("NeutralJumon1"), Position(0, 0))
-
-    while True:
-        connection, address = server_socket.accept()
-        send_gamestate_to_client(connection, game_state)
-        connection.close()
-
-    server_socket.close()

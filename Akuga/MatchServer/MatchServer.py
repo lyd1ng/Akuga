@@ -1,4 +1,3 @@
-import pygame
 import queue
 import logging
 import socket
@@ -17,11 +16,12 @@ from Akuga.MatchServer.NetworkProtocoll import (
     send_gamestate_to_client,
     send_packet)
 from Akuga.EventDefinitions import (
+    Event,
+    NOEVENT,
     PACKET_PARSER_ERROR_EVENT,
     TURN_ENDS,
     MATCH_IS_DRAWN,
-    PLAYER_HAS_WON,
-    TIMEOUT_EVENT)
+    PLAYER_HAS_WON)
 from Akuga.JumonSet import serialize_set_to_list
 from Akuga.User import User
 
@@ -171,13 +171,13 @@ def match_server(game_mode, users, options={}):
                     handle_match_connection,
                     [_queue, game_state.jumons_in_play])
             except SocketClosed:
-                # _queue.put(pygame.event.Event(TIMEOUT_EVENT))
+                # _queue.put(Event(TIMEOUT_EVENT))
                 sleep(1)
         # Get an event from the queue and mimic the pygame event behaviour
         try:
             event = _queue.get_nowait()
         except queue.Empty:
-            event = pygame.event.Event(pygame.NOEVENT)
+            event = Event(NOEVENT)
 
         game_state.run(event)
         # Handle the events which are not handeld by the gamestate itself
