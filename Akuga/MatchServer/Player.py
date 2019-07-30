@@ -10,8 +10,9 @@ class Player:
     a Jumon. If every jumon is set the player goes into move phase
     where per is allowed to move one of the jumons
     """
-    def __init__(self, name, is_neutral=False):
-        self.name = name
+    def __init__(self, user, is_neutral=False):
+        self.name = user.name
+        self.user = user
         self.phase = "pick_phase"
         self.jumons_to_summon = []
         self.summoned_jumons = []
