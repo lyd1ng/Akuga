@@ -57,10 +57,7 @@ def send_packet(connection, tokens, terminator="END\n"):
     if terminator is not None:
         query += str(terminator)
     query = query.encode('utf-8')
-    try:
-        connection.send(query)
-    except IOError:
-        pass
+    connection.send(query)
 
 
 def handle_match_connection(tokens, queue, jumons_in_play):
