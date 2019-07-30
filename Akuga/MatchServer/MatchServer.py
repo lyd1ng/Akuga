@@ -29,27 +29,6 @@ from Akuga.User import User
 logger = logging.getLogger(__name__)
 
 
-def find_user_by_name(username, users):
-    """
-    Find an instance of a user in users by pers name
-    """
-    result = [user for user in users if user.name == username]
-    if len(result) == 1:
-        return result[0]
-    return None
-
-
-def remove_user_by_name(username, users):
-    '''
-    Remove an instance of a user in users by pers name
-    This will be used if a player disconnects from the server
-    to avoid sending data to a broken pipe
-    '''
-    user = find_user_by_name(username, users)
-    if user is not None:
-        users.remove(user)
-
-
 def build_last_man_standing_game_state(player_chain, jumon_sets,
         _queue, options={}):
     # Build the arena
@@ -113,13 +92,11 @@ def match_server(game_mode, users, options={}):
     # This will deactivate the game server connection
     for user in users:
         user.in_play = True
-    # Build the player chain
-    player_name_list = list(map(lambda x: x.name, users))
-    player1 = Player(player_name_list[0])
-    player2 = Player(player_name_list[1])
+    player1 = Player(users[0])
+    player2 = Player(users[1])
     player_chain = PlayerChain(player1, player2)
-    for i in range(2, len(player_name_list)):
-        player_chain.insert_player(Player(player_name_list[i]))
+    for i in range(2, len(users)):
+        player_chain.insert_player(Player(users[i]))
     # Create the queue
     _queue = queue.Queue()
 
@@ -164,8 +141,7 @@ def match_server(game_mode, users, options={}):
                 game_state.current_state is\
                 game_state.wait_for_user_state:
             # Receive packets only from the current user
-            user = find_user_by_name(game_state.player_chain.
-                get_current_player().name, users)
+            user = game_state.player_chain.get_current_player().user
             try:
                 callback_recv_packet(user.connection, 512,
                     handle_match_connection,
