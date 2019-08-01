@@ -103,11 +103,16 @@ def handle_fsm_response(event, game_mode, game_state, users):
                 userdbs_connection = None
             # Do nothing if the userdatabase server is unreachable
             if userdbs_connection is not None:
+                # Go through all users and add a win or a loose
                 for user in users:
                     logger.info("Logger in player_chain: " + user.name)
                     if user.name == victor_name:
                         send_packet(userdbs_connection,
                             ["ADD_WIN", user.name, game_mode])
+                        userdbs_connection.recv(128)
+                        # Also reward the victor with ingame cash
+                        send_packet(userdbs_connection, ["REWARD_USER",
+                            user.name, GlobalDefinitions.CREDITS_PER_WIN])
                         userdbs_connection.recv(128)
                     else:
                         send_packet(userdbs_connection,
@@ -246,8 +251,8 @@ if __name__ == "__main__":
     # Create both users with only the first jumon set specified
     # Their dont need a collection cause the set if checked for
     # legality at the game server side
-    users = [User('lyding', 'magical_hash', 0, [], set1, [], [], None, None),
-             User('lyding2', 'magical_hash', 0, [], set2, [], [], None, None)]
+    users = [User('lyding', 'abc', 0, [], set1, [], [], None, None),
+             User('lyding2', 'abc', 0, [], set2, [], [], None, None)]
     # Now set the active set to be the first one
     users[0].active_set = set1
     users[1].active_set = set2
