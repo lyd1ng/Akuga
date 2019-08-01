@@ -18,7 +18,8 @@ from Akuga.AkugaDatabaseServer.UserCharacteristics import (
     get_jumon_collection,
     get_jumon_set,
     set_jumon_set,
-    update_user)
+    update_user,
+    reward_user)
 from Akuga.AkugaDatabaseServer.Jumons import (
     get_all_jumon_names,
     get_all_basic_jumon_names,
@@ -60,6 +61,13 @@ def handle_client(connection, client_address, cmd_queue):
             username = tokens[1]
             game_mode = tokens[2]
             add_loose(connection, client_address, cmd_queue, username, game_mode)
+        if tokens[0] == "REWARD_USER" and len(tokens) >= 3:
+            """
+            Increment the credits by the integer value of tokens[2]
+            """
+            username = tokens[1]
+            credits = tokens[2]
+            reward_user(connection, client_address, cmd_queue, username, credits)
         if tokens[0] == "GET_STATS" and len(tokens) >= 5:
             """
             If the command token is get_stats and enough tokens are received
