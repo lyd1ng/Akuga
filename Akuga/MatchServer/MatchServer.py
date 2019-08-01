@@ -14,7 +14,8 @@ from Akuga.MatchServer.NetworkProtocoll import (
     callback_recv_packet,
     handle_match_connection,
     send_gamestate_to_client,
-    send_packet)
+    send_packet,
+    propagate_message)
 from Akuga.EventDefinitions import (
     Event,
     NOEVENT,
@@ -23,7 +24,6 @@ from Akuga.EventDefinitions import (
     MATCH_IS_DRAWN,
     PLAYER_HAS_WON,
     MESSAGE)
-from Akuga.MatchServer.MessagePropagator import (propagate_message)
 from Akuga.JumonSet import serialize_set_to_list
 from Akuga.User import User
 
@@ -115,9 +115,9 @@ def handle_fsm_response(event, game_mode, game_state):
                         userdbs_connection.recv(128)
                 userdbs_connection.close()
         # Signal the end of the match and the victor
-        propagate_message(Event(MESSAGE), users=users, tokens=['MATCH_END'])
-        propagate_message(Event(MESSAGE), users=users,
-            tokens=['MATCH_RESULT', victor_name])
+        propagate_message(Event(MESSAGE, users=users, tokens=['MATCH_END']))
+        propagate_message(Event(MESSAGE, users=users,
+            tokens=['MATCH_RESULT', victor_name]))
 
         # Set all players to be out of play
         # This will activate the game server connection
@@ -134,8 +134,7 @@ def handle_fsm_response(event, game_mode, game_state):
         # If a turn ends the game_state has to
         # be propagated to all users
         logger.info("Propagating game state\n")
-        for user in users:
-            send_gamestate_to_client(user.connection, game_state)
+        send_gamestate_to_client(users, game_state)
 
     if event == PACKET_PARSER_ERROR_EVENT:
         # Print the event msg but ignore the packet
@@ -191,10 +190,8 @@ def match_server(game_mode, users, options={}):
     # Initially propagate the game state
     logger.info("Start match between" + str(player_chain) + "\n")
     logger.info("Propagating game state\n")
-    for user in users:
-        send_gamestate_to_client(user.connection, game_state)
+    send_gamestate_to_client(users, game_state)
 
-    running = True
     while running:
         """
         Receive and handle packets from the current player only
@@ -226,10 +223,6 @@ def match_server(game_mode, users, options={}):
         handle_fsm_response(event, game_mode, game_state)
         # Run the rule building state machiene
         game_state.run(event)
-        # After the handle_fsm_response and the rule building
-        # state machiene has passed the task of the queue is done
-        # This is only used for join only but invoke it for completeness
-        _queue.task_done()
         game_state.arena.print_out()
 
 
