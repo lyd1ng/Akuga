@@ -115,9 +115,9 @@ def handle_fsm_response(event, game_mode, game_state):
                         userdbs_connection.recv(128)
                 userdbs_connection.close()
         # Signal the end of the match and the victor
-        propagate_message(Event(MESSAGE, users=users, tokens=['MATCH_END']))
         propagate_message(Event(MESSAGE, users=users,
             tokens=['MATCH_RESULT', victor_name]))
+        propagate_message(Event(MESSAGE, users=users, tokens=['MATCH_END']))
 
         # Set all players to be out of play
         # This will activate the game server connection
