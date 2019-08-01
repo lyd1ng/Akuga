@@ -82,7 +82,7 @@ def build_last_man_standing_game_state(player_chain, jumon_sets,
     return game_state
 
 
-def handle_fsm_response(event, game_mode, game_state):
+def handle_fsm_response(event, game_mode, game_state, users):
     '''
     This function handles the events enqueued by the fsm,
     e.g. TURN_END, PLAYER_HAS_WON, MESSAGE...
@@ -118,11 +118,6 @@ def handle_fsm_response(event, game_mode, game_state):
         propagate_message(Event(MESSAGE, users=users,
             tokens=['MATCH_RESULT', victor_name]))
         propagate_message(Event(MESSAGE, users=users, tokens=['MATCH_END']))
-
-        # Set all players to be out of play
-        # This will activate the game server connection
-        for user in users:
-            user.in_play = False
 
     if event == MATCH_IS_DRAWN:
         # If the match is drawn only log it and
@@ -220,10 +215,17 @@ def match_server(game_mode, users, options={}):
             event = Event(NOEVENT)
 
         # Handle the events which are not handeld by the gamestate itself
-        handle_fsm_response(event, game_mode, game_state)
+        handle_fsm_response(event, game_mode, game_state, users)
         # Run the rule building state machiene
         game_state.run(event)
         game_state.arena.print_out()
+
+    # Looks weird, but this code block is inside the MatchServer function
+    # but outside the matches main loop
+    # Set all players to be out of play
+    # This will activate the game server connection
+    for user in users:
+        user.in_play = False
 
 
 if __name__ == "__main__":
