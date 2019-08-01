@@ -196,3 +196,25 @@ def set_jumon_set(connection, client_address, cmd_queue,
     command = ("update user_accounts set " + ['set1', 'set2', 'set3'][set_index] + "=? where name=?",
         (jumon_set, username))
     cmd_queue.put((connection, client_address, command))
+
+
+def reward_user(connection, client_address, cmd_queue, username, credits):
+    """
+    Increment the credits of a user by the integer value of credits
+    """
+    # if one of the paramaters are insecure log it and return
+    if secure_string(username) is False or secure_string(credits) is False:
+        logger.info("Username of credits where insecure!")
+        logger.info("Received from: " + str(client_address))
+        send_packet(connection, ["ERROR", "Insecure Parameter"])
+        return -1
+    try:
+        credits_int = int(credits)
+    except ValueError:
+        logger.info("Credits parameter was insecure!")
+        logger.info("Received from: " + str(client_address))
+        send_packet(connection, ["ERROR", "Insecure Parameter"])
+        return -1
+    command = ('update user_accounts set credits=credits+? where name=?',
+        (credits_int, username))
+    cmd_queue.put((connection, client_address, command))
