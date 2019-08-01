@@ -14,40 +14,22 @@ from Akuga.MatchServer.NetworkProtocoll import (
     callback_recv_packet,
     handle_match_connection,
     send_gamestate_to_client,
-    send_packet)
+    send_packet,
+    propagate_message)
 from Akuga.EventDefinitions import (
     Event,
     NOEVENT,
     PACKET_PARSER_ERROR_EVENT,
     TURN_ENDS,
     MATCH_IS_DRAWN,
-    PLAYER_HAS_WON)
+    PLAYER_HAS_WON,
+    MESSAGE)
 from Akuga.JumonSet import serialize_set_to_list
 from Akuga.User import User
 
 
+running = True
 logger = logging.getLogger(__name__)
-
-
-def find_user_by_name(username, users):
-    """
-    Find an instance of a user in users by pers name
-    """
-    result = [user for user in users if user.name == username]
-    if len(result) == 1:
-        return result[0]
-    return None
-
-
-def remove_user_by_name(username, users):
-    '''
-    Remove an instance of a user in users by pers name
-    This will be used if a player disconnects from the server
-    to avoid sending data to a broken pipe
-    '''
-    user = find_user_by_name(username, users)
-    if user is not None:
-        users.remove(user)
 
 
 def build_last_man_standing_game_state(player_chain, jumon_sets,
@@ -100,6 +82,70 @@ def build_last_man_standing_game_state(player_chain, jumon_sets,
     return game_state
 
 
+def handle_fsm_response(event, game_mode, game_state):
+    '''
+    This function handles the events enqueued by the fsm,
+    e.g. TURN_END, PLAYER_HAS_WON, MESSAGE...
+    '''
+    global running
+    if event == PLAYER_HAS_WON:
+        # Leave the main loop
+        running = False
+        victor_name = event.victor.name
+        logger.info("Player: " + victor_name + " has won!\n")
+        # If the match is not drawn add a victory or loose to the userstats
+        if victor_name is not None:
+            userdbs_connection = socket.socket(socket.AF_INET,
+                socket.SOCK_STREAM)
+            try:
+                userdbs_connection.connect(GlobalDefinitions.USER_DBS_ADDRESS)
+            except ConnectionRefusedError:
+                userdbs_connection = None
+            # Do nothing if the userdatabase server is unreachable
+            if userdbs_connection is not None:
+                for user in users:
+                    logger.info("Logger in player_chain: " + user.name)
+                    if user.name == victor_name:
+                        send_packet(userdbs_connection,
+                            ["ADD_WIN", user.name, game_mode])
+                        userdbs_connection.recv(128)
+                    else:
+                        send_packet(userdbs_connection,
+                            ["ADD_LOOSE", user.name, game_mode])
+                        userdbs_connection.recv(128)
+                userdbs_connection.close()
+        # Signal the end of the match and the victor
+        propagate_message(Event(MESSAGE, users=users, tokens=['MATCH_END']))
+        propagate_message(Event(MESSAGE, users=users,
+            tokens=['MATCH_RESULT', victor_name]))
+
+        # Set all players to be out of play
+        # This will activate the game server connection
+        for user in users:
+            user.in_play = False
+
+    if event == MATCH_IS_DRAWN:
+        # If the match is drawn only log it and
+        # leave the main loop
+        running = False
+        logger.info("Match is drawn!\n")
+
+    if event == TURN_ENDS:
+        # If a turn ends the game_state has to
+        # be propagated to all users
+        logger.info("Propagating game state\n")
+        send_gamestate_to_client(users, game_state)
+
+    if event == PACKET_PARSER_ERROR_EVENT:
+        # Print the event msg but ignore the packet
+        logger.info("Packet Parser Error: " + event.msg + "\n")
+
+    if event == MESSAGE:
+        # Send a message to a list of users
+        # specified in the message event
+        propagate_message(event)
+
+
 def match_server(game_mode, users, options={}):
     """
     The actual game runs here and is propagated to the users
@@ -107,19 +153,15 @@ def match_server(game_mode, users, options={}):
     users: list of user instances
     options: A dictionary with options, not used yet
     """
-    # Will hold the victor at the end
-    victor_name = None
     # Set all players to be in play
     # This will deactivate the game server connection
     for user in users:
         user.in_play = True
-    # Build the player chain
-    player_name_list = list(map(lambda x: x.name, users))
-    player1 = Player(player_name_list[0])
-    player2 = Player(player_name_list[1])
+    player1 = Player(users[0])
+    player2 = Player(users[1])
     player_chain = PlayerChain(player1, player2)
-    for i in range(2, len(player_name_list)):
-        player_chain.insert_player(Player(player_name_list[i]))
+    for i in range(2, len(users)):
+        player_chain.insert_player(Player(users[i]))
     # Create the queue
     _queue = queue.Queue()
 
@@ -142,16 +184,14 @@ def match_server(game_mode, users, options={}):
         user.connection.settimeout(GlobalDefinitions.SECONDS_PER_TURN)
 
     # Signal the clients that the match starts
-    for user in users:
-        send_packet(user.connection, ["MATCH_START", game_mode])
+    propagate_message(Event(MESSAGE, users=users,
+        tokens=['MATCH_START', game_mode]))
 
     # Initially propagate the game state
     logger.info("Start match between" + str(player_chain) + "\n")
     logger.info("Propagating game state\n")
-    for user in users:
-        send_gamestate_to_client(user.connection, game_state)
+    send_gamestate_to_client(users, game_state)
 
-    running = True
     while running:
         """
         Receive and handle packets from the current player only
@@ -164,14 +204,14 @@ def match_server(game_mode, users, options={}):
                 game_state.current_state is\
                 game_state.wait_for_user_state:
             # Receive packets only from the current user
-            user = find_user_by_name(game_state.player_chain.
-                get_current_player().name, users)
+            user = game_state.player_chain.get_current_player().user
             try:
                 callback_recv_packet(user.connection, 512,
                     handle_match_connection,
                     [_queue, game_state.jumons_in_play])
             except SocketClosed:
-                # _queue.put(Event(TIMEOUT_EVENT))
+                # If the client has disconnected just wait for a second
+                # The reconnect attempt is handeld in the game server
                 sleep(1)
         # Get an event from the queue and mimic the pygame event behaviour
         try:
@@ -179,57 +219,11 @@ def match_server(game_mode, users, options={}):
         except queue.Empty:
             event = Event(NOEVENT)
 
-        game_state.run(event)
         # Handle the events which are not handeld by the gamestate itself
+        handle_fsm_response(event, game_mode, game_state)
+        # Run the rule building state machiene
+        game_state.run(event)
         game_state.arena.print_out()
-        if event.type == PACKET_PARSER_ERROR_EVENT:
-            # Print the event msg but ignore the packet
-            logger.info("Packet Parser Error: " + event.msg + "\n")
-        if event.type == TURN_ENDS:
-            """
-            If a turn ends the game_state has to be propagated to all users
-            """
-            logger.info("Propagating game state\n")
-            for user in users:
-                send_gamestate_to_client(user.connection, game_state)
-
-        if event.type == MATCH_IS_DRAWN:
-            running = False
-            logger.info("Match is drawn!\n")
-        if event.type == PLAYER_HAS_WON:
-            running = False
-            victor_name = event.victor.name
-            logger.info("Player: " + victor_name + " has won!\n")
-
-    # If the match is not drawn add a victory or loose to the userstats
-    if victor_name is not None:
-        userdbs_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            userdbs_connection.connect(GlobalDefinitions.USER_DBS_ADDRESS)
-        except ConnectionRefusedError:
-            userdbs_connection = None
-        # Do nothing if the userdatabase server is unreachable
-        if userdbs_connection is not None:
-            for user in users:
-                logger.info("Logger in player_chain: " + user.name)
-                if user.name == victor_name:
-                    send_packet(userdbs_connection,
-                        ["ADD_WIN", user.name, game_mode])
-                    userdbs_connection.recv(128)
-                else:
-                    send_packet(userdbs_connection,
-                        ["ADD_LOOSE", user.name, game_mode])
-                    userdbs_connection.recv(128)
-            userdbs_connection.close()
-    # Signal the end of the match and the victor
-    for user in users:
-        send_packet(user.connection, ["MATCH_END"])
-        send_packet(user.connection, ["MATCH_RESULT", victor_name])
-
-    # Set all players to be out of play
-    # This will activate the game server connection
-    for user in users:
-        user.in_play = False
 
 
 if __name__ == "__main__":
