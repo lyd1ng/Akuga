@@ -6,7 +6,8 @@ from Akuga.EventDefinitions import (Event,
                                     SELECT_JUMON_TO_SPECIAL_MOVE_EVENT,
                                     PICK_JUMON_EVENT,
                                     PACKET_PARSER_ERROR_EVENT,
-                                    TIMEOUT_EVENT)
+                                    TIMEOUT_EVENT,
+                                    MESSAGE)
 
 
 class SocketClosed(Exception):
@@ -197,7 +198,7 @@ def handle_match_connection(tokens, queue, jumons_in_play):
         return
 
 
-def send_gamestate_to_client(connection, game_state):
+def send_gamestate_to_client(users, game_state):
     """
     Send all neccessary data from the server game state to build the client
     game state. The client game state is an excerpt from the state machiene
@@ -213,7 +214,8 @@ def send_gamestate_to_client(connection, game_state):
         pick_pool_data_tokens.append((jumon.id, jumon.equipment.id
             if jumon.equipment is not None
             else ""))
-    send_packet(connection, pick_pool_data_tokens)
+    propagate_message(Event(MESSAGE, users=users,
+        tokens=pick_pool_data_tokens))
 
     # Now go through all the players and send the jummons per can summon
     # and the jumons per has already summoned.
@@ -235,8 +237,10 @@ def send_gamestate_to_client(connection, game_state):
                 if jumon.equipment is not None
                 else ""))
         # Send the data
-        send_packet(connection, pld_jumons_to_summon_token)
-        send_packet(connection, pld_summoned_jumons)
+        propagate_message(Event(MESSAGE, users=users,
+            tokens=pld_jumons_to_summon_token))
+        propagate_message(Event(MESSAGE, users=users,
+            tokens=pld_summoned_jumons))
 
     # Now go through all tiles of the arena and send the meeple occupying
     # this tile
@@ -250,7 +254,7 @@ def send_gamestate_to_client(connection, game_state):
         for x in range(game_state.arena.board_width):
             meeple = game_state.arena.get_unit_at(Position(x, y))
             packet_tokens.append(meeple.id if meeple is not None else "")
-    send_packet(connection, packet_tokens)
+    propagate_message(Event(MESSAGE, users=users, tokens=packet_tokens))
 
     # Now go through all jumons summoned and send the interferences
     # The interferences has to be sent even if there are none to clear
@@ -268,8 +272,11 @@ def send_gamestate_to_client(connection, game_state):
                 jumon.id,
                 jumon.persistent_interf]
             # Send the packets
-            send_packet(connection, nonpersistent_interference_tokens)
-            send_packet(connection, persistent_interference_tokens)
+            propagate_message(Event(MESSAGE, users=users,
+                tokens=nonpersistent_interference_tokens))
+            propagate_message(Event(MESSAGE, users=users,
+                tokens=persistent_interference_tokens))
     # Now send the name of the current player
-    send_packet(connection, ["CURRENT_PLAYER",
-        game_state.player_chain.get_current_player().name])
+    propagate_message(Event(MESSAGE, users=users,
+        tokens=['CURRENT_PLAYER',
+                game_state.player_chain.get_current_player().name]))
