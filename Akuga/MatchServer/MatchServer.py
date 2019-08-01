@@ -184,8 +184,8 @@ def match_server(game_mode, users, options={}):
         user.connection.settimeout(GlobalDefinitions.SECONDS_PER_TURN)
 
     # Signal the clients that the match starts
-    for user in users:
-        send_packet(user.connection, ["MATCH_START", game_mode])
+    propagate_message(Event(MESSAGE, users=users,
+        tokens=['MATCH_START', game_mode]))
 
     # Initially propagate the game state
     logger.info("Start match between" + str(player_chain) + "\n")
