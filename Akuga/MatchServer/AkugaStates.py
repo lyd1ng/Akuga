@@ -134,7 +134,8 @@ class WaitForUserState(State):
             return (self.fsm.timeout_state, {})
 
         # If the event type is not a user event dont do anything
-        if event.type < SUMMON_JUMON_EVENT or event.type > PICK_JUMON_EVENT:
+        # (0 to 100 is the range of user events)
+        if event.type < 0 or event.type > 100:
             return None
 
         # Now its assured that the event is a user event
