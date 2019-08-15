@@ -122,7 +122,7 @@ def handle_client(connection, client_address,
                         If no error occured send success
                         """
                         logger.info("Register user: " + username)
-                        send_packet(connection, ["SUCCESSFULLY_REGISTERED"])
+                        send_packet(connection, ["SUCCESS", "registered"])
             if tokens[0] == "LOG_IN" and len(tokens) >= 3:
                 """
                 Check the credentials of the user
@@ -163,7 +163,7 @@ def handle_client(connection, client_address,
                     # log in a second time
                     active_users.append(user)
                     logger.info("Logging in: " + username)
-                    send_packet(connection, ["SUCCESSFULLY_LOGGED_IN"])
+                    send_packet(connection, ["SUCCESS", "logged_in"])
                 elif len(response) > 0:
                     """
                     If the user is in the active user list check if per is in
@@ -182,7 +182,7 @@ def handle_client(connection, client_address,
                         tmp_user.connection = connection
                         tmp_user.client_address = client_address
                         logger.info("Logging in: " + username)
-                        send_packet(connection, ["SUCCESSFULLY_LOGGED_IN"])
+                        send_packet(connection, ["SUCCESS", "logged_in"])
                         return
         elif user.in_play is False:
             """
@@ -224,11 +224,11 @@ def handle_client(connection, client_address,
                         continue
                     # At this point in the code the set is proofed to be valid
                     lms_queue.put(user)
-                    send_packet(connection, ["SUCCESFULLY_ENQUEUED", "lms"])
+                    send_packet(connection, ["SUCCESS", "enqueued", "lms"])
                 elif tokens[1] == 'amm':
                     logger.info("Enqueue " + user.name + "for amm")
                     amm_queue.put(user)
-                    send_packet(connection, ["SUCCESFULLY_ENQUEUED", "amm"])
+                    send_packet(connection, ["SUCCESS", "enqueued", "amm"])
                 else:
                     logger.info("Invalid game mode: " + tokens[1])
                     send_packet(connection, ["ERROR", "Invalid game mode: "
