@@ -4,36 +4,58 @@ to build up the pickpool and translate the active sets of all users
 to a list of jumon instances
 """
 from Akuga.MatchServer.Meeple import Jumon
+from Akuga.MatchServer.GlobalDefinitions import USER_DBS_ADDRESS
+from Akuga.MatchServer.NetworkProtocoll import (
+    send_packet,
+    receive_dbs_response)
 
 
-JUMON_NAME_CONSTRUCTOR_DICT = {
-    'Stumblestone':
-        lambda _id: Jumon('Stumblestone', _id, 'blue', 350, 680, 1),
-    'Orgenthor die Zwillingsbrut':
-        lambda _id: Jumon('Orgenthor die Zwillingsbrut', _id, 'red', 800, 700, 1),
-    'Engel des Eisenbaumwaldes':
-        lambda _id: Jumon('Engel des Eisenbaumwaldes', _id, 'green', 600, 600, 2),
-    'Unkrautjaehter':
-        lambda _id: Jumon('Unkrautjaehter', _id, 'green', 660, 520, 1),
-    'Krieger des Schattenstamms':
-        lambda _id: Jumon('Krieger des Schattenstamms', _id, 'black', 660, 630, 1),
-    'Steppenlauefer':
-        lambda _id: Jumon('Steppenlauefer', _id, 'blue', 410, 450, 1),
-    'Kriselkrabbe':
-        lambda _id: Jumon('Kriselkrabbe', _id, 'red', 440, 430, 1),
-    'Kopfgeldjaegerin Saphira':
-        lambda _id: Jumon('Kopfgeldjaeger Saphira', _id, 'red', 600, 575, 1),
-    'Wandersproessling':
-        lambda _id: Jumon('Wandersproessling', _id, 'green', 370, 370, 1),
-    'Erenorg Koenig der Wueste':
-        lambda _id: Jumon('Erenorg Koenig der Wueste', _id, 'black', 750, 750, 1),
-    'Phoenixkueken':
-        lambda _id: Jumon('Phoenixkueken', _id, 'blue', 400, 370, 1),
-    'Plodher':
-        lambda _id: Jumon('Plodher', _id, 'green', 435, 435, 1),
-    'Blauta':
-        lambda _id: Jumon('Blauta', _id, 'green', 410, 410, 1)
-}
+JUMON_NAME_CONSTRUCTOR_DICT = {}
+
+
+def get_vanilla_jumons_from_dbs(userdbs_connection):
+    '''
+    Read all vanilla jumons from the dbs and create a constructor
+    dict out of them. This constructor dict will store preconfigured
+    constructor calls which will be used to create vanilla jumon instances
+    with different ids.
+    '''
+    # Get the stats of all vanilla jumons
+    send_packet(userdbs_connection, ['GET_ALL_VANILLA_JUMON_STATS'])
+    response, error = receive_dbs_response(userdbs_connection, 1024)
+    if response is None:
+        return ('ERROR', error)
+    # The response is a list of tuples containing all stats of a jumon in
+    # the form: name, color, attack, defense, movement
+    # Now add a preconfigured constructor call under the name of the jumon
+    jumon_dictionary = {}
+    for jumon in response:
+        # Here a lambda inside a lambda has to be used as the jumon
+        # variable has to be bound, otherwise all lambdaterms would
+        # refer to the same (the last) jumon in the response list
+        jumon_dictionary[jumon[0]] =\
+            (lambda j: lambda _id: Jumon(j[0], _id, j[1], j[2], j[3], j[4]))(jumon)
+    return jumon_dictionary
+
+
+def initialise_jumon_name_constructor_dict(userdbs_connection):
+    '''
+    Initialise the JUMON_NAME_CONSTRUCTOR_DICT
+    '''
+    global JUMON_NAME_CONSTRUCTOR_DICT
+    JUMON_NAME_CONSTRUCTOR_DICT = get_vanilla_jumons_from_dbs(
+        userdbs_connection)
+    # Here all the special jumons have to be added manually
+    pass
+
 
 if __name__ == '__main__':
-    print(JUMON_NAME_CONSTRUCTOR_DICT['Jumon1'])
+    import socket
+    userdbs_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    userdbs_connection.connect(USER_DBS_ADDRESS)
+    initialise_jumon_name_constructor_dict(userdbs_connection)
+    orgenthor = JUMON_NAME_CONSTRUCTOR_DICT['Orgenthor die Zwillingsbrut'](0)
+    print(orgenthor.name)
+    print(orgenthor.attack)
+    print(orgenthor.defense)
+    print(orgenthor.movement)

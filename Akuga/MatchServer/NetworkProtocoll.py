@@ -1,4 +1,5 @@
 import socket
+from ast import literal_eval
 from Akuga.MatchServer.Position import Position
 from Akuga.EventDefinitions import (Event,
                                     SUMMON_JUMON_EVENT,
@@ -280,3 +281,36 @@ def send_gamestate_to_client(users, game_state):
     propagate_message(Event(MESSAGE, users=users,
         tokens=['CURRENT_PLAYER',
                 game_state.player_chain.get_current_player().name]))
+
+
+def recv_packet(connection, nbytes, delimiter=":", terminator="END\n"):
+    """
+    Receive a packet and convert it into tokens using the delimiter.
+    Return ['ERROR', $msg] if there no terminator is found,
+    return all tokens except the terminator token otherwise.
+    If the connection was closed raise a socket.error
+    """
+    packet = connection.recv(nbytes)
+    if not packet:
+        raise socket.error
+    packet = packet.decode('utf-8')
+    tokens = packet.split(delimiter)
+    if tokens[-1] == terminator:
+        return tokens[0:-1]
+    return ['ERROR', 'No terminator found while recv the packet']
+
+
+def receive_dbs_response(userdbs_connection, nbytes):
+    """
+    Receive up to 512 bytes from the database server
+    and parse it using the parse_literal function of the
+    ast module. This can be done as the pysqlite module
+    return its results as a python list
+    """
+    tokens = recv_packet(userdbs_connection, nbytes)
+    # If an error is received return None and the error msg received
+    if tokens[0] == "ERROR":
+        return (None, tokens[1])
+    # If no error is received return the parsed literal and "" as msg
+    print("Litetal to parse: " + tokens[1])
+    return (literal_eval(tokens[1]), "")

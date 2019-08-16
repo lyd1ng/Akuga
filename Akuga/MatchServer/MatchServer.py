@@ -6,9 +6,9 @@ from time import sleep
 from Akuga.MatchServer.Player import (Player, NeutralPlayer)
 from Akuga.MatchServer.PlayerChain import PlayerChain
 from Akuga.MatchServer.ArenaCreator import create_arena
-from Akuga.MatchServer.MeepleDict import JUMON_NAME_CONSTRUCTOR_DICT
 from Akuga.MatchServer import GlobalDefinitions
 import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
+import Akuga.MatchServer.MeepleDict as MeepleDict
 from Akuga.MatchServer.NetworkProtocoll import (
     SocketClosed,
     callback_recv_packet,
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 def build_last_man_standing_game_state(player_chain, jumon_sets,
-        _queue, options={}):
+        userdbs_connection, _queue, options={}):
     # Build the arena
     arena = create_arena(GlobalDefinitions.BOARD_WIDTH,
                         GlobalDefinitions.BOARD_HEIGHT,
@@ -43,6 +43,8 @@ def build_last_man_standing_game_state(player_chain, jumon_sets,
     # Every jumon in the match will have a unique id
     jumon_id = 0
     jumon_pick_pool = []
+    # Initialise the JUMON_NAME_CONSTRUCTOR_DICT
+    MeepleDict.initialise_jumon_name_constructor_dict(userdbs_connection)
     # Go through all jumon sets
     for jumon_set in jumon_sets:
         # Convert the set to a list for easier processing
@@ -54,7 +56,7 @@ def build_last_man_standing_game_state(player_chain, jumon_sets,
             # the right constructor under the name of the jumon, only the
             # id has to be passed
             jumon_pick_pool.append(
-                JUMON_NAME_CONSTRUCTOR_DICT[jumon_name](jumon_id))
+                MeepleDict.JUMON_NAME_CONSTRUCTOR_DICT[jumon_name](jumon_id))
             # Simply increment the jumon id to make sure every jumon
             # has a unique id
             jumon_id += 1
@@ -82,7 +84,8 @@ def build_last_man_standing_game_state(player_chain, jumon_sets,
     return game_state
 
 
-def handle_fsm_response(event, game_mode, game_state, users):
+def handle_fsm_response(event, game_mode, game_state,
+        users, userdbs_connection):
     '''
     This function handles the events enqueued by the fsm,
     e.g. TURN_END, PLAYER_HAS_WON, MESSAGE...
@@ -95,30 +98,20 @@ def handle_fsm_response(event, game_mode, game_state, users):
         logger.info("Player: " + victor_name + " has won!\n")
         # If the match is not drawn add a victory or loose to the userstats
         if victor_name is not None:
-            userdbs_connection = socket.socket(socket.AF_INET,
-                socket.SOCK_STREAM)
-            try:
-                userdbs_connection.connect(GlobalDefinitions.USER_DBS_ADDRESS)
-            except ConnectionRefusedError:
-                userdbs_connection = None
-            # Do nothing if the userdatabase server is unreachable
-            if userdbs_connection is not None:
-                # Go through all users and add a win or a loose
-                for user in users:
-                    logger.info("Logger in player_chain: " + user.name)
-                    if user.name == victor_name:
-                        send_packet(userdbs_connection,
-                            ["ADD_WIN", user.name, game_mode])
-                        userdbs_connection.recv(128)
-                        # Also reward the victor with ingame cash
-                        send_packet(userdbs_connection, ["REWARD_USER",
-                            user.name, GlobalDefinitions.CREDITS_PER_WIN])
-                        userdbs_connection.recv(128)
-                    else:
-                        send_packet(userdbs_connection,
-                            ["ADD_LOOSE", user.name, game_mode])
-                        userdbs_connection.recv(128)
-                userdbs_connection.close()
+            # Go through all users and add a win or a loose
+            for user in users:
+                if user.name == victor_name:
+                    send_packet(userdbs_connection,
+                        ["ADD_WIN", user.name, game_mode])
+                    userdbs_connection.recv(128)
+                    # Also reward the victor with ingame cash
+                    send_packet(userdbs_connection, ["REWARD_USER",
+                        user.name, GlobalDefinitions.CREDITS_PER_WIN])
+                    userdbs_connection.recv(128)
+                else:
+                    send_packet(userdbs_connection,
+                        ["ADD_LOOSE", user.name, game_mode])
+                    userdbs_connection.recv(128)
         # Signal the end of the match and the victor
         propagate_message(Event(MESSAGE, users=users,
             tokens=['MATCH_RESULT', victor_name]))
@@ -165,6 +158,13 @@ def match_server(game_mode, users, options={}):
     # Create the queue
     _queue = queue.Queue()
 
+    userdbs_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        userdbs_connection.connect(GlobalDefinitions.USER_DBS_ADDRESS)
+    except ConnectionRefusedError:
+        logger.info('Cant connect to akuga database server')
+        return -1
+
     # Get the active jumon sets as a list
     jumon_sets = []
     for user in users:
@@ -174,7 +174,7 @@ def match_server(game_mode, users, options={}):
     if game_mode == "lms":
         logger.info("Game Mode: LastManStanding\n")
         game_state = build_last_man_standing_game_state(player_chain,
-                jumon_sets, _queue, options)
+                jumon_sets, userdbs_connection, _queue, options)
     else:
         logger.info("Game Mode: Unknown...Terminating\n")
         return
@@ -220,7 +220,8 @@ def match_server(game_mode, users, options={}):
             event = Event(NOEVENT)
 
         # Handle the events which are not handeld by the gamestate itself
-        handle_fsm_response(event, game_mode, game_state, users)
+        handle_fsm_response(event, game_mode, game_state,
+            users, userdbs_connection)
         # Run the rule building state machiene
         game_state.run(event)
         game_state.arena.print_out()
