@@ -23,6 +23,7 @@ from Akuga.AkugaDatabaseServer.UserCharacteristics import (
 from Akuga.AkugaDatabaseServer.Jumons import (
     get_all_jumon_names,
     get_all_basic_jumon_names,
+    get_all_vanilla_jumon_stats,
     get_jumon_by_name)
 from queue import Queue
 from threading import Thread
@@ -154,6 +155,11 @@ def handle_client(connection, client_address, cmd_queue):
             Get the name of all basic jumons
             """
             get_all_basic_jumon_names(connection, client_address, cmd_queue)
+        if tokens[0] == "GET_ALL_VANILLA_JUMON_STATS" and len(tokens) >= 1:
+            """
+            Get the name of all vanilla jumons
+            """
+            get_all_vanilla_jumon_stats(connection, client_address, cmd_queue)
         if tokens[0] == "GET_JUMON_BY_NAME" and len(tokens) >= 2:
             """
             Get the whole datastructure of a jumon and send it to

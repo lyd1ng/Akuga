@@ -27,6 +27,17 @@ def get_all_basic_jumon_names(connection, client_address, cmd_queue):
     cmd_queue.put((connection, client_address, command))
 
 
+def get_all_vanilla_jumon_stats(connection, client_address, cmd_queue):
+    """
+    Query the database for all battle related values of all vanilla jumons
+    aka all jumons without a special effect
+    """
+    command = ("select name, color, attack, defense, movement from jumons where special=0", ())
+    logger.info("Enqueue 'get_all_vanilla_jumon_stats' from: "
+        + str(client_address))
+    cmd_queue.put((connection, client_address, command))
+
+
 def get_jumon_by_name(connection, client_address, cmd_queue, jumon_name):
     """
     Query the database for a jumon by its name
