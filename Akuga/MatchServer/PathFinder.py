@@ -6,7 +6,8 @@ def pos_in(position, nodes):
     """
     Checks if position exists within node_list
     """
-    return next(filter(lambda x: x.position == position, nodes), None) is not None
+    return next(filter(lambda x: x.position == position, nodes), None)\
+        is not None
 
 
 class PathNode:

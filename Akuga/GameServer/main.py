@@ -62,8 +62,8 @@ def handle_client(connection, client_address,
             except socket.error:
                 connection.close()
                 logger.info("Connection error")
-                # If the user was logged which means part of the active user list
-                # remove per from it so per can log in again
+                # If the user was logged which means part of the
+                # active user list remove per from it so per can log in again
                 if user is not None:
                     active_users.remove(user)
                 break
@@ -147,7 +147,8 @@ def handle_client(connection, client_address,
                     multiple times
                     """
                     # Request the whole user structure
-                    send_packet(userdb_connection, ['GET_USER_BY_NAME', username])
+                    send_packet(userdb_connection,
+                        ['GET_USER_BY_NAME', username])
                     response, error = receive_dbs_response(userdb_connection,
                         512)
                     if response is None:
@@ -194,8 +195,8 @@ def handle_client(connection, client_address,
             except socket.error:
                 connection.close()
                 logger.info("Connection error")
-                # If the user was logged which means part of the active user list
-                # remove per from it so per can log in again
+                # If the user was logged which means part of the
+                # active user list remove per from it so per can log in again
                 if user is not None:
                     active_users.remove(user)
                 break
@@ -313,7 +314,8 @@ def handle_client(connection, client_address,
                 and update the user in the database
                 """
                 # First, get the jumons datastructure
-                send_packet(userdb_connection, ['GET_JUMON_BY_NAME', tokens[1]])
+                send_packet(userdb_connection,
+                    ['GET_JUMON_BY_NAME', tokens[1]])
                 response, error = receive_dbs_response(userdb_connection, 512)
                 # If the length of the response tuple is zero
                 # the queried jumon doesnt exists
@@ -432,8 +434,10 @@ if __name__ == '__main__':
 
     # Create and start the handle game mode queue threads for each game mode
     logger.info("Start handle_gamemode_queue threads as daemons")
-    handle_lms_queue_thread = Thread(target=handle_lms_queue, args=(lms_queue,))
-    handle_amm_queue_thread = Thread(target=handle_amm_queue, args=(amm_queue,))
+    handle_lms_queue_thread = Thread(target=handle_lms_queue,
+        args=(lms_queue,))
+    handle_amm_queue_thread = Thread(target=handle_amm_queue,
+        args=(amm_queue,))
     handle_lms_queue_thread.daemon = True
     handle_amm_queue_thread.daemon = True
     handle_lms_queue_thread.start()
@@ -447,7 +451,8 @@ if __name__ == '__main__':
             logger.info("Error while accepting connections")
             break
         handle_client_thread = Thread(target=handle_client,
-            args=(connection, client_address, lms_queue, amm_queue, active_users))
+            args=(connection, client_address, lms_queue,
+            amm_queue, active_users))
         handle_client_thread.start()
     logger.info("Leave server loop")
     logger.info("Close the server socket, terminate programm")

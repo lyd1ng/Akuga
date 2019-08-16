@@ -34,7 +34,8 @@ def get_vanilla_jumons_from_dbs(userdbs_connection):
         # variable has to be bound, otherwise all lambdaterms would
         # refer to the same (the last) jumon in the response list
         jumon_dictionary[jumon[0]] =\
-            (lambda j: lambda _id: Jumon(j[0], _id, j[1], j[2], j[3], j[4]))(jumon)
+            (lambda j: lambda _id: Jumon(j[0], _id, j[1], j[2],
+                j[3], j[4]))(jumon)
     return jumon_dictionary
 
 

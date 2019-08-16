@@ -199,7 +199,8 @@ class WaitForUserState(State):
             current_position = event.current_position
             target_position = event.target_position
             # Only move the jumon if the current player controls the jumon
-            if self.fsm.player_chain.get_current_player().controls_jumon(jumon):
+            if self.fsm.player_chain.get_current_player().\
+                    controls_jumon(jumon):
                 check_move_state_variables = {
                     "jumon_to_move": jumon,
                     "current_position": current_position,
@@ -222,7 +223,8 @@ class WaitForUserState(State):
                 "current_position": current_position,
                 "target_position": target_position}
             # Jump to the check_special_move_state
-            return (self.fsm.check_special_move_state, check_move_state_variables)
+            return (self.fsm.check_special_move_state,
+                check_move_state_variables)
         # If no event was caught return None, so the state machiene
         # remains in the idle state
         return None
@@ -248,7 +250,8 @@ class PickState(State):
         jumon.set_owner(self.fsm.player_chain.get_current_player())
         self.fsm.jumon_pick_pool.remove(jumon)
         self.fsm.player_chain.get_current_player().add_jumon_to_summon(jumon)
-        if len(self.fsm.jumon_pick_pool) < self.fsm.player_chain.get_not_neutral_length():
+        if len(self.fsm.jumon_pick_pool) <\
+                self.fsm.player_chain.get_not_neutral_length():
             """
             If there are less jumons in the pick pool than not neutral
             player in the playerchain the current player wont be able to
@@ -387,7 +390,8 @@ class SummonCheckState(State):
                 "battle_position": summon_position,
                 "attacking_jumon": jumon,
                 "defending_jumon": self.fsm.arena.get_unit_at(summon_position)}
-            return (self.fsm.one_tile_battle_begin_state, one_tile_battle_state_variables)
+            return (self.fsm.one_tile_battle_begin_state,
+                    one_tile_battle_state_variables)
 
 
 class ChangePlayerState(State):
@@ -519,7 +523,8 @@ class CheckMoveState(State):
         movements of the selected jumon. This way the jumons actually
         move and can be blocked by other meeples.
         """
-        move_path = find_path(current_position, target_position, self.fsm.arena)
+        move_path = find_path(current_position, target_position,
+            self.fsm.arena)
         if move_path is None or len(move_path) == 0\
                 or len(move_path) - 1 > jumon.get_total_movement():
             """
@@ -560,7 +565,8 @@ class CheckMoveState(State):
             return (self.fsm.wait_for_user_state, {
                 "enforced_jumon": None,
                 "enforced_action": None})
-        elif issubclass(type(self.fsm.arena.get_unit_at(target_position)), Akuga.MatchServer.Meeple.Artefact):
+        elif issubclass(type(self.fsm.arena.get_unit_at(target_position)),
+                Akuga.MatchServer.Meeple.Artefact):
             """
             If the target position is occupied by an artefact jump to the
             equip artefact to jumon state
@@ -586,7 +592,8 @@ class CheckMoveState(State):
                 "defending_jumon": self.fsm.arena.get_unit_at(target_position),
                 "attack_position": current_position,
                 "defense_position": target_position}
-            return (self.fsm.two_tile_battle_begin_state, two_tile_battle_state_variable)
+            return (self.fsm.two_tile_battle_begin_state,
+                    two_tile_battle_state_variable)
 
 
 class CheckDisplacementState(State):
@@ -649,7 +656,8 @@ class CheckDisplacementState(State):
             so jump to the TurnEndState
             """
             return (self.fsm.turn_end_state, {})
-        elif issubclass(type(self.fsm.arena.get_unit_at(target_position)), Akuga.MatchServer.Meeple.Artefact):
+        elif issubclass(type(self.fsm.arena.get_unit_at(target_position)),
+                Akuga.MatchServer.Meeple.Artefact):
             """
             If the target position is occupied by an artefact jump to the
             equip artefact to jumon state
@@ -674,7 +682,8 @@ class CheckDisplacementState(State):
                 "battle_position": target_position,
                 "attacking_jumon": jumon,
                 "defending_jumon": self.fsm.arena.get_unit_at(target_position)}
-            return (self.fsm.two_tile_battle_begin_state, one_tile_battle_state_variable)
+            return (self.fsm.two_tile_battle_begin_state,
+                    one_tile_battle_state_variable)
 
 
 class CheckSpecialMoveState(State):
