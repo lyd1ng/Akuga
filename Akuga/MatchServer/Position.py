@@ -36,7 +36,7 @@ class Position():
         """
         Turn to string
         """
-        return "( " + str(self.x) + "| " + str(self.y) + " )"
+        return str(self.x) + "," + str(self.y)
 
 
 if __name__ == "__main__":
