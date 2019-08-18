@@ -187,6 +187,13 @@ def match_server(game_mode, users, options={}):
     propagate_message(Event(MESSAGE, users=users,
         tokens=['MATCH_START', game_mode]))
 
+    # Propagate the name of all jumons and their ids
+    add_jumon_itevent = Event(MESSAGE,
+        players=game_state.player_chain.get_players())
+    for jumon in game_state.jumon_pick_pool:
+        add_jumon_itevent.tokens = ['ADD_JUMON_ITEVENT', jumon.name, jumon.id]
+        propagate_message(add_jumon_itevent)
+
     # Initially propagate the game state
     logger.info("Start match between" + str(player_chain) + "\n")
     logger.info("Propagating game state\n")
