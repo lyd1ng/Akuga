@@ -247,8 +247,8 @@ if __name__ == "__main__":
     server_socket.listen(2)
 
     # Create the two sets the players are going to play with
-    set1 = {'Blauta': 3, 'Plodher': 3, 'Steppenlauefer': 1}
-    set2 = {'Blauta': 3, 'Plodher': 3, 'Steppenlauefer': 1}
+    set1 = {'Blauta': 1, 'Plodher': 1}
+    set2 = {'Blauta': 1, 'Plodher': 1}
     # Create both users with only the first jumon set specified
     # Their dont need a collection cause the set if checked for
     # legality at the game server side
