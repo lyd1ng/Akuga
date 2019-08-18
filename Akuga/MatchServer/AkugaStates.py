@@ -6,7 +6,7 @@ from Akuga.MatchServer.PathFinder import find_path
 from Akuga.MatchServer.Position import Position
 from Akuga.MatchServer.Player import NeutralPlayer
 from Akuga.MatchServer.StateMachieneState import StateMachieneState as State
-from Akuga.MatchServer.Network import (propagate_message)
+from Akuga.MatchServer.NetworkProtocoll import (propagate_message)
 from Akuga.EventDefinitions import (Event,
                                     SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_MOVE_EVENT,
@@ -255,7 +255,7 @@ class PickState(State):
         # Propagate a pick inter turn event
         pick_ite = Event(MESSAGE, players=self.fsm.player_chain.get_players(),
             tokens=['PICK_ITEVENT',
-            self.fms.player_chain.get_current_player().name, jumon.id])
+            self.fsm.player_chain.get_current_player().name, jumon.id])
         propagate_message(pick_ite)
         if len(self.fsm.jumon_pick_pool) <\
                 self.fsm.player_chain.get_not_neutral_length():
@@ -334,9 +334,11 @@ class SummonCheckState(State):
             jumon.owned_by.\
                 handle_summoning(jumon)
             # Propagate a summon inter turn event
-            summon_itevent = Event(MESSAGE, players=self.fsm.get_players(),
-                tokens=['SUMMON_ITEVENT', self.fsm.get_current_player().name,
+            summon_itevent = Event(MESSAGE,
+                players=self.fsm.player_chain.get_players(),
+                tokens=['SUMMON_ITEVENT', self.fsm.player_chain.get_current_player().name,
                 jumon.id, jumon.position])
+            propagate_message(summon_itevent)
 
             if self.fsm.arena.get_tile_at(summon_position).is_wasted():
                 """
@@ -365,8 +367,9 @@ class SummonCheckState(State):
             jumon.owned_by.\
                 handle_summoning(jumon)
             # Propagate a summon inter turn event
-            summon_itevent = Event(MESSAGE, players=self.fsm.get_players(),
-                tokens=['SUMMON_ITEVENT', self.fsm.get_current_player().name,
+            summon_itevent = Event(MESSAGE,
+                players=self.fsm.player_chain.get_players(),
+                tokens=['SUMMON_ITEVENT', self.fsm.player_chain.get_current_player().name,
                 jumon.id, jumon.position])
             propagate_message(summon_itevent)
             # Get the artefact at this point
@@ -572,9 +575,10 @@ class CheckMoveState(State):
                 self.fsm.arena.place_unit_at(None, current_position)
                 self.fsm.arena.place_unit_at(jumon, target_position)
                 # Propagate an movement inter turn event
-                movement_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+                movement_itevent = Event(MESSAGE,
+                    players=self.fsm.player_chain.get_players(),
                     tokens=['MOVEMENT_ITEVENT',
-                        self.fsm.get_current_player().name,
+                        self.fsm.player_chain.get_current_player().name,
                         jumon.id, current_position, target_position])
                 propagate_message(movement_itevent)
             return (self.fsm.turn_end_state, {})
@@ -587,7 +591,7 @@ class CheckMoveState(State):
             """
             return (self.fsm.wait_for_user_state, {
                 "enforced_jumon": None,
-                "enforced_action": None})
+                "enforced_event": None})
         elif issubclass(type(self.fsm.arena.get_unit_at(target_position)),
                 Akuga.MatchServer.Meeple.Artefact):
             """
@@ -645,7 +649,8 @@ class CheckDisplacementState(State):
         if target_position.x < 0 or\
                 target_position.x > self.fsm.arena.board_width - 1:
             # Propagate a displacement inter turn event
-            displacement_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            displacement_itevent = Event(MESSAGE,
+                players=self.fsm.player_chain.get_players(),
                 tokens=['DISPLACEMENT_ITEVENT', jumon.id,
                     current_position, target_position])
             propagate_message(displacement_itevent)
@@ -656,7 +661,8 @@ class CheckDisplacementState(State):
         if target_position.y < 0 or\
                 target_position.y > self.fsm.arena.board_height - 1:
             # Propagate a displacement inter turn event
-            displacement_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            displacement_itevent = Event(MESSAGE,
+                players=self.fsm.player_chain.get_players(),
                 tokens=['DISPLACEMENT_ITEVENT', jumon.id,
                     current_position, target_position])
             propagate_message(displacement_itevent)
@@ -671,7 +677,7 @@ class CheckDisplacementState(State):
             """
             # Propagate a displacement inter turn event
             displacement_itevent = Event(MESSAGE,
-                players=self.fsm.get_players(),
+                players=self.fsm.player_chain.get_players(),
                 tokens=['DISPLACEMENT_ITEVENT', jumon.id,
                     current_position, target_position])
             propagate_message(displacement_itevent)
@@ -709,7 +715,7 @@ class CheckDisplacementState(State):
             self.fsm.arena.place_unit_at(jumon, target_position)
             # Propagate a displacement inter turn event
             displacement_itevent = Event(MESSAGE,
-                players=self.fsm.get_players(),
+                players=self.fsm.player_chain.get_players(),
                 tokens=['DISPLACEMENT_ITEVENT', jumon.id,
                     current_position, target_position])
             propagate_message(displacement_itevent)
@@ -758,7 +764,8 @@ class CheckSpecialMoveState(State):
             of the current jumon
             """
             # Propagate a special move inter turn event
-            specialmove_itevent = Event(MESSAGE, players=self.fsm.get_players,
+            specialmove_itevent = Event(MESSAGE,
+                players=self.fsm.player_chain.get_players(),
                 tokens=['SPECIAL_MOVE_ITEVENT', jumon.id,
                     current_position, target_position])
             propagate_message(specialmove_itevent)
@@ -868,12 +875,14 @@ class OneTileBattleBoniEvaluationState(State):
         After the bonus values are evaluated invoke the ability scripts
         """
         # Propagate a bonus inter turn event
-        attackbonus_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+        attackbonus_itevent = Event(MESSAGE,
+            players=self.fsm.player_chain.get_players(),
             tokens=['ATTACKBONUS_ITEVENT',
                 attacking_jumon.id,
                 attacking_jumon.position,
                 attacking_jumon_bonus])
-        defensebonus_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+        defensebonus_itevent = Event(MESSAGE,
+            players=self.fsm.player_chain.get_players(),
             tokens=['DEFENSEBONUS_ITEVENT',
                 defending_jumon.id,
                 defending_jumon.position,
@@ -908,7 +917,8 @@ class OneTileBattleFightState(State):
         attacking_jumon_bonus = self.state_variables["attacking_jumon_bonus"]
         defending_jumon_bonus = self.state_variables["defending_jumon_bonus"]
         # Propagate a one tile battle fight inter turn event
-        onetilefight_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+        onetilefight_itevent = Event(MESSAGE,
+            players=self.fsm.player_chain.get_players(),
             tokens=['ONETILEFIGHT',
                 attacking_jumon.id,
                 defending_jumon.id,
@@ -1107,12 +1117,14 @@ class TwoTileBattleBoniEvaluationState(State):
         defending_jumon_bonus = defense_tile.\
             get_total_defense_bonus(defending_jumon)
         # Propagate a bonus inter turn event
-        attackbonus_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+        attackbonus_itevent = Event(MESSAGE,
+            players=self.fsm.player_chain.get_players(),
             tokens=['ATTACKBONUS_ITEVENT',
                 attacking_jumon.id,
                 attacking_jumon.position,
                 attacking_jumon_bonus])
-        defensebonus_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+        defensebonus_itevent = Event(MESSAGE,
+            players=self.fsm.player_chain.get_players(),
             tokens=['DEFENSEBONUS_ITEVENT',
                 defending_jumon.id,
                 defending_jumon.position,
@@ -1159,7 +1171,8 @@ class TwoTileBattleFightState(State):
         attacking_jumon_bonus = self.state_variables["attacking_jumon_bonus"]
         defending_jumon_bonus = self.state_variables["defending_jumon_bonus"]
         # Propagate a one tile battle fight inter turn event
-        onetilefight_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+        onetilefight_itevent = Event(MESSAGE,
+            players=self.fsm.player_chain.get_players(),
             tokens=['ONETILEFIGHT',
                 attacking_jumon.id,
                 defending_jumon.id,
@@ -1309,7 +1322,8 @@ class EquipArtefactToJumonState(State):
         last_position = self.state_variables["last_position"]
 
         # Propagate a equip artefact event
-        equip_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+        equip_itevent = Event(MESSAGE,
+            players=self.fsm.player_chain.get_players(),
             tokens=['EQUIP_ITEVENT', jumon.id, artefact.id])
         propagate_message(equip_itevent)
         if jumon.equipment is None:
@@ -1358,9 +1372,11 @@ class TimeoutState(State):
         Kill the player if per has timed out to often
         """
         # Propagate a timeout inter turn event
-        timeout_itevent = Event(MESSAGE, players=self.fsm.get_players(),
-            tokens=['TIMEOUT_ITEVENT', self.fsm.get_current_player().name,
-                self.fsm.get_current_player().timeout_counter])
+        timeout_itevent = Event(MESSAGE,
+            players=self.fsm.player_chain.get_players(),
+            tokens=['TIMEOUT_ITEVENT',
+                self.fsm.player_chain.get_current_player().name,
+                self.fsm.player_chain.get_current_player().timeout_counter])
         propagate_message(timeout_itevent)
         self.fsm.player_chain.get_current_player().increment_timeout_counter()
         if self.fsm.player_chain.get_current_player().\
