@@ -6,6 +6,7 @@ from Akuga.MatchServer.PathFinder import find_path
 from Akuga.MatchServer.Position import Position
 from Akuga.MatchServer.Player import NeutralPlayer
 from Akuga.MatchServer.StateMachieneState import StateMachieneState as State
+from Akuga.MatchServer.Network import (propagate_message)
 from Akuga.EventDefinitions import (Event,
                                     SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_MOVE_EVENT,
@@ -14,7 +15,8 @@ from Akuga.EventDefinitions import (Event,
                                     PLAYER_HAS_WON,
                                     MATCH_IS_DRAWN,
                                     TURN_ENDS,
-                                    TIMEOUT_EVENT)
+                                    TIMEOUT_EVENT,
+                                    MESSAGE)
 
 
 def jumon_fight(attacking_jumon, attacking_bonus,
@@ -250,6 +252,11 @@ class PickState(State):
         jumon.set_owner(self.fsm.player_chain.get_current_player())
         self.fsm.jumon_pick_pool.remove(jumon)
         self.fsm.player_chain.get_current_player().add_jumon_to_summon(jumon)
+        # Propagate a pick inter turn event
+        pick_ite = Event(MESSAGE, players=self.fsm.player_chain.get_players(),
+            tokens=['PICK_ITEVENT',
+            self.fms.player_chain.get_current_player().name, jumon.id])
+        propagate_message(pick_ite)
         if len(self.fsm.jumon_pick_pool) <\
                 self.fsm.player_chain.get_not_neutral_length():
             """
@@ -326,6 +333,11 @@ class SummonCheckState(State):
             # Let the current player summon this jumon
             jumon.owned_by.\
                 handle_summoning(jumon)
+            # Propagate a summon inter turn event
+            summon_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+                tokens=['SUMMON_ITEVENT', self.fsm.get_current_player().name,
+                jumon.id, jumon.position])
+
             if self.fsm.arena.get_tile_at(summon_position).is_wasted():
                 """
                 If the summoned position is a wasted land kill the jumon
@@ -352,6 +364,11 @@ class SummonCheckState(State):
             # Let the current player summon this jumon
             jumon.owned_by.\
                 handle_summoning(jumon)
+            # Propagate a summon inter turn event
+            summon_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+                tokens=['SUMMON_ITEVENT', self.fsm.get_current_player().name,
+                jumon.id, jumon.position])
+            propagate_message(summon_itevent)
             # Get the artefact at this point
             artefact = self.fsm.arena.get_unit_at(summon_position)
             # Place the jumon at the arena
@@ -554,6 +571,12 @@ class CheckMoveState(State):
 
                 self.fsm.arena.place_unit_at(None, current_position)
                 self.fsm.arena.place_unit_at(jumon, target_position)
+                # Propagate an movement inter turn event
+                movement_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+                    tokens=['MOVEMENT_ITEVENT',
+                        self.fsm.get_current_player().name,
+                        jumon.id, current_position, target_position])
+                propagate_message(movement_itevent)
             return (self.fsm.turn_end_state, {})
         elif jumon.owned_by.\
                 owns_tile(self.fsm.arena, target_position):
@@ -621,12 +644,22 @@ class CheckDisplacementState(State):
         # jumon instantly
         if target_position.x < 0 or\
                 target_position.x > self.fsm.arena.board_width - 1:
+            # Propagate a displacement inter turn event
+            displacement_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+                tokens=['DISPLACEMENT_ITEVENT', jumon.id,
+                    current_position, target_position])
+            propagate_message(displacement_itevent)
             self.fsm.arena.place_unit_at(None, current_position)
             jumon.owned_by.handle_jumon_death(jumon)
             return (self.fsm.turn_end_state, {})
 
         if target_position.y < 0 or\
                 target_position.y > self.fsm.arena.board_height - 1:
+            # Propagate a displacement inter turn event
+            displacement_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+                tokens=['DISPLACEMENT_ITEVENT', jumon.id,
+                    current_position, target_position])
+            propagate_message(displacement_itevent)
             self.fsm.arena.place_unit_at(None, current_position)
             jumon.owned_by.handle_jumon_death(jumon)
             return (self.fsm.turn_end_state, {})
@@ -636,6 +669,13 @@ class CheckDisplacementState(State):
             If the tile at target position is free just do the displacement
             and end the turn by jumping to the ChangePlayerState
             """
+            # Propagate a displacement inter turn event
+            displacement_itevent = Event(MESSAGE,
+                players=self.fsm.get_players(),
+                tokens=['DISPLACEMENT_ITEVENT', jumon.id,
+                    current_position, target_position])
+            propagate_message(displacement_itevent)
+
             if self.fsm.arena.get_tile_at(target_position).is_wasted():
                 """
                 If the target position is a wasted arena tile kill the
@@ -667,6 +707,12 @@ class CheckDisplacementState(State):
             # Move the jumon
             self.fsm.arena.place_unit_at(None, current_position)
             self.fsm.arena.place_unit_at(jumon, target_position)
+            # Propagate a displacement inter turn event
+            displacement_itevent = Event(MESSAGE,
+                players=self.fsm.get_players(),
+                tokens=['DISPLACEMENT_ITEVENT', jumon.id,
+                    current_position, target_position])
+            propagate_message(displacement_itevent)
             # Jump to the equip artefact to jumon state
             return (self.fsm.equip_artefact_to_jumon_state, {
                 "jumon": jumon,
@@ -711,6 +757,11 @@ class CheckSpecialMoveState(State):
             If the special move is legal invoke the special move function
             of the current jumon
             """
+            # Propagate a special move inter turn event
+            specialmove_itevent = Event(MESSAGE, players=self.fsm.get_players,
+                tokens=['SPECIAL_MOVE_ITEVENT', jumon.id,
+                    current_position, target_position])
+            propagate_message(specialmove_itevent)
             state_change = jumon.do_special_move(self.fsm, current_position,
                     target_position)
             return state_change
@@ -816,6 +867,19 @@ class OneTileBattleBoniEvaluationState(State):
         """
         After the bonus values are evaluated invoke the ability scripts
         """
+        # Propagate a bonus inter turn event
+        attackbonus_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            tokens=['ATTACKBONUS_ITEVENT',
+                attacking_jumon.id,
+                attacking_jumon.position,
+                attacking_jumon_bonus])
+        defensebonus_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            tokens=['DEFENSEBONUS_ITEVENT',
+                defending_jumon.id,
+                defending_jumon.position,
+                defending_jumon_bonus])
+        propagate_message(attackbonus_itevent)
+        propagate_message(defensebonus_itevent)
         state_change = attacking_jumon.special_ability(self,
                 (self.fsm.one_tile_battle_fight_state,
                 one_tile_battle_figh_state_variables))
@@ -843,6 +907,14 @@ class OneTileBattleFightState(State):
         battle_position = self.state_variables["battle_position"]
         attacking_jumon_bonus = self.state_variables["attacking_jumon_bonus"]
         defending_jumon_bonus = self.state_variables["defending_jumon_bonus"]
+        # Propagate a one tile battle fight inter turn event
+        onetilefight_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            tokens=['ONETILEFIGHT',
+                attacking_jumon.id,
+                defending_jumon.id,
+                attacking_jumon.position,
+                defending_jumon.position])
+        propagate_message(onetilefight_itevent)
         # If no one wins victor and looser are none
         victor, looser = jumon_fight(attacking_jumon, attacking_jumon_bonus,
                                      defending_jumon, defending_jumon_bonus)
@@ -1034,6 +1106,19 @@ class TwoTileBattleBoniEvaluationState(State):
             get_total_attack_bonus(attacking_jumon)
         defending_jumon_bonus = defense_tile.\
             get_total_defense_bonus(defending_jumon)
+        # Propagate a bonus inter turn event
+        attackbonus_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            tokens=['ATTACKBONUS_ITEVENT',
+                attacking_jumon.id,
+                attacking_jumon.position,
+                attacking_jumon_bonus])
+        defensebonus_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            tokens=['DEFENSEBONUS_ITEVENT',
+                defending_jumon.id,
+                defending_jumon.position,
+                defending_jumon_bonus])
+        propagate_message(attackbonus_itevent)
+        propagate_message(defensebonus_itevent)
         # Now jump to the two_tile_battle_fight_state
         two_tile_battle_figh_state_variables = {
             "attacking_jumon": attacking_jumon,
@@ -1073,6 +1158,14 @@ class TwoTileBattleFightState(State):
         defense_position = self.state_variables["defense_position"]
         attacking_jumon_bonus = self.state_variables["attacking_jumon_bonus"]
         defending_jumon_bonus = self.state_variables["defending_jumon_bonus"]
+        # Propagate a one tile battle fight inter turn event
+        onetilefight_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            tokens=['ONETILEFIGHT',
+                attacking_jumon.id,
+                defending_jumon.id,
+                attacking_jumon.position,
+                defending_jumon.position])
+        propagate_message(onetilefight_itevent)
         # If no one wins victor and looser are none
         victor, looser = jumon_fight(attacking_jumon, attacking_jumon_bonus,
                                      defending_jumon, defending_jumon_bonus)
@@ -1215,6 +1308,10 @@ class EquipArtefactToJumonState(State):
         artefact = self.state_variables["artefact"]
         last_position = self.state_variables["last_position"]
 
+        # Propagate a equip artefact event
+        equip_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            tokens=['EQUIP_ITEVENT', jumon.id, artefact.id])
+        propagate_message(equip_itevent)
         if jumon.equipment is None:
             """
             If the jumon has no equipment yet just attach it
@@ -1260,6 +1357,11 @@ class TimeoutState(State):
         Increment the timeout counter of the player.
         Kill the player if per has timed out to often
         """
+        # Propagate a timeout inter turn event
+        timeout_itevent = Event(MESSAGE, players=self.fsm.get_players(),
+            tokens=['TIMEOUT_ITEVENT', self.fsm.get_current_player().name,
+                self.fsm.get_current_player().timeout_counter])
+        propagate_message(timeout_itevent)
         self.fsm.player_chain.get_current_player().increment_timeout_counter()
         if self.fsm.player_chain.get_current_player().\
                 get_timeout_counter() > GlobalDefinitions.MAX_TIMEOUTS:
