@@ -68,12 +68,16 @@ def propagate_message(message_event):
     users specified in the message_event.
     Therefor the message_event has to provide:
     users: a list of user instances
+    players: can be specified instead of the users
     tokens: a list of tokens building the packet
 
     Brokene connections will be ignored as timeout and reconnects are
     handeld elsewhere in the code
     '''
-    users = message_event.users
+    try:
+        users = message_event.users
+    except AttributeError:
+        users = list(map(lambda x: x.user, message_event.players))
     tokens = message_event.tokens
     for user in users:
         try:
