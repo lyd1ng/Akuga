@@ -36,6 +36,19 @@ def jumon_fight(attacking_jumon, attacking_bonus,
         return (None, None)
 
 
+def propagating_handle_jumon_death(jumon, players):
+    '''
+    Handles the death of a jumon and propagates this
+    as an inter turn event
+    '''
+    # Handle the death of the jumon
+    jumon.owned_by.handle_jumon_death(jumon)
+    # Propagate a burying_jumon inter turn event
+    burying_itevent = Event(MESSAGE, players=players,
+        tokens=['BURYING_JUMON_ITEVENT', jumon.id])
+    propagate_message(burying_itevent)
+
+
 class TurnBeginState(State):
     """
     This represents the moment a turn begins, in this state
@@ -345,7 +358,8 @@ class SummonCheckState(State):
                 If the summoned position is a wasted land kill the jumon
                 instead of place it on the tile
                 """
-                jumon.owned_by.handle_jumon_death(jumon)
+                propagating_handle_jumon_death(jumon,
+                    self.fsm.player_chain.get_players())
             else:
                 """ Place the jumon at the arena """
                 self.fsm.arena.place_unit_at(jumon, summon_position)
@@ -565,7 +579,7 @@ class CheckMoveState(State):
                 jumon
                 """
                 self.fsm.arena.place_unit_at(None, current_position)
-                jumon.owned_by.handle_jumon_death(jumon)
+                propagating_handle_jumon_death(jumon, self.fsm.player_chain.get_players())
             else:
                 """ Place the jumon on the arena tile """
                 print('Moving jumon: ' + jumon.name)
@@ -655,7 +669,8 @@ class CheckDisplacementState(State):
                     current_position, target_position])
             propagate_message(displacement_itevent)
             self.fsm.arena.place_unit_at(None, current_position)
-            jumon.owned_by.handle_jumon_death(jumon)
+            propagating_handle_jumon_death(jumon, self.fsm.player_chain.get_players())
+
             return (self.fsm.turn_end_state, {})
 
         if target_position.y < 0 or\
@@ -667,7 +682,8 @@ class CheckDisplacementState(State):
                     current_position, target_position])
             propagate_message(displacement_itevent)
             self.fsm.arena.place_unit_at(None, current_position)
-            jumon.owned_by.handle_jumon_death(jumon)
+            propagating_handle_jumon_death(jumon, self.fsm.player_chain.get_players())
+
             return (self.fsm.turn_end_state, {})
 
         if self.fsm.arena.get_unit_at(target_position) is None:
@@ -688,7 +704,8 @@ class CheckDisplacementState(State):
                 jumon
                 """
                 self.fsm.arena.place_unit_at(None, current_position)
-                jumon.owned_by.handle_jumon_death(jumon)
+                propagating_handle_jumon_death(jumon, self.fsm.player_chain.get_players())
+
             else:
                 """ Place the jumon on the arena tile """
                 self.fsm.arena.place_unit_at(None, current_position)
@@ -998,8 +1015,9 @@ class OneTileBattleAftermathState(State):
                 self.fsm.arena.place_unit_at(artefact, battle_position)
 
             # kill the jumons
-            attacking_jumon.owned_by.handle_jumon_death(attacking_jumon)
-            defending_jumon.owned_by.handle_jumon_death(defending_jumon)
+            propagating_handle_jumon_death(attacking_jumon, self.fsm.player_chain.get_players())
+            propagating_handle_jumon_death(defending_jumon, self.fsm.player_chain.get_players())
+
             # Remove the occupying unit from the arena tile
             self.fsm.arena.place_unit_at(None, battle_position)
 
@@ -1013,7 +1031,8 @@ class OneTileBattleAftermathState(State):
                 looser.equipment.detach_from(looser)
                 artifact.attach_to(victor)
             # Now kill the looser
-            looser.owned_by.handle_jumon_death(looser)
+            propagating_handle_jumon_death(looser, self.fsm.player_chain.get_players())
+
             # Place the victor on the arena tile
             self.fsm.arena.place_unit_at(victor, battle_position)
 
@@ -1233,8 +1252,9 @@ class TwoTileBattleAftermathState(State):
             power level and both have to be destroyed
             """
             # kill both jumons
-            attacking_jumon.owned_by.handle_jumon_death(attacking_jumon)
-            defending_jumon.owned_by.handle_jumon_death(defending_jumon)
+            propagating_handle_jumon_death(attacking_jumon, self.fsm.player_chain.get_players())
+            propagating_handle_jumon_death(defending_jumon, self.fsm.player_chain.get_players())
+
             # Remove both units from the arena tile
             self.fsm.arena.place_unit_at(None, attack_position)
             self.fsm.arena.place_unit_at(None, defense_position)
@@ -1258,7 +1278,8 @@ class TwoTileBattleAftermathState(State):
             If the jumon to move has won move it to the defense tile
             """
             # Just kill the looser
-            defending_jumon.owned_by.handle_jumon_death(defending_jumon)
+            propagating_handle_jumon_death(defending_jumon, self.fsm.player_chain.get_players())
+
             # Move the victor from the attack tile to the defense tile
             self.fsm.arena.place_unit_at(None, attack_position)
             self.fsm.arena.place_unit_at(victor, defense_position)
@@ -1286,7 +1307,8 @@ class TwoTileBattleAftermathState(State):
             If the defending_jumon has won remove the attacking jumon
             """
             # Just kill the looser
-            attacking_jumon.owned_by.handle_jumon_death(attacking_jumon)
+            propagating_handle_jumon_death(attacking_jumon, self.fsm.player_chain.get_players())
+
             self.fsm.arena.place_unit_at(None, attack_position)
             if attacking_jumon.equipment is not None:
                 """
