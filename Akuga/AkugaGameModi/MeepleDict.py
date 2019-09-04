@@ -3,9 +3,9 @@ This module contain the name_constructor dict and other functions
 to build up the pickpool and translate the active sets of all users
 to a list of jumon instances
 """
-from Akuga.MatchServer.Meeple import Jumon
-from Akuga.MatchServer.GlobalDefinitions import USER_DBS_ADDRESS
-from Akuga.MatchServer.NetworkProtocoll import (
+from Akuga.AkugaGameModi.Meeple import Jumon
+from Akuga.AkugaGameModi.GlobalDefinitions import USER_DBS_ADDRESS
+from Akuga.AkugaGameModi.NetworkProtocoll import (
     send_packet,
     receive_dbs_response)
 

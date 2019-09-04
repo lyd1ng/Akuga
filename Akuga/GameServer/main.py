@@ -3,7 +3,8 @@ import socket
 import logging
 from functools import reduce
 from threading import Thread
-from Akuga.MatchServer.MatchServer import (match_server, check_set_for_lms)
+from Akuga.AkugaGameModi.LastManStanding.Match import (
+    match_server, check_set_for_lms)
 from Akuga.User import user_from_database_response
 from Akuga.GameServer.GlobalDefinitions import (
     SERVER_ADDRESS,
@@ -397,7 +398,6 @@ if __name__ == '__main__':
     logger.info("Start handle_gamemode_queue threads as daemons")
     handle_lms_queue_thread = Thread(target=handle_lms_queue,
         args=(lms_queue,))
-        args=(amm_queue,))
     handle_lms_queue_thread.daemon = True
     handle_lms_queue_thread.start()
     logger.info("Started handle_gamemode_queue threads as daemons")

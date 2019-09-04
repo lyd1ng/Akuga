@@ -1,6 +1,6 @@
 import socket
 from ast import literal_eval
-from Akuga.MatchServer.Position import Position
+from Akuga.AkugaGameModi.Position import Position
 from Akuga.EventDefinitions import (Event,
                                     SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_MOVE_EVENT,

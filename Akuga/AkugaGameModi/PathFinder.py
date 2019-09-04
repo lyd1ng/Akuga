@@ -1,5 +1,4 @@
-from Akuga.MatchServer.ArenaCreator import create_arena
-from Akuga.MatchServer.Position import Position
+from Akuga.AkugaGameModi.Position import Position
 
 
 def pos_in(position, nodes):
@@ -137,6 +136,7 @@ def find_path(start_position, end_position, arena):
 
 
 if __name__ == "__main__":
+    from Akuga.AkugaGameModi.LastManStanding.ArenaCreator import create_arena
     width = 5
     height = 5
     arena = create_arena(width, height, 0, 0)

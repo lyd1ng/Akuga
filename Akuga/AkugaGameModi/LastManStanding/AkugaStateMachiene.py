@@ -1,5 +1,5 @@
-import Akuga.MatchServer.AkugaStates as AkugaStates
-from Akuga.MatchServer.StateMachiene import StateMachiene
+from Akuga.AkugaGameModi.StateMachiene import StateMachiene
+import Akuga.AkugaGameModi.LastManStanding.AkugaStates as AkugaStates
 
 
 def create_last_man_standing_fsm():

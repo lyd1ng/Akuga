@@ -3,13 +3,20 @@ import logging
 import socket
 from time import sleep
 
-from Akuga.MatchServer.Player import (Player, NeutralPlayer)
-from Akuga.MatchServer.PlayerChain import PlayerChain
-from Akuga.MatchServer.ArenaCreator import create_arena
-from Akuga.MatchServer import GlobalDefinitions
-import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
-import Akuga.MatchServer.MeepleDict as MeepleDict
-from Akuga.MatchServer.NetworkProtocoll import (
+from Akuga.AkugaGameModi.Player import (Player, NeutralPlayer)
+from Akuga.AkugaGameModi.PlayerChain import PlayerChain
+from Akuga.AkugaGameModi.LastManStanding.ArenaCreator import create_arena
+import Akuga.AkugaGameModi.LastManStanding.AkugaStateMachiene as AkugaStateMachiene
+import Akuga.AkugaGameModi.MeepleDict as MeepleDict
+from Akuga.AkugaGameModi.GlobalDefinitions import USER_DBS_ADDRESS
+from Akuga.AkugaGameModi.LastManStanding.GlobalDefinitions import (
+    BOARD_WIDTH,
+    BOARD_HEIGHT,
+    MIN_TILE_BONUS,
+    MAX_TILE_BONUS,
+    SECONDS_PER_TURN,
+    CREDITS_PER_WIN)
+from Akuga.AkugaGameModi.NetworkProtocoll import (
     SocketClosed,
     callback_recv_packet,
     handle_match_connection,
@@ -51,10 +58,10 @@ def check_set_for_lms(active_set):
 def build_last_man_standing_game_state(player_chain, jumon_sets,
         userdbs_connection, _queue, options={}):
     # Build the arena
-    arena = create_arena(GlobalDefinitions.BOARD_WIDTH,
-                        GlobalDefinitions.BOARD_HEIGHT,
-                        GlobalDefinitions.MIN_TILE_BONUS,
-                        GlobalDefinitions.MAX_TILE_BONUS)
+    arena = create_arena(BOARD_WIDTH,
+                        BOARD_HEIGHT,
+                        MIN_TILE_BONUS,
+                        MAX_TILE_BONUS)
     # Create the jumon pick pool out of the users active sets
     # Every jumon in the match will have a unique id
     jumon_id = 0
@@ -122,7 +129,7 @@ def handle_fsm_response(event, game_mode, game_state,
                     userdbs_connection.recv(128)
                     # Also reward the victor with ingame cash
                     send_packet(userdbs_connection, ["REWARD_USER",
-                        user.name, GlobalDefinitions.CREDITS_PER_WIN])
+                        user.name, CREDITS_PER_WIN])
                     userdbs_connection.recv(128)
                 else:
                     send_packet(userdbs_connection,
@@ -176,7 +183,7 @@ def match_server(game_mode, users, options={}):
 
     userdbs_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        userdbs_connection.connect(GlobalDefinitions.USER_DBS_ADDRESS)
+        userdbs_connection.connect(USER_DBS_ADDRESS)
     except ConnectionRefusedError:
         logger.info('Cant connect to akuga database server')
         return -1
@@ -197,7 +204,7 @@ def match_server(game_mode, users, options={}):
 
     # Set seconds per turn to be the timeout for all user connections
     for user in users:
-        user.connection.settimeout(GlobalDefinitions.SECONDS_PER_TURN)
+        user.connection.settimeout(SECONDS_PER_TURN)
 
     # Signal the clients that the match starts
     propagate_message(Event(MESSAGE, users=users,

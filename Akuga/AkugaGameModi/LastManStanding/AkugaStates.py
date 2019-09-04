@@ -1,12 +1,12 @@
 import random
 import time
-from Akuga.MatchServer import GlobalDefinitions
-import Akuga.MatchServer.Meeple
-from Akuga.MatchServer.PathFinder import find_path
-from Akuga.MatchServer.Position import Position
-from Akuga.MatchServer.Player import NeutralPlayer
-from Akuga.MatchServer.StateMachieneState import StateMachieneState as State
-from Akuga.MatchServer.NetworkProtocoll import (propagate_message)
+from Akuga.AkugaGameModi import GlobalDefinitions
+import Akuga.AkugaGameModi.Meeple
+from Akuga.AkugaGameModi.PathFinder import find_path
+from Akuga.AkugaGameModi.Position import Position
+from Akuga.AkugaGameModi.Player import NeutralPlayer
+from Akuga.AkugaGameModi.StateMachieneState import StateMachieneState as State
+from Akuga.AkugaGameModi.NetworkProtocoll import (propagate_message)
 from Akuga.EventDefinitions import (Event,
                                     SUMMON_JUMON_EVENT,
                                     SELECT_JUMON_TO_MOVE_EVENT,
@@ -372,7 +372,7 @@ class SummonCheckState(State):
                     (self.fsm.turn_end_state, self.state_variables))
             return state_change
         elif issubclass(type(self.fsm.arena.get_unit_at(summon_position)),
-                Akuga.MatchServer.Meeple.Artefact):
+                Akuga.AkugaGameModi.Meeple.Artefact):
             """
             If the jumon is summoned on an artefact place it on this tile
             and jump to the equip artefact to jumon state
@@ -607,7 +607,7 @@ class CheckMoveState(State):
                 "enforced_jumon": None,
                 "enforced_event": None})
         elif issubclass(type(self.fsm.arena.get_unit_at(target_position)),
-                Akuga.MatchServer.Meeple.Artefact):
+                Akuga.AkugaGameModi.Meeple.Artefact):
             """
             If the target position is occupied by an artefact jump to the
             equip artefact to jumon state
@@ -720,7 +720,7 @@ class CheckDisplacementState(State):
             """
             return (self.fsm.turn_end_state, {})
         elif issubclass(type(self.fsm.arena.get_unit_at(target_position)),
-                Akuga.MatchServer.Meeple.Artefact):
+                Akuga.AkugaGameModi.Meeple.Artefact):
             """
             If the target position is occupied by an artefact jump to the
             equip artefact to jumon state

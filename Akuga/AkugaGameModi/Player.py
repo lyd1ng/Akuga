@@ -1,6 +1,5 @@
 from random import randint
-from Akuga.MatchServer.Position import Position
-from Akuga.MatchServer import GlobalDefinitions
+from Akuga.AkugaGameModi.Position import Position
 
 
 class Player:
@@ -209,8 +208,8 @@ class NeutralPlayer(Player):
         """
         # Make sure is no summoning on an occupyied tile
         summon_positions = []
-        width = GlobalDefinitions.BOARD_WIDTH - 1
-        height = GlobalDefinitions.BOARD_HEIGHT - 1
+        width = self.arena.board_width - 1
+        height = self.arena.board_height - 1
         for jumon in self.jumons_to_summon:
             position = Position(randint(0, width), randint(0, height))
             if position not in summon_positions:

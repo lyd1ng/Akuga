@@ -1,4 +1,4 @@
-from Akuga.MatchServer.Player import (Player, NeutralPlayer)
+from Akuga.AkugaGameModi.Player import (Player, NeutralPlayer)
 
 
 class PlayerNode:

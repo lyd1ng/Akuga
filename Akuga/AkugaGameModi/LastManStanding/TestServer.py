@@ -3,13 +3,13 @@ import logging
 import socket
 from time import sleep
 
-from Akuga.MatchServer.Player import (Player, NeutralPlayer)
-from Akuga.MatchServer.PlayerChain import PlayerChain
-from Akuga.MatchServer.ArenaCreator import create_arena
-from Akuga.MatchServer.MeepleDict import JUMON_NAME_CONSTRUCTOR_DICT
-from Akuga.MatchServer import GlobalDefinitions
-import Akuga.MatchServer.AkugaStateMachiene as AkugaStateMachiene
-from Akuga.MatchServer.NetworkProtocoll import (
+from Akuga.AkugaGameModi.Player import (Player, NeutralPlayer)
+from Akuga.AkugaGameModi.PlayerChain import PlayerChain
+from Akuga.AkugaGameModi.LastManStanding.ArenaCreator import create_arena
+from Akuga.AkugaGameModi.MeepleDict import JUMON_NAME_CONSTRUCTOR_DICT
+from Akuga.AkugaGameModi import GlobalDefinitions
+import Akuga.AkugaGameModi.LastManStanding.AkugaStateMachiene as AkugaStateMachiene
+from Akuga.AkugaGameModi.NetworkProtocoll import (
     SocketClosed,
     callback_recv_packet,
     handle_match_connection,

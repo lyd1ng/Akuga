@@ -1,5 +1,5 @@
-from Akuga.MatchServer.Position import Position
-from Akuga.MatchServer.Meeple import Jumon
+from Akuga.AkugaGameModi.Position import Position
+from Akuga.AkugaGameModi.Meeple import Jumon
 
 
 class ArenaTile:

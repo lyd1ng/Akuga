@@ -1,8 +1,3 @@
-from random import randint
-from Akuga.MatchServer.Position import Position
-from Akuga.MatchServer import GlobalDefinitions
-
-
 class Artefact():
     """
     The abstraction around an equipment or artifact
@@ -168,51 +163,3 @@ class Jumon():
         for interf in self.persistent_interf.values():
             total_movement += interf[2]
         return total_movement
-
-
-class TestNeutralJumon(Jumon):
-    def __init__(self, name, owned_by):
-        super().__init__(name, "red", 300, 300, 2, None, owned_by)
-
-    def wrap(self, x, min_value, max_value):
-        """
-        Wraps x to [min_value, max_value]
-        """
-        if x < min_value:
-            x = min_value
-        if x > max_value:
-            x = max_value
-        return x
-
-    def special_ability(self, current_state, next_state_and_variables):
-        """
-        Archieve a state change to the check move state
-        """
-        if current_state is current_state.fsm.wait_for_user_state:
-            width = GlobalDefinitions.BOARD_WIDTH - 1
-            height = GlobalDefinitions.BOARD_HEIGHT - 1
-            random_target = self.position +\
-                Position(randint(-1, 1), randint(-1, 1))
-            random_target.x = self.wrap(random_target.x, 0, width)
-            random_target.y = self.wrap(random_target.y, 0, height)
-            return (current_state.fsm.check_move_state, {
-                "jumon_to_move": self,
-                "current_position": self.position,
-                "target_position": random_target})
-        return next_state_and_variables
-
-
-class TestArtefact(Artefact):
-    def __init__(self):
-        super().__init__('TA', None)
-        self.cached_name = ''
-
-    def attach_to(self, jumon):
-        self.cached_name = jumon.name
-        jumon.name += ' TA'
-        super().attach_to(jumon)
-
-    def detach_from(self, jumon):
-        jumon.name = self.cached_name
-        self.cached_name = ''
-        super().detach_from(jumon)

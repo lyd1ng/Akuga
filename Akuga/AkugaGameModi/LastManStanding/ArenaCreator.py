@@ -1,5 +1,5 @@
 from random import randint
-from Akuga.MatchServer.Arena import (ArenaTile, Arena)
+from Akuga.AkugaGameModi.Arena import (ArenaTile, Arena)
 
 
 def create_arena(width, height, min_bonus, max_bonus):

@@ -1,5 +1,3 @@
-
-
 class StateMachiene():
     """
     Represents the state machiene which will handle most of the
