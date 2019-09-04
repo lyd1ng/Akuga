@@ -23,7 +23,7 @@ from time import sleep
 
 
 def handle_client(connection, client_address,
-                  lms_queue, amm_queue, active_users):
+                  lms_queue, active_users):
     """
     Handles the connection of a user (the connection as well as the
     client address is stored within the user instance)
@@ -365,8 +365,8 @@ def handle_lms_queue(lms_queue):
         user2.in_play = True
         logger.info("Got two user for a lms match")
         logger.info("Start MatchServer subprocess")
-        match_server_thread = Thread(target=match_server, args=('lms',
-            [user1, user2], None))
+        match_server_thread = Thread(target=match_server,
+            args=([user1, user2], None))
         match_server_thread.start()
         logger.info("Started MatchServer subprocess")
         # Signal that the users has been processed
@@ -389,7 +389,6 @@ if __name__ == '__main__':
 
     # The game mode queues
     lms_queue = queue.Queue()
-    amm_queue = queue.Queue()
 
     # A list of all users currently logged in
     active_users = []
@@ -409,8 +408,7 @@ if __name__ == '__main__':
             logger.info("Error while accepting connections")
             break
         handle_client_thread = Thread(target=handle_client,
-            args=(connection, client_address, lms_queue,
-            amm_queue, active_users))
+            args=(connection, client_address, lms_queue, active_users))
         handle_client_thread.start()
     logger.info("Leave server loop")
     logger.info("Close the server socket, terminate programm")
