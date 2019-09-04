@@ -1,8 +1,5 @@
 import logging
-from Akuga.AkugaDatabaseServer.Network import (
-    secure_string,
-    weak_secure_string,
-    send_packet)
+from Akuga.AkugaDatabaseServer.Network import (send_packet)
 
 # Get the logger
 logger = logging.getLogger('AkugaDatabaseServer.UserCharacteristics')

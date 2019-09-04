@@ -1,7 +1,4 @@
 import logging
-from Akuga.AkugaDatabaseServer.Network import (
-    weak_secure_string,
-    send_packet)
 
 # Get the logger
 logger = logging.getLogger('AkugaDatabaseServer.Jumons')

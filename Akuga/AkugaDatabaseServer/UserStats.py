@@ -1,8 +1,6 @@
 import logging
 from datetime import datetime
-from Akuga.AkugaDatabaseServer.Network import (
-    secure_string,
-    send_packet)
+from Akuga.AkugaDatabaseServer.Network import (send_packet)
 
 
 # Get the logger
