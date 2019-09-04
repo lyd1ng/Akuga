@@ -26,6 +26,7 @@ def jumon_set_from_list(jumon_name_list):
             jumon_set[name] = 1
     return jumon_set
 
+
 def insert_name(jumon_set, jumon_name):
     """
     Insert a jumon name to a jumon_set,
