@@ -10,20 +10,14 @@ def jumon_set_from_list(jumon_name_list):
     Creates a dictionary of the form jumon_name: amount
     from a list of jumon names
     """
-    if jumon_name_list == '':
-        return {}
     jumon_set = {}
+    if jumon_name_list == '':
+        return jumon_set
     for name in jumon_name_list:
         if name == '':
             continue
-        try:
-            # If the there is alredy a record for this jumon
-            # just increment the amount
-            jumon_set[name] += 1
-        except KeyError:
-            # If there is no record for this jumon in the jumon
-            # set add one with an amount of 1
-            jumon_set[name] = 1
+        # Insert the name of the jumon to the jumon set
+        insert_name(jumon_set, name)
     return jumon_set
 
 
@@ -72,7 +66,7 @@ def is_subset(smaller_set, larger_set):
 def serialize_set(jumon_set):
     """
     Return the set as a plain string of coma delimited jumon names.
-    The amount of a jumos is represented by repetitions of the name
+    The amount of a jumons is represented by repetitions of the name
     """
     serialized_string = ''
     for record in jumon_set.items():
