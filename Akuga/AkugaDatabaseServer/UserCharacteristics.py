@@ -12,13 +12,6 @@ def get_user_by_name(connection, client_address, cmd_queue, username):
     """
     Query for the whole user datastructure
     """
-    if secure_string(username) is False:
-        logger.info("One of the parameters where insecure!\n")
-        logger.info("Received from: " + str(client_address))
-        # If its not a local command
-        if connection is not None:
-            send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
     command = ("select * from user_accounts where name=?", (username, ))
     cmd_queue.put((connection, client_address, command))
 
@@ -27,13 +20,6 @@ def check_username(connection, client_address, cmd_queue, username):
     """
     Checks if a username is free or not
     """
-    if secure_string(username) is False:
-        logger.info("One of the parameters where insecure!\n")
-        logger.info("Received from: " + str(client_address))
-        # If its not a local command
-        if connection is not None:
-            send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
     command = ("select name from user_accounts where name=?", (username, ))
     logger.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((connection, client_address, command))
@@ -44,14 +30,6 @@ def register_user(connection, client_address, cmd_queue,
     """
     Registers a user with a given name and pers pass hash in the database
     """
-    if secure_string(username + pass_hash) is False or\
-            weak_secure_string(collection, ', ') is False:
-        logger.info("One of the parameters where insecure!\n")
-        logger.info("Received from: " + str(client_address))
-        # If its not a local command
-        if connection is not None:
-            send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
     command = ("insert into user_accounts(name, pass_hash, credits, collection, set1, set2, set3)\
         select :name, :pass_hash, :credits, :collection, :set1, :set2, :set3\
         where not exists(select 1 from user_accounts where name= :name)", {
@@ -71,13 +49,6 @@ def check_user_credentials(connection, client_address,
     """
     Checks the credentials of a user
     """
-    if secure_string(username + pass_hash) is False:
-        logger.info("One of the parameters where insecure!\n")
-        logger.info("Recieved from: " + str(client_address))
-        # If its not a local command
-        if connection is not None:
-            send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
     command = ("select name from user_accounts where name=?\
             and pass_hash=?", (username, pass_hash))
     logger.info('Enqueue command from: ' + str(client_address))
@@ -88,13 +59,6 @@ def get_jumon_collection(connection, client_address, cmd_queue, username):
     """
     Get the collection of a user
     """
-    if secure_string(username) is False:
-        logger.info("One of the parameters where insecure!\n")
-        logger.info("Recieved from: " + str(client_address))
-        # If its not a local command
-        if connection is not None:
-            send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
     command = ("select collection from user_accounts where name=?",
         (username, ))
     cmd_queue.put((connection, client_address, command))
@@ -107,14 +71,6 @@ def update_user(connection, client_address, cmd_queue,
     The name of a user cant be changed cause it it used as the id
     and the pass hash should not be send over the network unneccesarily
     """
-    if secure_string(username + credits) is False or\
-            weak_secure_string(collection + set1 + set2 + set3, ', ') is False:
-        logger.info("One of the parameters where insecure!\n")
-        logger.info("Recieved from: " + str(client_address))
-        # As long as the command is not a locale command
-        if connection is not None:
-            send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
     try:
         credits_value = int(credits)
     except ValueError:
@@ -142,13 +98,6 @@ def get_jumon_set(connection, client_address, cmd_queue, username, index):
     Get a jumons set of a user.
     $jumon_set e [0, 1, 2]
     """
-    if secure_string(username + index) is False:
-        logger.info("One of the parameters where insecure!\n")
-        logger.info("Recieved from: " + str(client_address))
-        # If its not a local command
-        if connection is not None:
-            send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
     try:
         set_index = int(index)
         # Only 0, 1, 2 is allowed as index
@@ -173,14 +122,6 @@ def set_jumon_set(connection, client_address, cmd_queue,
     jumon_set is a string containing the names of all jumons delimited by
     a comma
     """
-    if secure_string(username + index) is False or\
-            weak_secure_string(jumon_set, ', ') is False:
-        logger.info("One of the parameters where insecure!\n")
-        logger.info("Recieved from: " + str(client_address))
-        # If its not a local command
-        if connection is not None:
-            send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
     try:
         set_index = int(index)
         # Only 0, 1, 2 is allowed as index
@@ -203,11 +144,6 @@ def reward_user(connection, client_address, cmd_queue, username, credits):
     Increment the credits of a user by the integer value of credits
     """
     # if one of the paramaters are insecure log it and return
-    if secure_string(username) is False or secure_string(credits) is False:
-        logger.info("Username of credits where insecure!")
-        logger.info("Received from: " + str(client_address))
-        send_packet(connection, ["ERROR", "Insecure Parameter"])
-        return -1
     try:
         credits_int = int(credits)
     except ValueError:
