@@ -43,6 +43,7 @@ def handle_client(connection, client_address,
             try:
                 tokens = recv_packet(connection, 512)
             except socket.error:
+                # This triggers when the user disconects
                 connection.close()
                 logger.info("Connection error")
                 # If the user was logged which means part of the
@@ -160,9 +161,9 @@ def handle_client(connection, client_address,
                         index(username)
                     tmp_user = active_users[user_index]
                     if tmp_user.in_play is True:
-                        # This is a reconnect attempt, so set the user
-                        # instance to the already pers old user instance
-                        # in the active user list
+                        # This is a reconnect atttempt so update the
+                        # connection and the client address of the user
+                        # instance
                         tmp_user.connection = connection
                         tmp_user.client_address = client_address
                         logger.info("Logging in: " + username)
@@ -177,6 +178,7 @@ def handle_client(connection, client_address,
                 tokens = recv_packet(connection, 512)
             except socket.error:
                 connection.close()
+                # This triggers if the user disconnects
                 logger.info("Connection error")
                 # If the user was logged which means part of the
                 # active user list remove per from it so per can log in again
@@ -209,10 +211,6 @@ def handle_client(connection, client_address,
                     # At this point in the code the set is proofed to be valid
                     lms_queue.put(user)
                     send_packet(connection, ["SUCCESS", "enqueued", "lms"])
-                elif tokens[1] == 'amm':
-                    logger.info("Enqueue " + user.name + "for amm")
-                    amm_queue.put(user)
-                    send_packet(connection, ["SUCCESS", "enqueued", "amm"])
                 else:
                     logger.info("Invalid game mode: " + tokens[1])
                     send_packet(connection, ["ERROR", "Invalid game mode: "
@@ -327,6 +325,7 @@ def handle_client(connection, client_address,
                 # to the collection and update the database
                 jumon_name = jumon_tuple[0]
                 user.credits -= jumon_price
+                # Add the jumon to the jumon set
                 insert_name(user.collection, jumon_name)
                 send_packet(userdb_connection, ['UPDATE_USER',
                     user.name,
@@ -374,27 +373,6 @@ def handle_lms_queue(lms_queue):
         lms_queue.task_done()
 
 
-def handle_amm_queue(amm_queue):
-    """
-    Invoke a amm match between the two uppermost users
-    """
-    while True:
-        # Get two users from the queue
-        user1, user1_active_set = amm_queue.get()
-        user1.in_play = True
-        user2, user2_active_set = amm_queue.get()
-        user2.in_play = True
-        logger.info("Got two user for an amm match")
-        logger.info("Start MatchServer subprocess")
-        match_server_thread = Thread(target=match_server, args=('amm',
-            [(user1, user1_active_set), (user2, user2_active_set)], None))
-        match_server_thread.start()
-        logger.info("Started MatchServer subprocess")
-        # Signal that the users has been processed
-        amm_queue.task_done()
-        amm_queue.task_done()
-
-
 if __name__ == '__main__':
     # Create a logger
     logging.basicConfig(filename='Akuga.log', level=logging.INFO)
@@ -419,12 +397,9 @@ if __name__ == '__main__':
     logger.info("Start handle_gamemode_queue threads as daemons")
     handle_lms_queue_thread = Thread(target=handle_lms_queue,
         args=(lms_queue,))
-    handle_amm_queue_thread = Thread(target=handle_amm_queue,
         args=(amm_queue,))
     handle_lms_queue_thread.daemon = True
-    handle_amm_queue_thread.daemon = True
     handle_lms_queue_thread.start()
-    handle_amm_queue_thread.start()
     logger.info("Started handle_gamemode_queue threads as daemons")
     logger.info("Enter server loop")
     while True:
