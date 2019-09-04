@@ -13,20 +13,20 @@ class StateMachiene():
         self.current_state = start_state
         # Add the start state with its name to the fsm
         start_state.fsm = self
-        exec("self." + start_state.name + " = start_state")
+        self.__dict__[start_state.name] = start_state
 
     def add_state(self, state):
         """
         Add a state to the list of states under its name
         """
         state.fsm = self
-        exec("self." + state.name + " = state")
+        self.__dict__[state.name] = state
 
     def add_data(self, data_name, data):
         """
         Add variable data to the fsm under the name data_name
         """
-        exec("self." + data_name + " = data")
+        self.__dict__[data_name] = data
 
     def run(self, event):
         """
