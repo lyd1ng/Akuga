@@ -5,9 +5,7 @@ from Akuga.AkugaGameModi.Position import Position
 class Player:
     """
     Represents the player of the Akuga game
-    A can either be in the summon phase where per is forced to summon
-    a Jumon. If every jumon is set the player goes into move phase
-    where per is allowed to move one of the jumons
+    A Player can be in the pick, the summon or the move phase.
     """
     def __init__(self, user, is_neutral=False):
         self.name = user.name
@@ -135,10 +133,8 @@ class Player:
             self.kill()
         else:
             self._is_dead = False
-        """
-        If there are no more jumons to summon left the player changes into
-        the move phase
-        """
+        # If there are no more jumons to summon left the player changes into
+        # the move phase
         if len(self.jumons_to_summon) < 1:
             self.set_to_move_phase()
         else:
