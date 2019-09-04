@@ -90,7 +90,7 @@ def handle_client(connection, client_address,
                     # reduced to a string of ',' delimited jumon names
                     # to register the user
                     jumon_collection = reduce(lambda x, y: x + ',' + y,
-                        jumon_collection)
+                        jumon_collection, '')
                     send_packet(userdb_connection, ["REGISTER_USER",
                         username, pass_hash, START_CREDITS, jumon_collection])
                     response, error = receive_dbs_response(userdb_connection,
