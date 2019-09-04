@@ -28,7 +28,7 @@ class Position():
 
     def __sub__(self, other):
         """
-        Just add both positions componentwise
+        Just sub both positions componentwise
         """
         return Position(self.x - other.x, self.y - other.y)
 
