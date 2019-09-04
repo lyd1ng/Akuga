@@ -107,7 +107,7 @@ def build_last_man_standing_game_state(player_chain, jumon_sets,
     return game_state
 
 
-def handle_fsm_response(event, game_mode, game_state,
+def handle_fsm_response(event, game_state,
         users, userdbs_connection):
     '''
     This function handles the events enqueued by the fsm,
@@ -125,7 +125,7 @@ def handle_fsm_response(event, game_mode, game_state,
             for user in users:
                 if user.name == victor_name:
                     send_packet(userdbs_connection,
-                        ["ADD_WIN", user.name, game_mode])
+                        ["ADD_WIN", user.name, "lms"])
                     userdbs_connection.recv(128)
                     # Also reward the victor with ingame cash
                     send_packet(userdbs_connection, ["REWARD_USER",
@@ -133,7 +133,7 @@ def handle_fsm_response(event, game_mode, game_state,
                     userdbs_connection.recv(128)
                 else:
                     send_packet(userdbs_connection,
-                        ["ADD_LOOSE", user.name, game_mode])
+                        ["ADD_LOOSE", user.name, "lms"])
                     userdbs_connection.recv(128)
         # Signal the end of the match and the victor
         propagate_message(Event(MESSAGE, users=users,
@@ -162,10 +162,9 @@ def handle_fsm_response(event, game_mode, game_state,
         propagate_message(event)
 
 
-def match_server(game_mode, users, options={}):
+def match_server(users, options={}):
     """
     The actual game runs here and is propagated to the users
-    game_mode: string
     users: list of user instances
     options: A dictionary with options, not used yet
     """
@@ -194,13 +193,9 @@ def match_server(game_mode, users, options={}):
         jumon_sets.append(user.active_set)
 
     game_state = None
-    if game_mode == "lms":
-        logger.info("Game Mode: LastManStanding\n")
-        game_state = build_last_man_standing_game_state(player_chain,
-                jumon_sets, userdbs_connection, _queue, options)
-    else:
-        logger.info("Game Mode: Unknown...Terminating\n")
-        return
+    logger.info("Game Mode: LastManStanding\n")
+    game_state = build_last_man_standing_game_state(player_chain, jumon_sets,
+        userdbs_connection, _queue, options)
 
     # Set seconds per turn to be the timeout for all user connections
     for user in users:
@@ -208,7 +203,7 @@ def match_server(game_mode, users, options={}):
 
     # Signal the clients that the match starts
     propagate_message(Event(MESSAGE, users=users,
-        tokens=['MATCH_START', game_mode]))
+        tokens=['MATCH_START', "lms"]))
 
     # Propagate the name of all jumons and their ids
     add_jumon_itevent = Event(MESSAGE,
@@ -250,7 +245,7 @@ def match_server(game_mode, users, options={}):
             event = Event(NOEVENT)
 
         # Handle the events which are not handeld by the gamestate itself
-        handle_fsm_response(event, game_mode, game_state,
+        handle_fsm_response(event, game_state,
             users, userdbs_connection)
         # Run the rule building state machiene
         game_state.run(event)
