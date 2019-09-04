@@ -3,7 +3,7 @@ import socket
 import logging
 from functools import reduce
 from threading import Thread
-from Akuga.MatchServer.MatchServer import match_server
+from Akuga.MatchServer.MatchServer import (match_server, check_set_for_lms)
 from Akuga.User import user_from_database_response
 from Akuga.GameServer.GlobalDefinitions import (
     SERVER_ADDRESS,
@@ -17,25 +17,8 @@ from Akuga.GameServer.Network import (
 from Akuga.JumonSet import (
     is_subset,
     insert_name,
-    jumon_set_from_list,
-    get_set_size)
+    jumon_set_from_list)
 from time import sleep
-
-
-def check_set_for_lms(active_set):
-    """
-    Checks if a set is legal for the lms mode
-    Every jumon is allowed exactly three times
-    and a set must contain exactly seven jumons
-    """
-    if get_set_size(active_set) != 7:
-        print('Invalid set size')
-        return False
-    for record in active_set.items():
-        if record[1] > 3:
-            print('To many jumons of the same type')
-            return False
-    return True
 
 
 def handle_client(connection, client_address,

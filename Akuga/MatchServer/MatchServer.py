@@ -24,12 +24,28 @@ from Akuga.EventDefinitions import (
     MATCH_IS_DRAWN,
     PLAYER_HAS_WON,
     MESSAGE)
-from Akuga.JumonSet import serialize_set_to_list
+from Akuga.JumonSet import (serialize_set_to_list, get_set_size)
 from Akuga.User import User
 
 
 running = True
 logger = logging.getLogger(__name__)
+
+
+def check_set_for_lms(active_set):
+    """
+    Checks if a set is legal for the lms mode
+    Every jumon is allowed exactly three times
+    and a set must contain exactly seven jumons
+    """
+    if get_set_size(active_set) != 7:
+        print('Invalid set size')
+        return False
+    for record in active_set.items():
+        if record[1] > 3:
+            print('To many jumons of the same type')
+            return False
+    return True
 
 
 def build_last_man_standing_game_state(player_chain, jumon_sets,
