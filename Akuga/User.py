@@ -25,7 +25,10 @@ class User:
     play Akuga
     name: name of the player
     pass_hash: the md5 hash of its password
+    credits: The credits a user owns
+    set[0,1,2]: The three jumon sets a user once created
     connection: the connection socket
+    client_address: The address of the connection
     """
     def __init__(self, name, pass_hash, credits, collection, set0, set1, set2,
             connection, client_address):
