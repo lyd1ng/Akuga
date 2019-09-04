@@ -1,6 +1,6 @@
 import random
 import time
-from Akuga.AkugaGameModi import GlobalDefinitions
+from Akuga.AkugaGameModi.LastManStanding import GlobalDefinitions
 import Akuga.AkugaGameModi.Meeple
 from Akuga.AkugaGameModi.PathFinder import find_path
 from Akuga.AkugaGameModi.Position import Position
