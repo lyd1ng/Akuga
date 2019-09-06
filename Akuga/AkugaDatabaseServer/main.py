@@ -5,7 +5,7 @@ from Akuga.AkugaDatabaseServer.GlobalDefinitions import (
     SERVER_ADDRESS,
     MAX_ACTIVE_CONNECTIONS,
     DATABASE_PATH)
-from Akuga.AkugaDatabaseServer.Network import (send_packet)
+from Akuga.AkugaDatabaseServer.Network import StreamSocketCommunicator
 from Akuga.AkugaDatabaseServer.UserStats import (
     add_win,
     add_loose,
@@ -29,23 +29,13 @@ from queue import Queue
 from threading import Thread
 
 
-def handle_client(connection, client_address, cmd_queue):
+def handle_client(communicator, client_address, cmd_queue):
     while True:
         try:
-            packet = connection.recv(512).decode('utf-8')
+            tokens = communicator.recv_packet()
         except socket.error:
             logger.info("Socket Error")
             break
-        if not packet:
-            logger.info("Socket Close")
-            break
-        if packet.find('END\n') < 0:
-            """
-            Simply discard the packet if there is not terminator found
-            """
-            continue
-        # Split the packet into tokens with the ":" delim
-        tokens = packet.split(":")
         if tokens[0] == "ADD_WIN" and len(tokens) >= 3:
             """
             If the command token is ADD_WIN and enough tokens are received
@@ -53,7 +43,7 @@ def handle_client(connection, client_address, cmd_queue):
             """
             username = tokens[1]
             game_mode = tokens[2]
-            add_win(connection, client_address, cmd_queue, username, game_mode)
+            add_win(communicator, client_address, cmd_queue, username, game_mode)
         if tokens[0] == "ADD_LOOSE" and len(tokens) >= 3:
             """
             If the command token is ADD_LOOSE and enough tokens are received
@@ -61,14 +51,14 @@ def handle_client(connection, client_address, cmd_queue):
             """
             username = tokens[1]
             game_mode = tokens[2]
-            add_loose(connection, client_address, cmd_queue, username, game_mode)
+            add_loose(communicator, client_address, cmd_queue, username, game_mode)
         if tokens[0] == "REWARD_USER" and len(tokens) >= 3:
             """
             Increment the credits by the integer value of tokens[2]
             """
             username = tokens[1]
             credits = tokens[2]
-            reward_user(connection, client_address, cmd_queue, username, credits)
+            reward_user(communicator, client_address, cmd_queue, username, credits)
         if tokens[0] == "GET_STATS" and len(tokens) >= 5:
             """
             If the command token is get_stats and enough tokens are received
@@ -83,20 +73,20 @@ def handle_client(connection, client_address, cmd_queue):
             to_year = tokens[6]
             to_month = tokens[7]
             to_day = tokens[8]
-            get_stats(connection, client_address, cmd_queue, username, game_mode,
+            get_stats(communicator, client_address, cmd_queue, username, game_mode,
                      from_year, from_month, from_day,
                      to_year, to_month, to_day)
         if tokens[0] == "GET_USER_BY_NAME" and len(tokens) >= 1:
             """
             Query for the whole user datastructure
             """
-            get_user_by_name(connection, client_address, cmd_queue, tokens[1])
+            get_user_by_name(communicator, client_address, cmd_queue, tokens[1])
         if tokens[0] == "CHECK_USERNAME" and len(tokens) >= 1:
             """
             If the command token is check_username and enough tokens
             are received check if the username in token[1] is free or not
             """
-            check_username(connection, client_address, cmd_queue, tokens[1])
+            check_username(communicator, client_address, cmd_queue, tokens[1])
         if tokens[0] == "REGISTER_USER" and len(tokens) >= 5:
             """
             If the command token is register_user and enough tokens are
@@ -105,67 +95,67 @@ def handle_client(connection, client_address, cmd_queue):
             try:
                 credits = int(tokens[3])
             except ValueError:
-                send_packet(connection,
+                communicator.send_packet(
                     ["ERROR", "Credits token cant be converted to integer"])
                 logger.info("Received invalid credit token from: " +
                     str(client_address))
                 continue
 
-            register_user(connection, client_address, cmd_queue,
+            register_user(communicator, client_address, cmd_queue,
                 tokens[1], tokens[2], credits, tokens[4])
         if tokens[0] == "CHECK_CREDENTIALS" and len(tokens) >= 3:
             """
             If the command token is check_credentials and enough tokens
             are received, check the credentials
             """
-            check_user_credentials(connection, client_address, cmd_queue,
+            check_user_credentials(communicator, client_address, cmd_queue,
                 tokens[1], tokens[2])
         if tokens[0] == "GET_JUMON_COLLECTION" and len(tokens) > 2:
             """
             Get all jumons a user owns
             """
-            get_jumon_collection(connection, client_address,
+            get_jumon_collection(communicator, client_address,
                 cmd_queue, tokens[1])
         if tokens[0] == "GET_JUMON_SET" and len(tokens) >= 3:
             """
             Get all jumon of the specified set of a user
             """
-            get_jumon_set(connection, client_address, cmd_queue,
+            get_jumon_set(communicator, client_address, cmd_queue,
                 tokens[1], tokens[2])
         if tokens[0] == "SET_JUMON_SET" and len(tokens) >= 4:
             """
             Set all jumon of the specified set of a user
             """
-            set_jumon_set(connection, client_address, cmd_queue,
+            set_jumon_set(communicator, client_address, cmd_queue,
                 tokens[1], tokens[2], tokens[3])
         if tokens[0] == "UPDATE_USER" and len(tokens) >= 8:
             """
             Update all fields except the name and the pass_hash of a user
             """
-            update_user(connection, client_address, cmd_queue,
+            update_user(communicator, client_address, cmd_queue,
                 tokens[1], tokens[2], tokens[3], tokens[4],
                 tokens[5], tokens[6])
         if tokens[0] == "GET_JUMON_NAMES" and len(tokens) >= 1:
             """
             Get the names of of all jumons
             """
-            get_all_jumon_names(connection, client_address, cmd_queue)
+            get_all_jumon_names(communicator, client_address, cmd_queue)
         if tokens[0] == "GET_BASIC_JUMON_NAMES" and len(tokens) >= 1:
             """
             Get the name of all basic jumons
             """
-            get_all_basic_jumon_names(connection, client_address, cmd_queue)
+            get_all_basic_jumon_names(communicator, client_address, cmd_queue)
         if tokens[0] == "GET_ALL_VANILLA_JUMON_STATS" and len(tokens) >= 1:
             """
             Get the name of all vanilla jumons
             """
-            get_all_vanilla_jumon_stats(connection, client_address, cmd_queue)
+            get_all_vanilla_jumon_stats(communicator, client_address, cmd_queue)
         if tokens[0] == "GET_JUMON_BY_NAME" and len(tokens) >= 2:
             """
             Get the whole datastructure of a jumon and send it to
             the client
             """
-            get_jumon_by_name(connection, client_address, cmd_queue,
+            get_jumon_by_name(communicator, client_address, cmd_queue,
                 tokens[1])
 
 
@@ -184,20 +174,14 @@ def sql_worker(cmd_queue):
     init_database(database, cursor)
 
     while True:
-        connection, client_address, command = cmd_queue.get()
+        communicator, client_address, command = cmd_queue.get()
         if command is None:
             logger.info("Received None command. SQL Worker shutting down\n")
             break
-        """
-        The result can be turned into a string and send to the client
-        as the ast.literal_eval function can be used to turn this string
-        into a list safely.
-        """
         result = ""
         try:
             cursor.execute(command[0], command[1])
-            result = str(cursor.fetchall())
-            print("Result :" + result)
+            result = ['SUCESS', cursor.fetchall()]
         except sqlite3.Error as e:
             logger.info("SQL Error from: " + str(client_address))
             # Set the sql error msg as the result so its send to the user
@@ -205,15 +189,15 @@ def sql_worker(cmd_queue):
             # If the command wasnt a locale command send the result
             # to the client using the ERROR command token
             # to signal the error
-            if connection is not None:
+            if communicator is not None:
                 logger.info("Send result to: " + str(client_address))
-                send_packet(connection, ["ERROR", result])
+                communicator.send_packet(["ERROR", result])
         # If the command wasnt a locale command send the result
         # to the client using the SUCCESS command token
         # to signal the success
-        if connection is not None:
+        if communicator is not None:
             logger.info("Send result to: " + str(client_address))
-            send_packet(connection, ["SUCCESS", result])
+            communicator.send_packet(["SUCCESS", result])
         cmd_queue.task_done()
         # Commit to the database to make the changes visible
         database.commit()
@@ -274,9 +258,11 @@ if __name__ == "__main__":
         except socket.error:
             logger.info("Error while accepting connections")
             break
+        # Create a communicator for the client
+        communicator = StreamSocketCommunicator(connection, 1024)
         # And handle them using the handle_client function
         handle_client_thread = Thread(target=handle_client,
-            args=(connection, client_address, cmd_queue))
+            args=(communicator, client_address, cmd_queue))
         handle_client_thread.daemon = True
         handle_client_thread.start()
     logger.info("Leave the server loop")
