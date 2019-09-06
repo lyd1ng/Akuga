@@ -128,7 +128,7 @@ def handle_client(communicator, client_address, cmd_queue):
             """
             set_jumon_set(communicator, client_address, cmd_queue,
                 tokens[1], tokens[2], tokens[3])
-        if tokens[0] == "UPDATE_USER" and len(tokens) >= 8:
+        if tokens[0] == "UPDATE_USER" and len(tokens) >= 7:
             """
             Update all fields except the name and the pass_hash of a user
             """
