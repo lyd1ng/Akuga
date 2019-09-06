@@ -181,7 +181,8 @@ def sql_worker(cmd_queue):
         result = ""
         try:
             cursor.execute(command[0], command[1])
-            result = ['SUCESS', cursor.fetchall()]
+            result = cursor.fetchall()
+            result.insert(0, 'SUCCESS')
         except sqlite3.Error as e:
             logger.info("SQL Error from: " + str(client_address))
             # Set the sql error msg as the result so its send to the user
@@ -197,7 +198,7 @@ def sql_worker(cmd_queue):
         # to signal the success
         if communicator is not None:
             logger.info("Send result to: " + str(client_address))
-            communicator.send_packet(["SUCCESS", result])
+            communicator.send_packet(result)
         cmd_queue.task_done()
         # Commit to the database to make the changes visible
         database.commit()
