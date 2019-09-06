@@ -78,11 +78,9 @@ def handle_client(communicator, client_address,
                     # itself so their have to be removed
                     jumon_collection = list(map(lambda x: x[0],
                         response[1]))
-                    # Now the list only stores jumon names to it can be
-                    # reduced to a string of ',' delimited jumon names
-                    # to register the user
-                    jumon_collection = reduce(lambda x, y: x + ',' + y,
-                        jumon_collection, '')
+                    # Now the list only stores jumon names so it can be
+                    # converted to a proper jumonset
+                    jumon_collection = jumon_set_from_list(jumon_collection)
                     dbs_communicator.send_packet(["REGISTER_USER",
                         username, pass_hash, START_CREDITS, jumon_collection])
                     response = dbs_communicator.recv_packet()
@@ -254,7 +252,7 @@ def handle_client(communicator, client_address,
                         ['ERROR', 'One of the parameters where malformed'])
                     continue
                 # Convert the string into a list of jumon names
-                jumon_set = jumon_set_from_list(tokens[2].split(','))
+                jumon_set = tokens[2]
                 # Check if all jumons in the set are part of the collection
                 if is_subset(jumon_set, user.collection) is False:
                     logger.info('Invalid Set')
@@ -266,15 +264,15 @@ def handle_client(communicator, client_address,
                 # And update the user datastructure in the database
                 dbs_communicator.send_packet(['UPDATE_USER', user.name,
                     int(user.credits), user.get_collection_serialized(),
-                    user.get_set_serialized(0),
-                    user.get_set_serialized(1),
-                    user.get_set_serialized(2)])
+                    user.sets[0],
+                    user.sets[1],
+                    user.sets[2]])
                 response = dbs_communicator.recv_packet()
                 if response[0] == 'ERROR':
                     logger.info('Unexpected error: ' + response[1])
                     communicator.send_packet(['ERROR', response[1]])
                     continue
-                communicator.send_packet(['SUCCESS'])
+                communicator.send_packet(['SUCCESS', 'Set Jumonset'])
             if tokens[0] == 'BUY_JUMON' and len(tokens) >= 2:
                 """
                 If the jumon is not already owned, the jumons exists and the
