@@ -108,7 +108,6 @@ def handle_client(communicator, client_address,
                 dbs_communicator.send_packet(
                     ["CHECK_CREDENTIALS", username, pass_hash])
                 response = dbs_communicator.recv_packet()
-                print(response)
                 if response[0] == 'ERROR':
                     # An error occured, pass the error to the client
                     logger.info("Database error: " + response[1])
@@ -336,7 +335,6 @@ def handle_client(communicator, client_address,
             is temporaly unavailable. It is used by a handle_match
             thread now.
             """
-            print('From the GameServer: Currently in play')
             sleep(1)
             pass
     # Close the dbs connection
