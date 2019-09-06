@@ -11,10 +11,7 @@ from Akuga.GameServer.GlobalDefinitions import (
     USER_DBS_ADDRESS,
     MAX_ACTIVE_CONNECTIONS,
     START_CREDITS)
-from Akuga.GameServer.Network import (
-    recv_packet,
-    send_packet,
-    receive_dbs_response)
+from Akuga.GameServer.Network import StreamSocketCommunicator
 from Akuga.JumonSet import (
     is_subset,
     insert_name,
@@ -22,15 +19,16 @@ from Akuga.JumonSet import (
 from time import sleep
 
 
-def handle_client(connection, client_address,
+def handle_client(communicator, client_address,
                   lms_queue, active_users):
     """
     Handles the connection of a user (the connection as well as the
     client address is stored within the user instance)
     """
     # Connect to the user database
-    userdb_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    userdb_connection.connect(USER_DBS_ADDRESS)
+    dbs_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    dbs_connection.connect(USER_DBS_ADDRESS)
+    dbs_communicator = StreamSocketCommunicator(dbs_connection, 1024)
     print("In handle client thread!")
     # The instance of the user: None until a succsefully log in
     user = None
@@ -42,7 +40,7 @@ def handle_client(connection, client_address,
             """
             # Receive a packet
             try:
-                tokens = recv_packet(connection, 512)
+                tokens = communicator.recv_packet()
             except socket.error:
                 # This triggers when the user disconects
                 connection.close()
@@ -60,28 +58,23 @@ def handle_client(connection, client_address,
                 username = tokens[1]
                 pass_hash = tokens[2]
                 # Check if the username is free
-                send_packet(userdb_connection, ["CHECK_USERNAME", username])
-                response, error = receive_dbs_response(userdb_connection,
-                        512)
-                if response is None:
-                    """
-                    If the response is None an error occured
-                    (like inalid chars) send the error msg to the  client
-                    """
-                    logger.info("Database error: " + error)
-                    send_packet(connection, ["ERROR", error])
+                dbs_communicator.send_packet(["CHECK_USERNAME", username])
+                response = dbs_communicator.recv_packet()
+                if response[0] == 'ERROR':
+                    # If an error occured propagate it to the client
+                    logger.info("Database error: " + response[1])
+                    communicator.send_packet(["ERROR", response[1]])
                 elif len(response) > 0:
                     logger.info("User: " + username + " already exists")
-                    send_packet(connection, ["ERROR",
+                    communicator.send_packet(["ERROR",
                         "User: " + username + " already exists"])
                 else:
                     # If the username is free the user can be registeres
                     # Therefor the names of all basic jumons have to be
                     # requested as the user will start with all basic jumons
                     # in pers collection
-                    send_packet(userdb_connection, ["GET_BASIC_JUMON_NAMES"])
-                    response, error = receive_dbs_response(userdb_connection,
-                        512)
+                    communicator.send_packet(["GET_BASIC_JUMON_NAMES"])
+                    response = dbs_communicator.recv_packet()
                     # The python list stores tuples instead of the strings
                     # itself so their have to be removed
                     jumon_collection = list(map(lambda x: x[0],
@@ -91,37 +84,35 @@ def handle_client(connection, client_address,
                     # to register the user
                     jumon_collection = reduce(lambda x, y: x + ',' + y,
                         jumon_collection, '')
-                    send_packet(userdb_connection, ["REGISTER_USER",
+                    dbs_communicator.send_packet(["REGISTER_USER",
                         username, pass_hash, START_CREDITS, jumon_collection])
-                    response, error = receive_dbs_response(userdb_connection,
-                        512)
-                    if response is None:
+                    response = dbs_communicator.recv_packet()
+                    if response[0] == 'ERROR':
                         """
                         If the response is None an error occured, send the
                         error msg to the client
                         """
-                        logger.info("Database error: " + error)
-                        send_packet(connection, ["ERROR", error])
+                        logger.info("Database error: " + response[1])
+                        communicator.send_packet(["ERROR", response[1]])
                     else:
                         """
                         If no error occured send success
                         """
                         logger.info("Register user: " + username)
-                        send_packet(connection, ["SUCCESS", "registered"])
+                        communicator.send_packet(["SUCCESS", "registered"])
             if tokens[0] == "LOG_IN" and len(tokens) >= 3:
                 """
                 Check the credentials of the user
                 """
                 username = tokens[1]
                 pass_hash = tokens[2]
-                send_packet(userdb_connection,
+                dbs_communicator.send_packet(
                     ["CHECK_CREDENTIALS", username, pass_hash])
-                response, error = receive_dbs_response(userdb_connection,
-                    512)
-                if response is None:
+                response = dbs_communicator.recv_packet()
+                if response[0] == 'ERROR':
                     # An error occured, pass the error to the client
-                    logger.info("Database error: " + error)
-                    send_packet(connection, ["ERROR", error])
+                    logger.info("Database error: " + response[1])
+                    communicator.send_packet(["ERROR", response[1]])
                 if len(response) > 0 and username not in\
                         list(map(lambda x: x.name, active_users)):
                     """
@@ -132,24 +123,22 @@ def handle_client(connection, client_address,
                     multiple times
                     """
                     # Request the whole user structure
-                    send_packet(userdb_connection,
+                    dbs_communicator.send_packet(
                         ['GET_USER_BY_NAME', username])
-                    response, error = receive_dbs_response(userdb_connection,
-                        512)
-                    if response is None:
-                        logger.info("Unexpected error occured: " + error)
-                        send_packet(connection, ["ERROR", error])
+                    response = dbs_communicator.recv_packet()
+                    if response[0] == 'ERROR':
+                        logger.info("Unexpected error occured: " + response[1])
+                        communicator.send_packet(["ERROR", response[1]])
                         continue
                     # Create a user instance from the database response
                     user = user_from_database_response(response, connection,
                         client_address)
-                    print(str(user))
 
                     # Add the user to the active users so per cant
                     # log in a second time
                     active_users.append(user)
                     logger.info("Logging in: " + username)
-                    send_packet(connection, ["SUCCESS", "logged_in"])
+                    communicator.send_packet(["SUCCESS", "logged_in"])
                 elif len(response) > 0:
                     """
                     If the user is in the active user list check if per is in
@@ -168,7 +157,7 @@ def handle_client(connection, client_address,
                         tmp_user.connection = connection
                         tmp_user.client_address = client_address
                         logger.info("Logging in: " + username)
-                        send_packet(connection, ["SUCCESS", "logged_in"])
+                        communicator.send_packet(["SUCCESS", "logged_in"])
                         return
         elif user.in_play is False:
             """
@@ -176,7 +165,7 @@ def handle_client(connection, client_address,
             """
             # Receive a packet as long as the user is not in play
             try:
-                tokens = recv_packet(connection, 512)
+                tokens = communicator.recv_packet()
             except socket.error:
                 connection.close()
                 # This triggers if the user disconnects
@@ -186,7 +175,6 @@ def handle_client(connection, client_address,
                 if user is not None:
                     active_users.remove(user)
                 break
-            print("logged in and not in play")
             if tokens[0] == 'ENQUEUE_FOR_MATCH' and len(tokens) >= 3:
                 """
                 Enqueue the user in the queue for the specified game mode
@@ -196,8 +184,8 @@ def handle_client(connection, client_address,
                     if active_set_index < 0 or active_set_index > 2:
                         raise ValueError
                 except ValueError:
-                    send_packet(connection, ['ERROR',
-                        'One of the parameters where malformed'])
+                    communicator.send_packet(
+                        ['ERROR', 'One of the parameters where malformed'])
                     logger.info('One of the parameters where malformed')
                     logger.info('Received from: ' + str(client_address))
                     continue
@@ -207,33 +195,33 @@ def handle_client(connection, client_address,
                 if tokens[1] == 'lms':
                     logger.info("Enqueue " + user.name + "for lms")
                     if not check_set_for_lms(user.active_set):
-                        send_packet(user.connection, ['ERROR', 'Illegal set'])
+                        communicator.send_packet(['ERROR', 'Illegal set'])
                         continue
                     # At this point in the code the set is proofed to be valid
                     lms_queue.put(user)
-                    send_packet(connection, ["SUCCESS", "enqueued", "lms"])
+                    communicator.send_packet(["SUCCESS", "enqueued", "lms"])
                 else:
                     logger.info("Invalid game mode: " + tokens[1])
-                    send_packet(connection, ["ERROR", "Invalid game mode: "
+                    communicator.send_packet(["ERROR", "Invalid game mode: "
                         + tokens[1]])
             if tokens[0] == "GET_JUMON_NAMES" and len(tokens) >= 1:
                 """
                 Query the database for all jumons and forward the result
                 """
-                send_packet(userdb_connection, ["GET_JUMON_NAMES"])
-                response, error = receive_dbs_response(userdb_connection, 1024)
-                if response is None:
-                    send_packet(connection, ['ERROR', error])
-                    logger.info("An unexpected error occured: " + error)
+                dbs_communicator.send_packet(["GET_JUMON_NAMES"])
+                response = dbs_communicator.recv_packet()
+                if response[0] == 'ERROR':
+                    communicator.send_packet(['ERROR', response[1]])
+                    logger.info("An unexpected error occured: " + response[1])
                     continue
-                send_packet(connection, ['SUCCESS', str(response)])
+                communicator.send_packet(['SUCCESS', str(response)])
             if tokens[0] == "GET_JUMON_COLLECTION" and len(tokens) >= 1:
                 """
                 Convert the collection of the user into a ',' seperated
                 string and send it to the client
                 """
                 collection = user.get_collection_serialized()
-                send_packet(connection, ['SUCCESS', collection])
+                communicator.send_packet(['SUCCESS', collection])
             if tokens[0] == "GET_JUMON_SET" and len(tokens) >= 1:
                 """
                 Convert the requestes jumon set of the user into a ','
@@ -246,11 +234,11 @@ def handle_client(connection, client_address,
                 except ValueError:
                     logger.info("One of the parameter where malformed")
                     logger.info("Received from: " + str(client_address))
-                    send_packet(connection, ['ERROR',
-                        'One of the paramter where malformed'])
+                    communicator.send_packet(
+                        ['ERROR', 'One of the paramter where malformed'])
                     continue
                 jumon_set = user.get_set_serialized(index)
-                send_packet(connection, ['SUCCESS', jumon_set])
+                communicator.send_packet(['SUCCESS', jumon_set])
             if tokens[0] == "SET_JUMON_SET" and len(tokens) >= 2:
                 """
                 Receive a jumon set and its index. Update the specified set
@@ -263,8 +251,8 @@ def handle_client(connection, client_address,
                 except ValueError:
                     logger.info("One of the parameter where malformed")
                     logger.info("Received from: " + str(client_address))
-                    send_packet(connection, ['ERROR',
-                        'One of the parameters where malformed'])
+                    communicator.send_packet(
+                        ['ERROR', 'One of the parameters where malformed'])
                     continue
                 # Convert the string into a list of jumon names
                 jumon_set = jumon_set_from_list(tokens[2].split(','))
@@ -272,22 +260,22 @@ def handle_client(connection, client_address,
                 if is_subset(jumon_set, user.collection) is False:
                     logger.info('Invalid Set')
                     logger.info('Received from: ' + str(client_address))
-                    send_packet(connection, ['ERROR', 'Invalid Set'])
+                    communicator.send_packet(['ERROR', 'Invalid Set'])
                     continue
                 # Set the jumon set
                 user.sets[index] = jumon_set
                 # And update the user datastructure in the database
-                send_packet(userdb_connection, ['UPDATE_USER', user.name,
+                dbs_communicator.send_packet(['UPDATE_USER', user.name,
                     int(user.credits), user.get_collection_serialized(),
                     user.get_set_serialized(0),
                     user.get_set_serialized(1),
                     user.get_set_serialized(2)])
-                response, error = receive_dbs_response(userdb_connection, 512)
-                if response is None:
-                    logger.info('Unexpected error: ' + error)
-                    send_packet(connection, ['ERROR', error])
+                response = dbs_communicator.recv_packet()
+                if response[0] == 'ERROR':
+                    logger.info('Unexpected error: ' + response[1])
+                    communicator.send_packet(['ERROR', response[1]])
                     continue
-                send_packet(connection, ['SUCCESS'])
+                communicator.send_packet(['SUCCESS'])
             if tokens[0] == 'BUY_JUMON' and len(tokens) >= 2:
                 """
                 If the jumon is not already owned, the jumons exists and the
@@ -296,20 +284,20 @@ def handle_client(connection, client_address,
                 and update the user in the database
                 """
                 # First, get the jumons datastructure
-                send_packet(userdb_connection,
-                    ['GET_JUMON_BY_NAME', tokens[1]])
-                response, error = receive_dbs_response(userdb_connection, 512)
+                dbs_communicator.send_packet(['GET_JUMON_BY_NAME', tokens[1]])
+                response = dbs_communicator.recv_packet()
                 # If the length of the response tuple is zero
                 # the queried jumon doesnt exists
-                if response is None or len(response) == 0:
-                    logger.info("An error occured getting the jumon." + error)
+                if response[0] == 'ERROR' or len(response) == 0:
+                    logger.info("An error occured getting the jumon." + response[1])
                     logger.info("Received from: " + str(client_address))
                     # If the error message is '' the length
                     # of the tuple was zero cause no jumon was found
                     # State this clearly in the error message
+                    error = response[1]
                     if error == '':
                         error = 'Invalid jumonname'
-                    send_packet(connection, ['ERROR', error])
+                    communicator.send_packet(connection, ['ERROR', error])
                     continue
                 # The price is the 6th element of the tuple so at index 5
                 jumon_tuple = response[0]
@@ -318,7 +306,7 @@ def handle_client(connection, client_address,
                     """
                     The user cant affort to buy the jumon
                     """
-                    send_packet(connection, ['ERROR', 'To expansive'])
+                    communicator.send_packet(['ERROR', 'To expansive'])
                     continue
                 # At this point in the code the jumon exists
                 # and the user can afford to buy the jumon
@@ -328,19 +316,19 @@ def handle_client(connection, client_address,
                 user.credits -= jumon_price
                 # Add the jumon to the jumon set
                 insert_name(user.collection, jumon_name)
-                send_packet(userdb_connection, ['UPDATE_USER',
+                dbs_communicator.send_packet(['UPDATE_USER',
                     user.name,
                     int(user.credits),
                     user.get_collection_serialized(),
                     user.get_set_serialized(0),
                     user.get_set_serialized(1),
                     user.get_set_serialized(2)])
-                response, error = receive_dbs_response(userdb_connection, 512)
+                response = dbs_communicator.recv_packet()
                 if response is None:
-                    logger.info('An unexpected error occured: ' + error)
-                    send_packet(connection, ['ERROR', error])
+                    logger.info('An unexpected error occured: ' + response[1])
+                    communicator.send_packet(['ERROR', response[1]])
                     continue
-                send_packet(connection, ['SUCCESS', 'Bought jumon'])
+                communicator.send_packet(['SUCCESS', 'Bought jumon'])
         else:
             """
             If the user is logged in but currently playing a match,
@@ -351,6 +339,8 @@ def handle_client(connection, client_address,
             print('From the GameServer: Currently in play')
             sleep(1)
             pass
+    # Close the dbs connection
+    dbs_connection.close()
 
 
 def handle_lms_queue(lms_queue):
@@ -407,8 +397,10 @@ if __name__ == '__main__':
         except socket.error:
             logger.info("Error while accepting connections")
             break
+        # Create a stream socket communicator for the client
+        communicator = StreamSocketCommunicator(connection, 1024)
         handle_client_thread = Thread(target=handle_client,
-            args=(connection, client_address, lms_queue, active_users))
+            args=(communicator, client_address, lms_queue, active_users))
         handle_client_thread.start()
     logger.info("Leave server loop")
     logger.info("Close the server socket, terminate programm")
