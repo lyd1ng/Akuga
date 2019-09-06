@@ -13,6 +13,7 @@ class StreamSocketCommunicator:
         '''
         self.connection = connection
         self.nbytes = nbytes
+        self.cached_string = ''
 
     def receive_line(self):
         '''
@@ -48,10 +49,10 @@ class StreamSocketCommunicator:
             packet = loads(json_line)
         except JSONDecodeError:
             self.send_packet(['ERROR', 'Invalid Packet'])
-            return None
+            return ['ERROR', 'Invalid Packet']
         if type(packet) is not list:
             self.send_packet(['ERROR', 'Invalid Packet'])
-            return None
+            return ['ERROR', 'Invalid Packet']
         return packet
 
     def send_packet(self, tokens):
