@@ -63,7 +63,7 @@ def handle_client(communicator, client_address,
                     # If an error occured propagate it to the client
                     logger.info("Database error: " + response[1])
                     communicator.send_packet(["ERROR", response[1]])
-                elif len(response) > 0:
+                elif len(response[1]) > 0:
                     logger.info("User: " + username + " already exists")
                     communicator.send_packet(["ERROR",
                         "User: " + username + " already exists"])
@@ -72,12 +72,12 @@ def handle_client(communicator, client_address,
                     # Therefor the names of all basic jumons have to be
                     # requested as the user will start with all basic jumons
                     # in pers collection
-                    communicator.send_packet(["GET_BASIC_JUMON_NAMES"])
+                    dbs_communicator.send_packet(["GET_BASIC_JUMON_NAMES"])
                     response = dbs_communicator.recv_packet()
                     # The python list stores tuples instead of the strings
                     # itself so their have to be removed
                     jumon_collection = list(map(lambda x: x[0],
-                        response))
+                        response[1]))
                     # Now the list only stores jumon names to it can be
                     # reduced to a string of ',' delimited jumon names
                     # to register the user
@@ -108,11 +108,12 @@ def handle_client(communicator, client_address,
                 dbs_communicator.send_packet(
                     ["CHECK_CREDENTIALS", username, pass_hash])
                 response = dbs_communicator.recv_packet()
+                print(response)
                 if response[0] == 'ERROR':
                     # An error occured, pass the error to the client
                     logger.info("Database error: " + response[1])
                     communicator.send_packet(["ERROR", response[1]])
-                if len(response) > 0 and username not in\
+                if len(response[1]) > 0 and username not in\
                         list(map(lambda x: x.name, active_users)):
                     """
                     If there is a result (there should never be one than more
@@ -130,7 +131,7 @@ def handle_client(communicator, client_address,
                         communicator.send_packet(["ERROR", response[1]])
                         continue
                     # Create a user instance from the database response
-                    user = user_from_database_response(response, connection,
+                    user = user_from_database_response(response[1], connection,
                         client_address)
 
                     # Add the user to the active users so per cant
@@ -138,7 +139,7 @@ def handle_client(communicator, client_address,
                     active_users.append(user)
                     logger.info("Logging in: " + username)
                     communicator.send_packet(["SUCCESS", "logged_in"])
-                elif len(response) > 0:
+                elif len(response[1]) > 0:
                     """
                     If the user is in the active user list check if per is in
                     play. If the user is in play per disconnected and this
@@ -213,7 +214,7 @@ def handle_client(communicator, client_address,
                     communicator.send_packet(['ERROR', response[1]])
                     logger.info("An unexpected error occured: " + response[1])
                     continue
-                communicator.send_packet(['SUCCESS', str(response)])
+                communicator.send_packet(['SUCCESS', response[1]])
             if tokens[0] == "GET_JUMON_COLLECTION" and len(tokens) >= 1:
                 """
                 Convert the collection of the user into a ',' seperated
@@ -287,7 +288,7 @@ def handle_client(communicator, client_address,
                 response = dbs_communicator.recv_packet()
                 # If the length of the response tuple is zero
                 # the queried jumon doesnt exists
-                if response[0] == 'ERROR' or len(response) == 0:
+                if response[0] == 'ERROR' or len(response[1]) == 0:
                     logger.info("An error occured getting the jumon." + response[1])
                     logger.info("Received from: " + str(client_address))
                     # If the error message is '' the length
@@ -299,7 +300,7 @@ def handle_client(communicator, client_address,
                     communicator.send_packet(connection, ['ERROR', error])
                     continue
                 # The price is the 6th element of the tuple so at index 5
-                jumon_tuple = response[0]
+                jumon_tuple = response[1]
                 jumon_price = jumon_tuple[5]
                 if user.credits < jumon_price:
                     """
@@ -323,7 +324,7 @@ def handle_client(communicator, client_address,
                     user.get_set_serialized(1),
                     user.get_set_serialized(2)])
                 response = dbs_communicator.recv_packet()
-                if response is None:
+                if response[0] == 'ERROR':
                     logger.info('An unexpected error occured: ' + response[1])
                     communicator.send_packet(['ERROR', response[1]])
                     continue
