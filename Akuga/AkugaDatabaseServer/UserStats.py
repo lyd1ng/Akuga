@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from Akuga.AkugaDatabaseServer.Network import (send_packet)
 
 
 # Get the logger
@@ -29,7 +28,7 @@ def init_dayly_entry(cmd_queue, username, game_mode):
     cmd_queue.put((None, "local", command))
 
 
-def add_win(connection, client_address, cmd_queue, username, game_mode):
+def add_win(communicator, client_address, cmd_queue, username, game_mode):
     """
     Adds a win for the user username in the game mode game_mode
     the date is always today to avoid tempering data in the past
@@ -42,11 +41,11 @@ def add_win(connection, client_address, cmd_queue, username, game_mode):
     command = ('''update userstats set wins=wins+1 where name=? and mode=?\
         and date=? ''', (username, game_mode, today()))
     logger.info('Enqueue command from: ' + str(client_address))
-    cmd_queue.put((connection, client_address, command))
+    cmd_queue.put((communicator, client_address, command))
     return 0
 
 
-def add_loose(connection, client_address, cmd_queue, username, game_mode):
+def add_loose(communicator, client_address, cmd_queue, username, game_mode):
     """
     Adds a loose for the user username in the game mode game_mode
     the date is always today to avoid tempering data in the past
@@ -59,11 +58,11 @@ def add_loose(connection, client_address, cmd_queue, username, game_mode):
     command = ('''update userstats set looses=looses+1 where name=? and mode=?\
         and date=? ''', (username, game_mode, today()))
     logger.info('Enqueue command from: ' + str(client_address))
-    cmd_queue.put((connection, client_address, command))
+    cmd_queue.put((communicator, client_address, command))
     return 0
 
 
-def get_stats(connection, client_address, cmd_queue, username, game_mode,
+def get_stats(communicator, client_address, cmd_queue, username, game_mode,
         from_year, from_month, from_day, to_year, to_month, to_day):
     """
     Queries all the user stats of a user in a certain game mode between and
@@ -77,5 +76,5 @@ def get_stats(connection, client_address, cmd_queue, username, game_mode,
         mode=? and date >= ? and date <= ?''',
         (username, game_mode, from_date, to_date))
     logger.info('Enqueue command from: ' + str(client_address))
-    cmd_queue.put((connection, client_address, command))
+    cmd_queue.put((communicator, client_address, command))
     return 0
