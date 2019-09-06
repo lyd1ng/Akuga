@@ -7,15 +7,12 @@ def user_from_database_response(response, connection, client_address):
     Create and return a user instance created from
     a databse response
     """
-    # The response is a list containing a tuple
-    # The tuple contains the data of the user
-    resp = response[0]
     # Convert the coma delimited strings into jumon sets
-    collection = jumon_set_from_list(resp[3].split(','))
-    set1 = jumon_set_from_list(resp[4].split(','))
-    set2 = jumon_set_from_list(resp[5].split(','))
-    set3 = jumon_set_from_list(resp[6].split(','))
-    return User(resp[0], resp[1], resp[2], collection,
+    collection = jumon_set_from_list(response[3].split(','))
+    set1 = jumon_set_from_list(response[4].split(','))
+    set2 = jumon_set_from_list(response[5].split(','))
+    set3 = jumon_set_from_list(response[6].split(','))
+    return User(response[0], response[1], response[2], collection,
         set1, set2, set3, connection, client_address)
 
 
