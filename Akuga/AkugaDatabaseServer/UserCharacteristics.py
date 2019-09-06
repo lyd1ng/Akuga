@@ -33,9 +33,9 @@ def register_user(communicator, client_address, cmd_queue,
         'pass_hash': pass_hash,
         'credits': credits,
         'collection': collection,
-        'set1': "",
-        'set2': "",
-        'set3': ""})
+        'set1': "{}",
+        'set2': "{}",
+        'set3': "{}"})
     logger.info('Enqueue command from: ' + str(client_address))
     cmd_queue.put((communicator, client_address, command))
 
