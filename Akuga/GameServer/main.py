@@ -50,7 +50,6 @@ def handle_client(communicator, client_address,
                 if user is not None:
                     active_users.remove(user)
                 break
-
             if tokens[0] == "REGISTER_USER" and len(tokens) >= 3:
                 """
                 Register the user with pers username and pass hash
