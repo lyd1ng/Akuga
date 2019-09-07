@@ -1,7 +1,6 @@
 import queue
 import socket
 import logging
-from functools import reduce
 from threading import Thread
 from Akuga.AkugaGameModi.LastManStanding.Match import (
     match_server, check_set_for_lms)
@@ -63,24 +62,21 @@ def handle_client(communicator, client_address,
                     # If an error occured propagate it to the client
                     logger.info("Database error: " + response[1])
                     communicator.send_packet(["ERROR", response[1]])
-                elif len(response[1]) > 0:
+                elif len(response) > 1:
+                    # If data except the status code is send the user
+                    # already exists
                     logger.info("User: " + username + " already exists")
                     communicator.send_packet(["ERROR",
                         "User: " + username + " already exists"])
                 else:
-                    # If the username is free the user can be registeres
+                    # If the username is free the user can be registered
                     # Therefor the names of all basic jumons have to be
                     # requested as the user will start with all basic jumons
                     # in pers collection
                     dbs_communicator.send_packet(["GET_BASIC_JUMON_NAMES"])
                     response = dbs_communicator.recv_packet()
-                    # The python list stores tuples instead of the strings
-                    # itself so their have to be removed
-                    jumon_collection = list(map(lambda x: x[0],
-                        response[1]))
-                    # Now the list only stores jumon names so it can be
-                    # converted to a proper jumonset
-                    jumon_collection = jumon_set_from_list(jumon_collection)
+                    jumon_collection = jumon_set_from_list(response[1])
+                    print(jumon_collection)
                     dbs_communicator.send_packet(["REGISTER_USER",
                         username, pass_hash, START_CREDITS, jumon_collection])
                     response = dbs_communicator.recv_packet()
@@ -110,15 +106,14 @@ def handle_client(communicator, client_address,
                     # An error occured, pass the error to the client
                     logger.info("Database error: " + response[1])
                     communicator.send_packet(["ERROR", response[1]])
-                if len(response[1]) > 0 and username not in\
+                if len(response) > 1 and username not in\
                         list(map(lambda x: x.name, active_users)):
-                    """
-                    If there is a result (there should never be one than more
-                    but keep > 0 for safety) the credentials are correct.
-                    Also the username doesnt have to occure in the list
-                    of usernames already logged in so users cant log in
-                    multiple times
-                    """
+                    # If there is a result send except the status code
+                    # the credentials are correct.
+                    # Also the username doesnt have to occure in the list
+                    # of usernames already logged in so users cant log in
+                    # multiple times
+                    #
                     # Request the whole user structure
                     dbs_communicator.send_packet(
                         ['GET_USER_BY_NAME', username])
@@ -136,7 +131,11 @@ def handle_client(communicator, client_address,
                     active_users.append(user)
                     logger.info("Logging in: " + username)
                     communicator.send_packet(["SUCCESS", "logged_in"])
-                elif len(response[1]) > 0:
+                elif len(response) > 1:
+                    # If there is a result send except the status code
+                    # but the user is already logged in this is a reconnect
+                    # attempt so just update the connection and the
+                    # client address of the reconnected user
                     """
                     If the user is in the active user list check if per is in
                     play. If the user is in play per disconnected and this
@@ -217,8 +216,8 @@ def handle_client(communicator, client_address,
                 Convert the collection of the user into a ',' seperated
                 string and send it to the client
                 """
-                collection = user.get_collection_serialized()
-                communicator.send_packet(['SUCCESS', collection])
+                print(user.collection)
+                communicator.send_packet(['SUCCESS', user.collection])
             if tokens[0] == "GET_JUMON_SET" and len(tokens) >= 1:
                 """
                 Convert the requestes jumon set of the user into a ','
@@ -234,8 +233,7 @@ def handle_client(communicator, client_address,
                     communicator.send_packet(
                         ['ERROR', 'One of the paramter where malformed'])
                     continue
-                jumon_set = user.get_set_serialized(index)
-                communicator.send_packet(['SUCCESS', jumon_set])
+                communicator.send_packet(['SUCCESS', user.sets[index]])
             if tokens[0] == "SET_JUMON_SET" and len(tokens) >= 2:
                 """
                 Receive a jumon set and its index. Update the specified set
@@ -263,7 +261,7 @@ def handle_client(communicator, client_address,
                 user.sets[index] = jumon_set
                 # And update the user datastructure in the database
                 dbs_communicator.send_packet(['UPDATE_USER', user.name,
-                    int(user.credits), user.get_collection_serialized(),
+                    int(user.credits), user.collection,
                     user.sets[0],
                     user.sets[1],
                     user.sets[2]])
@@ -316,10 +314,10 @@ def handle_client(communicator, client_address,
                 dbs_communicator.send_packet(['UPDATE_USER',
                     user.name,
                     int(user.credits),
-                    user.get_collection_serialized(),
-                    user.get_set_serialized(0),
-                    user.get_set_serialized(1),
-                    user.get_set_serialized(2)])
+                    user.collection,
+                    user.sets[0],
+                    user.sets[1],
+                    user.sets[2]])
                 response = dbs_communicator.recv_packet()
                 if response[0] == 'ERROR':
                     logger.info('An unexpected error occured: ' + response[1])
