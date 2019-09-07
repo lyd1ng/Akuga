@@ -1,6 +1,6 @@
 import threading
 from json import loads
-from Akuga.JumonSet import jumon_set_from_list, serialize_set
+from Akuga.JumonSet import serialize_set
 
 
 def user_from_database_response(response, connection, client_address):
