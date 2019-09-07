@@ -1,4 +1,5 @@
 import threading
+from json import loads
 from Akuga.JumonSet import jumon_set_from_list, serialize_set
 
 
@@ -8,10 +9,10 @@ def user_from_database_response(response, connection, client_address):
     a databse response
     """
     # Convert the coma delimited strings into jumon sets
-    collection = jumon_set_from_list(response[3].split(','))
-    set1 = jumon_set_from_list(response[4].split(','))
-    set2 = jumon_set_from_list(response[5].split(','))
-    set3 = jumon_set_from_list(response[6].split(','))
+    collection = loads(response[3])
+    set1 = loads(response[4])
+    set2 = loads(response[5])
+    set3 = loads(response[6])
     return User(response[0], response[1], response[2], collection,
         set1, set2, set3, connection, client_address)
 
