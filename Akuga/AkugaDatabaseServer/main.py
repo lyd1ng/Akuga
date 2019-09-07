@@ -27,6 +27,7 @@ from Akuga.AkugaDatabaseServer.Jumons import (
     get_jumon_by_name)
 from queue import Queue
 from threading import Thread
+from json import dumps
 
 
 def handle_client(communicator, client_address, cmd_queue):
@@ -102,7 +103,7 @@ def handle_client(communicator, client_address, cmd_queue):
                 continue
 
             register_user(communicator, client_address, cmd_queue,
-                tokens[1], tokens[2], credits, tokens[4])
+                tokens[1], tokens[2], credits, dumps(tokens[4]))
         if tokens[0] == "CHECK_CREDENTIALS" and len(tokens) >= 3:
             """
             If the command token is check_credentials and enough tokens
@@ -127,14 +128,14 @@ def handle_client(communicator, client_address, cmd_queue):
             Set all jumon of the specified set of a user
             """
             set_jumon_set(communicator, client_address, cmd_queue,
-                tokens[1], tokens[2], tokens[3])
+                tokens[1], tokens[2], dumps(tokens[3]))
         if tokens[0] == "UPDATE_USER" and len(tokens) >= 7:
             """
             Update all fields except the name and the pass_hash of a user
             """
             update_user(communicator, client_address, cmd_queue,
-                tokens[1], tokens[2], tokens[3], tokens[4],
-                tokens[5], tokens[6])
+                tokens[1], tokens[2], dumps(tokens[3]), dumps(tokens[4]),
+                dumps(tokens[5]), dumps(tokens[6]))
         if tokens[0] == "GET_JUMON_NAMES" and len(tokens) >= 1:
             """
             Get the names of of all jumons
