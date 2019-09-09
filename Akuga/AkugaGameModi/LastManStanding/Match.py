@@ -18,10 +18,10 @@ from Akuga.AkugaGameModi.LastManStanding.GlobalDefinitions import (
     CREDITS_PER_WIN)
 from Akuga.AkugaGameModi.NetworkProtocoll import (
     SocketClosed,
+    StreamSocketCommunicator,
     callback_recv_packet,
     handle_match_connection,
     send_gamestate_to_client,
-    send_packet,
     propagate_message)
 from Akuga.EventDefinitions import (
     Event,
@@ -56,7 +56,7 @@ def check_set_for_lms(active_set):
 
 
 def build_last_man_standing_game_state(player_chain, jumon_sets,
-        userdbs_connection, _queue, options={}):
+        userdbs_communicator, _queue, options={}):
     # Build the arena
     arena = create_arena(BOARD_WIDTH,
                         BOARD_HEIGHT,
@@ -67,7 +67,7 @@ def build_last_man_standing_game_state(player_chain, jumon_sets,
     jumon_id = 0
     jumon_pick_pool = []
     # Initialise the JUMON_NAME_CONSTRUCTOR_DICT
-    MeepleDict.initialise_jumon_name_constructor_dict(userdbs_connection)
+    MeepleDict.initialise_jumon_name_constructor_dict(userdbs_communicator)
     # Go through all jumon sets
     for jumon_set in jumon_sets:
         # Convert the set to a list for easier processing
@@ -108,7 +108,7 @@ def build_last_man_standing_game_state(player_chain, jumon_sets,
 
 
 def handle_fsm_response(event, game_state,
-        users, userdbs_connection):
+        users, userdbs_communicator):
     '''
     This function handles the events enqueued by the fsm,
     e.g. TURN_END, PLAYER_HAS_WON, MESSAGE...
@@ -124,17 +124,17 @@ def handle_fsm_response(event, game_state,
             # Go through all users and add a win or a loose
             for user in users:
                 if user.name == victor_name:
-                    send_packet(userdbs_connection,
-                        ["ADD_WIN", user.name, "lms"])
-                    userdbs_connection.recv(128)
+                    userdbs_communicator.send_packet(
+                        ['ADD_WIN', user.name, 'lms'])
+                    userdbs_communicator.recv_packet()
                     # Also reward the victor with ingame cash
-                    send_packet(userdbs_connection, ["REWARD_USER",
-                        user.name, CREDITS_PER_WIN])
-                    userdbs_connection.recv(128)
+                    userdbs_communicator.send_packet(
+                        ["REWARD_USER", user.name, CREDITS_PER_WIN])
+                    userdbs_communicator.recv_packet()
                 else:
-                    send_packet(userdbs_connection,
-                        ["ADD_LOOSE", user.name, "lms"])
-                    userdbs_connection.recv(128)
+                    userdbs_communicator.send_packet(
+                        ['ADD_LOOSE', user.name, 'lms'])
+                    userdbs_communicator.recv_packet()
         # Signal the end of the match and the victor
         propagate_message(Event(MESSAGE, users=users,
             tokens=['MATCH_RESULT', victor_name]))
@@ -186,6 +186,8 @@ def match_server(users, options={}):
     except ConnectionRefusedError:
         logger.info('Cant connect to akuga database server')
         return -1
+    # Create a database communicator from the socket
+    userdbs_communicator = StreamSocketCommunicator(userdbs_connection, 512)
 
     # Get the active jumon sets as a list
     jumon_sets = []
@@ -195,11 +197,11 @@ def match_server(users, options={}):
     game_state = None
     logger.info("Game Mode: LastManStanding\n")
     game_state = build_last_man_standing_game_state(player_chain, jumon_sets,
-        userdbs_connection, _queue, options)
+        userdbs_communicator, _queue, options)
 
     # Set seconds per turn to be the timeout for all user connections
     for user in users:
-        user.connection.settimeout(SECONDS_PER_TURN)
+        user.communicator.connection.settimeout(SECONDS_PER_TURN)
 
     # Signal the clients that the match starts
     propagate_message(Event(MESSAGE, users=users,
@@ -219,7 +221,7 @@ def match_server(users, options={}):
 
     while running:
         """
-        Receive and handle packets from the current player only
+        Receive and handle packets from the current player only.
         The handle_match_connection will throw the right event which will
         be handeld by the gamestate statemachiene.
         Only some events have to be handeld here.
@@ -231,7 +233,7 @@ def match_server(users, options={}):
             # Receive packets only from the current user
             user = game_state.player_chain.get_current_player().user
             try:
-                callback_recv_packet(user.connection, 512,
+                callback_recv_packet(user.communicator,
                     handle_match_connection,
                     [_queue, game_state.jumons_in_play])
             except SocketClosed:
@@ -246,15 +248,16 @@ def match_server(users, options={}):
 
         # Handle the events which are not handeld by the gamestate itself
         handle_fsm_response(event, game_state,
-            users, userdbs_connection)
+            users, userdbs_communicator)
         # Run the rule building state machiene
         game_state.run(event)
         game_state.arena.print_out()
+    print('running is false?!')
 
     # Looks weird, but this code block is inside the MatchServer function
     # but outside the matches main loop
     # Set all players to be out of play
-    # This will activate the game server connection
+    # This will activate the game server communicator
     for user in users:
         user.in_play = False
 
@@ -283,17 +286,19 @@ if __name__ == "__main__":
     users[0].active_set = set1
     users[1].active_set = set2
 
-    try:
-        print('Waiting for players')
-        users[0].connection, _ = server_socket.accept()
-        print('Found player1')
-        users[1].connection, _ = server_socket.accept()
-        print('Found player2')
-        print('Start match!')
-        match_process = Process(target=match_server,
-            args=('lms', users))
-        match_process.start()
-    except socket.error:
-        for connection in users.values():
-            connection.close()
+    print('Waiting for players')
+    connection1, _ = server_socket.accept()
+    users[0].communicator = StreamSocketCommunicator(
+        connection1, 512)
+    print('Found player1')
+    connection2, _ = server_socket.accept()
+    users[1].communicator = StreamSocketCommunicator(
+        connection2, 512)
+    print('Found player2')
+    print('Start match!')
+    # match_process = Process(target=match_server,
+    #     args=(users,))
+    # match_process.start()
+    # match_process.join()
+    match_server(users)
     server_socket.close()
