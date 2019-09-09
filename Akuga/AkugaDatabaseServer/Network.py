@@ -63,6 +63,21 @@ class StreamSocketCommunicator:
         json_dump = json_dump.encode('utf-8')
         self.connection.send(json_dump)
 
+    def close(self):
+        """
+        Closes the socket the communicator uses and cleares the chache
+        """
+        self.connection.close()
+        self.cached_string = ''
+
+    def refresh(self, new_connection):
+        """
+        Overwrite the connection the communicator uses
+        but leaves the cache untouched. This will be
+        used if a user reconnects while playing
+        """
+        self.connection = new_connection
+
 
 # TODO: Doesnt work yet, authentication fails...
 def send_password_to_client_email(username, password, user_email):
