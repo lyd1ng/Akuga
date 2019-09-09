@@ -150,6 +150,7 @@ def handle_client(communicator, client_address,
                         # This is a reconnect atttempt so refresh the
                         # communicator and the client address of the user
                         # instance
+                        tmp_user.communicator.close()
                         tmp_user.communicator.refresh(communicator)
                         tmp_user.client_address = client_address
                         logger.info("Logging in: " + username)
