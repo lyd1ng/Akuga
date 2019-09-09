@@ -1,8 +1,16 @@
 """
 This module contains all functions related to network communication
 """
-import socket
 from json import (loads, dumps, JSONDecodeError)
+
+
+class SocketClosed(Exception):
+    '''
+    The socket module does not raise an error, if the foreign site
+    closes the socket unexpectatly, the SocketClosed error will be raised
+    to signal this situation
+    '''
+    pass
 
 
 class StreamSocketCommunicator:
@@ -29,7 +37,7 @@ class StreamSocketCommunicator:
             if not new_data:
                 # If the connection was closed by the foreign host
                 # raise a socket error
-                raise socket.error
+                raise SocketClosed()
             self.cached_string += new_data
             # Again look for the newline character
             index = self.cached_string.find('\n')
