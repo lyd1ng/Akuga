@@ -3,7 +3,7 @@ from json import loads
 from Akuga.JumonSet import serialize_set
 
 
-def user_from_database_response(response, connection, client_address):
+def user_from_database_response(response, communicator, client_address):
     """
     Create and return a user instance created from
     a databse response
@@ -14,7 +14,7 @@ def user_from_database_response(response, connection, client_address):
     set2 = loads(response[5])
     set3 = loads(response[6])
     return User(response[0], response[1], response[2], collection,
-        set1, set2, set3, connection, client_address)
+        set1, set2, set3, communicator, client_address)
 
 
 class User:
@@ -25,11 +25,11 @@ class User:
     pass_hash: the md5 hash of its password
     credits: The credits a user owns
     set[0,1,2]: The three jumon sets a user once created
-    connection: the connection socket
-    client_address: The address of the connection
+    communicator : the StreamSocketCommunicator the user communicates with
+    client_address: The address of the communicator
     """
     def __init__(self, name, pass_hash, credits, collection, set0, set1, set2,
-            connection, client_address):
+            communicator, client_address):
         self.name = name
         self.pass_hash = pass_hash
         # The credits of the user
@@ -38,7 +38,7 @@ class User:
         self.collection = collection
         # The three sets
         self.sets = [set0, set1, set2]
-        self.connection = connection
+        self.communicator = communicator
         self.client_address = client_address
         # The active set (will always set before the user is enqueued)
         self.active_set = 0
