@@ -5,15 +5,12 @@ to a list of jumon instances
 """
 from Akuga.AkugaGameModi.Meeple import Jumon
 from Akuga.AkugaGameModi.GlobalDefinitions import USER_DBS_ADDRESS
-from Akuga.AkugaGameModi.NetworkProtocoll import (
-    send_packet,
-    receive_dbs_response)
 
 
 JUMON_NAME_CONSTRUCTOR_DICT = {}
 
 
-def get_vanilla_jumons_from_dbs(userdbs_connection):
+def get_vanilla_jumons_from_dbs(userdbs_communicator):
     '''
     Read all vanilla jumons from the dbs and create a constructor
     dict out of them. This constructor dict will store preconfigured
@@ -21,15 +18,16 @@ def get_vanilla_jumons_from_dbs(userdbs_connection):
     with different ids.
     '''
     # Get the stats of all vanilla jumons
-    send_packet(userdbs_connection, ['GET_ALL_VANILLA_JUMON_STATS'])
-    response, error = receive_dbs_response(userdbs_connection, 1024)
-    if response is None:
-        return ('ERROR', error)
+    userdbs_communicator.send_packet(['GET_ALL_VANILLA_JUMON_STATS'])
+    response = userdbs_communicator.recv_packet()
+    if response[0] == 'ERROR':
+        # If an error is returned just pass it through
+        return response
     # The response is a list of tuples containing all stats of a jumon in
     # the form: name, color, attack, defense, movement
     # Now add a preconfigured constructor call under the name of the jumon
     jumon_dictionary = {}
-    for jumon in response:
+    for jumon in response[1:]:
         # Here a lambda inside a lambda has to be used as the jumon
         # variable has to be bound, otherwise all lambdaterms would
         # refer to the same (the last) jumon in the response list
@@ -39,13 +37,13 @@ def get_vanilla_jumons_from_dbs(userdbs_connection):
     return jumon_dictionary
 
 
-def initialise_jumon_name_constructor_dict(userdbs_connection):
+def initialise_jumon_name_constructor_dict(userdbs_communicator):
     '''
     Initialise the JUMON_NAME_CONSTRUCTOR_DICT
     '''
     global JUMON_NAME_CONSTRUCTOR_DICT
     JUMON_NAME_CONSTRUCTOR_DICT = get_vanilla_jumons_from_dbs(
-        userdbs_connection)
+        userdbs_communicator)
     # Here all the special jumons have to be added manually
     pass
 
