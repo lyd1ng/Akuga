@@ -123,8 +123,8 @@ def handle_client(communicator, client_address,
                         communicator.send_packet(["ERROR", response[1]])
                         continue
                     # Create a user instance from the database response
-                    user = user_from_database_response(response[1], connection,
-                        client_address)
+                    user = user_from_database_response(response[1],
+                        communicator, client_address)
 
                     # Add the user to the active users so per cant
                     # log in a second time
@@ -134,7 +134,7 @@ def handle_client(communicator, client_address,
                 elif len(response) > 1:
                     # If there is a result send except the status code
                     # but the user is already logged in this is a reconnect
-                    # attempt so just update the connection and the
+                    # attempt so just refresh the communicator and the
                     # client address of the reconnected user
                     """
                     If the user is in the active user list check if per is in
@@ -147,10 +147,10 @@ def handle_client(communicator, client_address,
                         index(username)
                     tmp_user = active_users[user_index]
                     if tmp_user.in_play is True:
-                        # This is a reconnect atttempt so update the
-                        # connection and the client address of the user
+                        # This is a reconnect atttempt so refresh the
+                        # communicator and the client address of the user
                         # instance
-                        tmp_user.connection = connection
+                        tmp_user.communicator.refresh(communicator)
                         tmp_user.client_address = client_address
                         logger.info("Logging in: " + username)
                         communicator.send_packet(["SUCCESS", "logged_in"])
@@ -163,7 +163,7 @@ def handle_client(communicator, client_address,
             try:
                 tokens = communicator.recv_packet()
             except socket.error:
-                connection.close()
+                communicator.close()
                 # This triggers if the user disconnects
                 logger.info("Connection error")
                 # If the user was logged which means part of the
@@ -292,7 +292,7 @@ def handle_client(communicator, client_address,
                     error = response[1]
                     if error == '':
                         error = 'Invalid jumonname'
-                    communicator.send_packet(connection, ['ERROR', error])
+                    communicator.send_packet(['ERROR', error])
                     continue
                 # The price is the 6th element of the tuple so at index 5
                 jumon_tuple = response[1]
@@ -327,14 +327,14 @@ def handle_client(communicator, client_address,
         else:
             """
             If the user is logged in but currently playing a match,
-            do nothing, not even receive a packet as the connection
+            do nothing, not even receive a packet as the communicator
             is temporaly unavailable. It is used by a handle_match
             thread now.
             """
             sleep(1)
             pass
-    # Close the dbs connection
-    dbs_connection.close()
+    # Close the dbs communicator
+    dbs_communicator.close()
 
 
 def handle_lms_queue(lms_queue):
