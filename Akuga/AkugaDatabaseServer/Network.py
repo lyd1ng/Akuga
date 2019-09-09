@@ -70,13 +70,13 @@ class StreamSocketCommunicator:
         self.connection.close()
         self.cached_string = ''
 
-    def refresh(self, new_connection):
+    def refresh(self, new_communicator):
         """
         Overwrite the connection the communicator uses
         but leaves the cache untouched. This will be
         used if a user reconnects while playing
         """
-        self.connection = new_connection
+        self.connection = new_communicator.connection
 
 
 # TODO: Doesnt work yet, authentication fails...
