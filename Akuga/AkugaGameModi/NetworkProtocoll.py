@@ -94,7 +94,7 @@ class StreamSocketCommunicator:
         self.connection = new_communicator.connection
 
 
-def callback_recv_packet(communicator, nbytes, callback, args):
+def callback_recv_packet(communicator, callback, args):
     """
     Receive a packet and invoke the callback function with the
     received packet and args as arguments
