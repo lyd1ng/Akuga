@@ -5,7 +5,9 @@ from Akuga.AkugaDatabaseServer.GlobalDefinitions import (
     SERVER_ADDRESS,
     MAX_ACTIVE_CONNECTIONS,
     DATABASE_PATH)
-from Akuga.AkugaDatabaseServer.Network import StreamSocketCommunicator
+from Akuga.AkugaDatabaseServer.Network import (
+    StreamSocketCommunicator,
+    SocketClosed)
 from Akuga.AkugaDatabaseServer.UserStats import (
     add_win,
     add_loose,
@@ -35,7 +37,12 @@ def handle_client(communicator, client_address, cmd_queue):
         try:
             tokens = communicator.recv_packet()
         except socket.error:
-            logger.info("Socket Error")
+            logger.info("Socket Error: " + str(client_address))
+            communicator.close()
+            break
+        except SocketClosed:
+            logger.info("Socket Closed: " + str(client_address))
+            communicator.close()
             break
         if tokens[0] == "ADD_WIN" and len(tokens) >= 3:
             """
